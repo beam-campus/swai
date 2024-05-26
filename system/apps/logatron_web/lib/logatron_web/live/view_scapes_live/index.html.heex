@@ -1,0 +1,29 @@
+<div class="flex flex-col w-screen py-1 font-mono justify-left">
+  <div class="flex flex-col items-center justify-center lt-view-gradient">
+    <div>
+      <h1 class="text-2xl font-normal text-white font-brand">
+        Emulated Consumers
+      </h1>
+    </div>
+    <div class="px-2 m-1 text-sm text-white font-brand font-regular">
+      <%= 
+        scapes_count = Enum.count(@scapes)
+        edges_count = Enum.count(@edges)
+        if edges_count > 0 do 
+      %>
+      <%= edges_count %> producer(s) connected
+      <% else %>
+        awaiting producers...
+      <% end %>
+    </div>
+  </div>
+  <.live_component 
+    module={LogatronWeb.BreadCrumbsBar} 
+    id={@current_user.id <> "_scapes_breadcrumbs"} 
+  />
+  <.live_component
+    module={LogatronWeb.ViewScapesLive.ScapesGrid}
+    id={@current_user.id <> "_scapes_grid"}
+    scapes={@scapes}
+  />
+</div>

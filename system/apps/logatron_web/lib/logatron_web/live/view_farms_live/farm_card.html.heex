@@ -1,0 +1,32 @@
+<div class="flex flex-col px-4 py-3 font-mono text-sm border rounded border-color-red">
+  <div class="py-0">
+    <div 
+      class="flex flex-row items-center justify-between" 
+      phx-click="show_field"
+      phx-value-id={"#{@state.id}"}
+      >
+      <h2 class="font-bold text-ltTurquoise-light"><%= @state.farm.name %></h2>
+      <%!-- <%= if @state.status=="died" do %>        
+        <p class="text-red-600">
+          <%= @state.status %>
+        </p>
+      <% else %>
+        <p class="text-green-600 blink">
+          <%= @state.status %>
+        </p>
+      <% end %>
+    </div>
+    <div class="flex flex-row justify-between px-1 text-white">
+      <%= if @state.life.gender == "male" do %>
+        <p class="text-ltOlive-light"><%= @state.life.gender %></p>
+      <% else %>
+        <p class="text-ltOrange-light"><%= @state.life.gender %></p>
+      <% end %>
+      <p>Age:  <%= @state.vitals.age  %></p>
+      <p>Health: <%= @state.vitals.health %></p>
+    </div>
+    <div class="flex justify-center px-1 text-sm text-white">
+      <p>(<%= @state.pos.x %>, <%= @state.pos.y %>)</p> --%>
+    </div> 
+  </div>
+</div>

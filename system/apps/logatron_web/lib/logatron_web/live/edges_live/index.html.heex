@@ -1,0 +1,48 @@
+<div class="flex flex-col w-screen h-full py-1 font-mono justify-left">
+  <div class="flex flex-col items-center justify-center lt-view-gradient">
+    <div>
+      <h1 class="text-2xl font-normal text-white font-brand">
+        Connected Producers
+      </h1>
+    </div>
+    <div class="px-2 m-1 text-sm text-white font-brand font-regular">
+      <%= edges_count = Enum.count(@edges)
+        if edges_count > 0 do %>
+        <%= edges_count %> producer(s) connected
+      <% else %>
+        awaiting producers...
+      <% end %>
+    </div>
+  </div>
+      <.live_component 
+    module={LogatronWeb.BreadCrumbsBar} 
+    id={"_farms_breadcrumbs"} 
+  />
+
+
+  <div class="px-8">
+
+      <div class="flex flex-col w-full gap-2 text-sm text-white" >
+     
+        <%= for edge <- @edges |> Enum.sort_by(&(&1.continent), :asc) do %>
+            <%
+            td = DateTime.diff(@now, DateTime.from_naive!(edge.connected_since, "Etc/UTC"), :second)           
+            %>
+            <div class="flex flex-row w-full py-0">
+            <%= if edge.is_container do %>
+              <img class="px-2 w-[35px]" src="/images/docker-mark-blue.svg" alt="logatron logo" />
+            <% else %>
+              <img class="px-2 w-[35px]" src="/images/root.svg" alt="logatron logo" />
+            <% end %>
+            <%!-- <div class="w-1/2"> <%= display_edge_id  %> </div> --%>
+            <div class="w-1/2"> <%= edge.reverse %> </div>            
+            <div class="w-1/4"> <%= edge.city %>, <%= edge.country %>  </div>            
+            <%!-- <div class="w-1/4 px-2"> <%= edge.continent %>  </div> --%>
+            <div class="w-1/4"> since <%= edge.connected_since %>  </div>
+        </div>
+      <% end %>
+
+    </div>
+  
+  </div>
+</div>

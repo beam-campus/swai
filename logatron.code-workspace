@@ -1,0 +1,20 @@
+{
+	"folders": [
+		{
+			"path": "../logatron_deploy"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../swarm-wars"
+		}
+	],
+	"settings": {
+		"elixirLS.trace.server": "verbose",
+		"elixirLS.projectDir": "system",
+		"cSpell.words": [
+			"Logatron"
+		]
+	}
+}

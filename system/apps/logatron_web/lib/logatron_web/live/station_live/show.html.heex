@@ -1,0 +1,32 @@
+<.header>
+  Station <%= @station.id %>
+  <:subtitle>This is a station record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/stations/edit/#{@station}"} phx-click={JS.push_focus()}>
+      <.button>Edit station</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Add"><%= @station.add %></:item>
+  <:item title="Name"><%= @station.name %></:item>
+  <:item title="Description"><%= @station.description %></:item>
+  <:item title="User"><%= @station.user_id %></:item>
+  <:item title="Location"><%= @station.location_id %></:item>
+  <:item title="Gateway"><%= @station.gateway %></:item>
+  <:item title="Nature"><%= @station.nature %></:item>
+</.list>
+
+<.back navigate={~p"/stations"}>Back to stations</.back>
+
+<.modal :if={@live_action == :edit} id="station-modal" show on_cancel={JS.patch(~p"/stations/#{@station}")}>
+  <.live_component
+    module={LogatronWeb.StationLive.FormComponent}
+    id={@station.id}
+    title={@page_title}
+    action={@live_action}
+    station={@station}
+    patch={~p"/stations/edit/#{@station}"}
+  />
+</.modal>

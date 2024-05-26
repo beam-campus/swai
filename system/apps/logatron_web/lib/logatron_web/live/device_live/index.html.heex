@@ -1,0 +1,69 @@
+<div class="lt-view-gradient flex items-center justify-center">
+  
+  <div class="block items-center justify-center">
+    <h1 class="text-white font-brand font-normal text-2xl" >
+      Mangage Your Devices
+    </h1>
+  </div>
+</div>
+
+<.header class="lt-table-header">  
+  <:actions>
+    <.link patch={~p"/devices/new"}>
+      <.button class="lt-table-header-button">Add Device</.button>
+    </.link>
+  </:actions>
+</.header>
+
+
+<.table
+  class="lt-table"
+  id="devices"
+  rows={@streams.devices}
+  row_click={fn {_id, device} -> JS.navigate(~p"/devices/#{device}") end}
+>
+
+  <:col :let={{_id, device}} label="Name"><%= device.name %></:col>
+  <:col :let={{_id, device}} label="Description"><%= device.description %></:col>
+  <:col :let={{_id, device}} label="User"><%= device.user_id %></:col>
+  <:col :let={{_id, device}} label="Brand"><%= device.brand %></:col>
+  <:col :let={{_id, device}} label="Model"><%= device.model %></:col>
+  <:col :let={{_id, device}} label="Arcitecture"><%= device.arcitecture %></:col>
+  <:col :let={{_id, device}} label="Cpu"><%= device.cpu %></:col>
+  <:col :let={{_id, device}} label="Clock mhz"><%= device.clock_mhz %></:col>
+  <:col :let={{_id, device}} label="Cores"><%= device.cores %></:col>
+  <:col :let={{_id, device}} label="Ram gb"><%= device.ram_gb %></:col>
+  <:col :let={{_id, device}} label="Storage gb"><%= device.storage_gb %></:col>
+  <:col :let={{_id, device}} label="Network"><%= device.network %></:col>
+  <:col :let={{_id, device}} label="Mac address"><%= device.mac_address %></:col>
+  <:col :let={{_id, device}} label="Root os"><%= device.root_os %></:col>
+  <:col :let={{_id, device}} label="Os version"><%= device.os_version %></:col>
+  <:col :let={{_id, device}} label="Runtime"><%= device.runtime %></:col>
+  <:col :let={{_id, device}} label="Runtime version"><%= device.runtime_version %></:col>
+
+  <:action :let={{_id, device}}>
+    <div class="sr-only">
+      <.link navigate={~p"/devices/#{device}"}>Show</.link>
+    </div>
+    <.link patch={~p"/devices/#{device}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, device}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: device.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="device-modal" show on_cancel={JS.patch(~p"/devices")}>
+  <.live_component
+    module={LogatronWeb.DeviceLive.FormComponent}
+    id={@device.id || :new}
+    title={@page_title}
+    action={@live_action}
+    device={@device}
+    patch={~p"/devices"}
+  />
+</.modal>
