@@ -1,0 +1,47 @@
+<.header>
+  Animal <%= @animal.id %>
+  <:subtitle>This is a animal record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/born_2_dieds/#{@animal}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit animal</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Id"><%= @animal.id %></:item>
+  <:item title="Edge"><%= @animal.edge_id %></:item>
+  <:item title="Scape"><%= @animal.scape_id %></:item>
+  <:item title="Region"><%= @animal.region_id %></:item>
+  <:item title="Farm"><%= @animal.farm_id %></:item>
+  <:item title="Field"><%= @animal.field_id %></:item>
+  <:item title="Status"><%= @animal.status %></:item>
+  <:item title="Life"><%= @animal.life_id %></:item>
+  <:item title="Name"><%= @animal.name %></:item>
+  <:item title="Gender"><%= @animal.gender %></:item>
+  <:item title="Father"><%= @animal.father_id %></:item>
+  <:item title="Mother"><%= @animal.mother_id %></:item>
+  <:item title="Birth date"><%= @animal.birth_date %></:item>
+  <:item title="Age"><%= @animal.age %></:item>
+  <:item title="Weight"><%= @animal.weight %></:item>
+  <:item title="Energy"><%= @animal.energy %></:item>
+  <:item title="Is pregnant"><%= @animal.is_pregnant %></:item>
+  <:item title="Heath"><%= @animal.heath %></:item>
+  <:item title="Health"><%= @animal.health %></:item>
+  <:item title="X"><%= @animal.x %></:item>
+  <:item title="Y"><%= @animal.y %></:item>
+  <:item title="Z"><%= @animal.z %></:item>
+</.list>
+
+<.back navigate={~p"/born_2_dieds"}>Back to born_2_dieds</.back>
+
+<.modal :if={@live_action == :edit} id="animal-modal" show on_cancel={JS.patch(~p"/born_2_dieds/#{@animal}")}>
+  <.live_component
+    module={SwaiWeb.AnimalLive.FormComponent}
+    id={@animal.id}
+    title={@page_title}
+    action={@live_action}
+    animal={@animal}
+    patch={~p"/born_2_dieds/#{@animal}"}
+  />
+</.modal>

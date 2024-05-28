@@ -1,4 +1,4 @@
-defmodule Logatron.Umbrella.MixProject do
+defmodule Swai.Umbrella.MixProject do
   use Mix.Project
 
   def project do
@@ -22,7 +22,7 @@ defmodule Logatron.Umbrella.MixProject do
           logger: :permanent,
           observer: :permanent,
           os_mon: :permanent,
-          logatron_web: :permanent
+          swai_web: :permanent
         ]
       ],
       for_edge: [
@@ -33,7 +33,7 @@ defmodule Logatron.Umbrella.MixProject do
           logger: :permanent,
           observer: :permanent,
           os_mon: :permanent,
-          logatron_edge: :permanent
+          swai_edge: :permanent
         ]
       ]
     ]

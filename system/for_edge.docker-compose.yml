@@ -29,7 +29,7 @@ services:
 
 
   edge_de:
-    image: local/logatron_edge
+    image: local/swai_edge
     build:
       context: "."
       dockerfile: "for_edge.Dockerfile"
@@ -39,7 +39,7 @@ services:
       - vpn_de      
     restart: always
     environment:
-      - LOGATRON_EDGE_API_KEY=${LOGATRON_EDGE_API_KEY}
+      - SWAI_EDGE_API_KEY=${SWAI_EDGE_API_KEY}
 
   
   vpn_be:
@@ -61,7 +61,7 @@ services:
 
 
   edge_be:
-    image: local/logatron_edge
+    image: local/swai_edge
     build:
       context: "."
       dockerfile: "for_edge.Dockerfile"
@@ -71,7 +71,7 @@ services:
       - vpn_be     
     restart: always 
     environment:
-      - LOGATRON_EDGE_API_KEY=${LOGATRON_EDGE_API_KEY}
+      - SWAI_EDGE_API_KEY=${SWAI_EDGE_API_KEY}
 
 
   vpn_fr:
@@ -92,7 +92,7 @@ services:
       - net.ipv6.conf.all.disable_ipv6=1  # Recomended if using ipv4 only
 
   edge_fr:
-    image: local/logatron_edge
+    image: local/swai_edge
     build:
       context: "."
       dockerfile: "for_edge.Dockerfile"
@@ -102,7 +102,7 @@ services:
       - vpn_fr
     restart: always
     environment:
-      - LOGATRON_EDGE_API_KEY=${LOGATRON_EDGE_API_KEY}
+      - SWAI_EDGE_API_KEY=${SWAI_EDGE_API_KEY}
 
 
   vpn_uk:
@@ -123,7 +123,7 @@ services:
       - net.ipv6.conf.all.disable_ipv6=1  # Recomended if using ipv4 only
 
   edge_uk:
-    image: local/logatron_edge
+    image: local/swai_edge
     build:
       context: "."
       dockerfile: "for_edge.Dockerfile"
@@ -133,7 +133,7 @@ services:
       - vpn_uk
     restart: always
     environment:
-      - LOGATRON_EDGE_API_KEY=${LOGATRON_EDGE_API_KEY}
+      - SWAI_EDGE_API_KEY=${SWAI_EDGE_API_KEY}
 
 
   vpn_it:
@@ -154,7 +154,7 @@ services:
       - net.ipv6.conf.all.disable_ipv6=1  # Recomended if using ipv4 only
 
   edge_it:
-    image: local/logatron_edge
+    image: local/swai_edge
     build:
       context: "."
       dockerfile: "for_edge.Dockerfile"
@@ -164,5 +164,5 @@ services:
       - vpn_it
     restart: always
     environment:
-      - LOGATRON_EDGE_API_KEY=${LOGATRON_EDGE_API_KEY}
+      - SWAI_EDGE_API_KEY=${SWAI_EDGE_API_KEY}
 

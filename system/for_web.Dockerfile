@@ -8,9 +8,9 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
 FROM ${BUILDER_IMAGE} AS builder
 
-ARG CORE_APP=logatron_core
-ARG SVC_APP=logatron
-ARG WEB_APP=logatron_web
+ARG CORE_APP=swai_core
+ARG SVC_APP=swai
+ARG WEB_APP=swai_web
 ARG APIS_APP=apis
 
 RUN apt-get update -y && \
@@ -84,8 +84,8 @@ RUN MIX_ENV="prod" mix compile && \
 # prepare release image
 FROM ${RUNNER_IMAGE} AS for_web
 
-ARG SVC_APP=logatron
-ARG WEB_APP=logatron_web
+ARG SVC_APP=swai
+ARG WEB_APP=swai_web
 
 RUN apt-get update -y && \
     apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates  && \

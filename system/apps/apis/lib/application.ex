@@ -4,7 +4,7 @@ defmodule Apis.Application do
   # for more information on OTP Applications
 
   @moduledoc """
-  The main application module for Logatron.
+  The main application module for Swai.
   """
   require Logger
 

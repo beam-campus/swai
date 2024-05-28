@@ -1,0 +1,34 @@
+<div class="flex flex-col h-screen py-1 overflow-hidden font-mono justify-left">
+  <div class="flex-shrink-0">
+  <div class="flex flex-col items-center justify-center lt-view-gradient">
+    <div>
+      <h1 class="text-2xl font-normal text-white font-brand">
+        Emulated Lives
+      </h1>
+    </div>
+    <div class="px-2 m-1 text-sm text-white font-brand font-regular">
+      <%= edges_count = Enum.count(@edges)
+        if edges_count > 0 do %>
+        <%= edges_count %> producer(s) connected
+      <% else %>
+        awaiting producers...
+      <% end %>
+    </div>
+  </div>
+  
+  <.live_component 
+    module={SwaiWeb.BreadCrumbsBar} 
+    id={@current_user.id <> "_born2dieds_breadcrumbs"} 
+  />
+  </div>
+
+  <div class="flex-grow overflow-auto">
+  <.live_component 
+    module={SwaiWeb.Born2DiedsLive.Born2DiedsGrid} 
+    id={@current_user.id <> "_born2dieds_grid"}
+    lives={@lives}
+    current_user={@current_user}
+  />
+  </div>
+
+</div>

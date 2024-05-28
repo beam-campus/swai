@@ -1,0 +1,43 @@
+<.header>
+  Device <%= @device.id %>
+  <:subtitle>This is a device record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/devices/#{@device}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit device</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Add"><%= @device.add %></:item>
+  <:item title="Name"><%= @device.name %></:item>
+  <:item title="Description"><%= @device.description %></:item>
+  <:item title="User"><%= @device.user_id %></:item>
+  <:item title="Brand"><%= @device.brand %></:item>
+  <:item title="Model"><%= @device.model %></:item>
+  <:item title="Arcitecture"><%= @device.arcitecture %></:item>
+  <:item title="Cpu"><%= @device.cpu %></:item>
+  <:item title="Clock mhz"><%= @device.clock_mhz %></:item>
+  <:item title="Cores"><%= @device.cores %></:item>
+  <:item title="Ram gb"><%= @device.ram_gb %></:item>
+  <:item title="Storage gb"><%= @device.storage_gb %></:item>
+  <:item title="Network"><%= @device.network %></:item>
+  <:item title="Mac address"><%= @device.mac_address %></:item>
+  <:item title="Root os"><%= @device.root_os %></:item>
+  <:item title="Os version"><%= @device.os_version %></:item>
+  <:item title="Runtime"><%= @device.runtime %></:item>
+  <:item title="Runtime version"><%= @device.runtime_version %></:item>
+</.list>
+
+<.back navigate={~p"/devices"}>Back to devices</.back>
+
+<.modal :if={@live_action == :edit} id="device-modal" show on_cancel={JS.patch(~p"/devices/#{@device}")}>
+  <.live_component
+    module={SwaiWeb.DeviceLive.FormComponent}
+    id={@device.id}
+    title={@page_title}
+    action={@live_action}
+    device={@device}
+    patch={~p"/devices/#{@device}"}
+  />
+</.modal>

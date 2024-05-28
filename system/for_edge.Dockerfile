@@ -9,9 +9,9 @@ ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 ################# BUILDER ################
 FROM ${BUILDER_IMAGE} AS builder
 
-ARG CORE_APP=logatron_core
+ARG CORE_APP=swai_core
 ARG APIS_APP=apis
-ARG EDGE_APP=logatron_edge
+ARG EDGE_APP=swai_edge
 
 RUN apt-get update -y && \
     apt-get install -y build-essential git npm esbuild  && \
@@ -71,8 +71,8 @@ RUN apt-get update && \
 # FROM nordvpn as for_edge
 FROM ${RUNNER_IMAGE} AS for_edge
 
-ARG CORE_APP=logatron_core
-ARG EDGE_APP=logatron_edge
+ARG CORE_APP=swai_core
+ARG EDGE_APP=swai_edge
 ARG APIS_APP=apis
 
 RUN apt-get update -y && \

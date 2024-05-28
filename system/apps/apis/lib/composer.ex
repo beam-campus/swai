@@ -9,7 +9,7 @@ defmodule Composer do
 
   ############# API ################
 
-  def write_compose_files(path \\ "../../../../logatron_deploy"),
+  def write_compose_files(path \\ "../../../../swai_deploy"),
     do:
       GenServer.cast(
         __MODULE__,
@@ -90,14 +90,14 @@ defmodule Composer do
               - net.ipv6.conf.all.disable_ipv6=1     # disable ipv6; recommended if using ipv4 only
 
           edge_#{suffix}:
-            image: beamcampus/logatron_edge:latest
+            image: beamcampus/swai_edge:latest
             container_name: edge_#{suffix}
             network_mode: service:nordlynx_#{suffix}
             depends_on:
               - nordlynx_#{suffix}
             restart: always
             environment:
-              - LOGATRON_EDGE_API_KEY=${LOGATRON_EDGE_API_KEY}
+              - SWAI_EDGE_API_KEY=${SWAI_EDGE_API_KEY}
               - PUID=1000
               - PGID=1000
             security_opt:

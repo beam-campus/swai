@@ -1,0 +1,62 @@
+<.header>
+  Listing Born 2 dieds
+  <:actions>
+    <.link patch={~p"/born_2_dieds/new"}>
+      <.button>New Animal</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="born_2_dieds"
+  rows={@streams.born_2_dieds}
+  row_click={fn {_id, animal} -> JS.navigate(~p"/born_2_dieds/#{animal}") end}
+>
+  <:col :let={{_id, animal}} label="Id"><%= animal.id %></:col>
+  <:col :let={{_id, animal}} label="Edge"><%= animal.edge_id %></:col>
+  <:col :let={{_id, animal}} label="Scape"><%= animal.scape_id %></:col>
+  <:col :let={{_id, animal}} label="Region"><%= animal.region_id %></:col>
+  <:col :let={{_id, animal}} label="Farm"><%= animal.farm_id %></:col>
+  <:col :let={{_id, animal}} label="Field"><%= animal.field_id %></:col>
+  <:col :let={{_id, animal}} label="Status"><%= animal.status %></:col>
+  <:col :let={{_id, animal}} label="Life"><%= animal.life_id %></:col>
+  <:col :let={{_id, animal}} label="Name"><%= animal.name %></:col>
+  <:col :let={{_id, animal}} label="Gender"><%= animal.gender %></:col>
+  <:col :let={{_id, animal}} label="Father"><%= animal.father_id %></:col>
+  <:col :let={{_id, animal}} label="Mother"><%= animal.mother_id %></:col>
+  <:col :let={{_id, animal}} label="Birth date"><%= animal.birth_date %></:col>
+  <:col :let={{_id, animal}} label="Age"><%= animal.age %></:col>
+  <:col :let={{_id, animal}} label="Weight"><%= animal.weight %></:col>
+  <:col :let={{_id, animal}} label="Energy"><%= animal.energy %></:col>
+  <:col :let={{_id, animal}} label="Is pregnant"><%= animal.is_pregnant %></:col>
+  <:col :let={{_id, animal}} label="Heath"><%= animal.heath %></:col>
+  <:col :let={{_id, animal}} label="Health"><%= animal.health %></:col>
+  <:col :let={{_id, animal}} label="X"><%= animal.x %></:col>
+  <:col :let={{_id, animal}} label="Y"><%= animal.y %></:col>
+  <:col :let={{_id, animal}} label="Z"><%= animal.z %></:col>
+  <:action :let={{_id, animal}}>
+    <div class="sr-only">
+      <.link navigate={~p"/born_2_dieds/#{animal}"}>Show</.link>
+    </div>
+    <.link patch={~p"/born_2_dieds/#{animal}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, animal}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: animal.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="animal-modal" show on_cancel={JS.patch(~p"/born_2_dieds")}>
+  <.live_component
+    module={SwaiWeb.AnimalLive.FormComponent}
+    id={@animal.id || :new}
+    title={@page_title}
+    action={@live_action}
+    animal={@animal}
+    patch={~p"/born_2_dieds"}
+  />
+</.modal>

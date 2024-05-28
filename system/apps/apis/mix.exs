@@ -14,7 +14,7 @@ defmodule Apis.MixProject do
       deps: deps(),
       # ExDoc
       name: "APIs Library",
-      source_url: "https://github.com/beam-campus/logatron/system/apps/apis",
+      source_url: "https://github.com/beam-campus/swai/system/apps/apis",
       homepage_url: "https://DisComCo.pl",
       docs: [
         main: "APIs Library",

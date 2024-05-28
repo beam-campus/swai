@@ -1,6 +1,9 @@
 import Config
 
 # Only in tests, remove the complexity from the password hashing algorithm
+config :argon2_elixir, t_cost: 1, m_cost: 8
+
+# Only in tests, remove the complexity from the password hashing algorithm
 config :bcrypt_elixir, :log_rounds, 1
 
 # Configure your database
@@ -8,17 +11,15 @@ config :bcrypt_elixir, :log_rounds, 1
 # The MIX_TEST_PARTITION environment variable can be used
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
-config :logatron, Logatron.Repo,
-  username: "logatron_dev",
-  password: "erlang_t",
-  hostname: "localhost",
-  database: "logatron_test#{System.get_env("MIX_TEST_PARTITION")}",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  pool_size: System.schedulers_online() * 2
+config :swai, Swai.Repo,
+  database: Path.expand("../swai_test.db", __DIR__),
+  pool_size: 5,
+  pool: Ecto.Adapters.SQL.Sandbox
+
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
-config :logatron_web, LogatronWeb.Endpoint,
+config :swai_web, SwaiWeb.Endpoint,
   http: [ip: {127, 0, 0, 1}, port: 4002],
   secret_key_base: "JTn0x9o92aIfICOL2mHTIq+fX5rhnyPZZHZgJ+DxIBiQA2nwKlS05LFPxddqFulL",
   server: false
@@ -31,7 +32,7 @@ metadata: [:request_id, :initial_call, :mfa]
 
 
 # In test we don't send emails.
-config :logatron, Logatron.Mailer, adapter: Swoosh.Adapters.Test
+config :swai, Swai.Mailer, adapter: Swoosh.Adapters.Test
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false

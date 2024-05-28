@@ -1,14 +1,14 @@
 import Config
 
 # Configure your database
-config :logatron, Logatron.Repo,
-  username: "logatron_dev",
-  password: "erlang_tops",
-  hostname: "localhost",
-  database: "logatron_dev",
+config :swai, Swai.Repo,
+  database: Path.expand("../swai_dev.db", __DIR__),
+  pool_size: 5,
   stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  show_sensitive_data_on_connection_error: true
+
+
+
 
 
 # For development, we disable any cache and enable
@@ -17,7 +17,7 @@ config :logatron, Logatron.Repo,
 # The watchers configuration can be used to run external
 # watchers to your application. For example, we can use it
 # to bundle .js and .css sources.
-config :logatron_web, LogatronWeb.Endpoint,
+config :swai_web, SwaiWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
   http: [ip: {127, 0, 0, 1}, port: 4000],
@@ -26,8 +26,8 @@ config :logatron_web, LogatronWeb.Endpoint,
   debug_errors: true,
   secret_key_base: "c5II1OI4bMDDijgWvxAtZlaXHO1xOXnQNEs9A+tpVcGwOzdI3/YfaEMG39RGcpK0",
   watchers: [
-    esbuild: {Esbuild, :install_and_run, [:logatron_web, ~w(--sourcemap=inline --watch)]},
-    tailwind: {Tailwind, :install_and_run, [:logatron_web, ~w(--watch)]}
+    esbuild: {Esbuild, :install_and_run, [:swai_web, ~w(--sourcemap=inline --watch)]},
+    tailwind: {Tailwind, :install_and_run, [:swai_web, ~w(--watch)]}
   ]
 
 # ## SSL Support
@@ -54,17 +54,17 @@ config :logatron_web, LogatronWeb.Endpoint,
 # different ports.
 
 # Watch static and templates for browser reloading.
-config :logatron_web, LogatronWeb.Endpoint,
+config :swai_web, SwaiWeb.Endpoint,
   live_reload: [
     patterns: [
       ~r"priv/static/(?!uploads/).*(js|css|png|jpeg|jpg|gif|svg)$",
       ~r"priv/gettext/.*(po)$",
-      ~r"lib/logatron_web/(controllers|live|components)/.*(ex|heex)$"
+      ~r"lib/swai_web/(controllers|live|components)/.*(ex|heex)$"
     ]
   ]
 
 # Enable dev routes for dashboard and mailbox
-config :logatron_web, dev_routes: true
+config :swai_web, dev_routes: true
 
 # Do not include metadata nor timestamps in development logs
 

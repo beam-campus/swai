@@ -1,0 +1,70 @@
+<!DOCTYPE html> 
+<%!-- <html lang="en" class="[scrollbar-gutter:stable]"> --%>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="csrf-token" content={get_csrf_token()} />
+    <.live_title suffix=" · Streams Exchange">
+      <%= assigns[:page_title] || "Swai" %>
+      
+    </.live_title>
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
+    <meta
+      name="description"
+      content="Swai Mesh is a decentralized and distributed system that allows organizations developers, data scientists and 
+    creators of Artifical Intelligence and Machine Learning Systems to tap into streams of emulated, but realistic data.
+    This data can be used to test and validate their systems in a safe and secure environment, 
+    at a cost that is much lower than what is offered by big tech cloud providers.
+    Meanwhile, the Swai Streams Exchange allows individuals to monetize their idle compute resources by running Swai nodes. 
+    Any system that is capable of running a Docker container can become a node in the Swai Mesh."
+    />
+    <meta
+      name="keywords"
+      content="stream, streams, Artificial Intelligence, mock data, 
+      events, data, facts, fake data,
+      simulated data, realistic data,
+      data streams, data stream, data stream exchange,
+      data stream marketplace, data stream market,
+      data stream trading, data stream trading platform,
+      data stream trading exchange, data stream trading market,
+      data stream trading marketplace, data stream trading platform,
+      data stream trading system, data stream trading network,
+      data stream trading network, data stream trading community,
+      data stream trading ecosystem, data stream trading environment,
+      decentralized data stream trading, distributed data stream trading,
+      beat big tech, beat big tech cloud providers, beat big tech cloud services,
+      beat big tech cloud computing, beat big tech cloud storage,
+      monetize idle compute resources, monetize your CPU,
+      artificial intelligence, machine learning, AI, ML,
+      Data Science, Data Scientist, Data Scientists, Data Science Community,
+      Data Science Ecosystem, Data Science Environment, Data Science Network,
+      Mesh Network, Mesh Community, Mesh Ecosystem, Mesh Environment,
+      Mesh Computing, Mesh Computing Network, Mesh Computing Community,
+      Distributed Computing, Distributed Computing Network, Distributed Computing Community,
+      Distributed Computing Ecosystem, Distributed Computing Environment,
+      Distributed Computing Platform, Distributed Computing System,
+      Distributed Data Stream, Distributed Data Stream Network,      
+      Emulated Data, Emulated Data Streams, Emulated Data Stream Network,
+      AI, Machine Learning, fact, swai, DisComCo"
+    />
+  </head>
+
+    <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ND78DY419W"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-ND78DY419W');
+  </script>
+
+
+
+  <body class="antialiased bg-ltDark-dark">
+    <%= @inner_content %>
+  </body>
+</html>
