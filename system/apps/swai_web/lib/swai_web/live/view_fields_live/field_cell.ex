@@ -52,4 +52,6 @@ defmodule SwaiWeb.ViewFieldsLive.FieldCell do
     </div>
     """
   end
+  
+
 end

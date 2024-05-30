@@ -50,6 +50,11 @@ module.exports = {
           DEFAULT: "#FF6F00",
           light: "#FAA523"
         },
+        ltRed: {
+          dark: "#FF0000",
+          DEFAULT: "#FF0000",
+          light: "#FF8080"
+        },
         ltOlive: {
           dark: "#437A5F",
           DEFAULT: "#5B9C7A",

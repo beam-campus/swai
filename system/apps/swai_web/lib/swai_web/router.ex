@@ -45,6 +45,13 @@ defmodule SwaiWeb.Router do
     end
   end
 
+  scope "/api", SwaiWeb do
+    pipe_through :api
+
+  get "/identicon/:input", IdenticonController, :show
+    # get "/countries", CountriesController, :index
+  end
+
   scope "/", SwaiWeb do
     pipe_through [:browser]
     live_session :edges_info,

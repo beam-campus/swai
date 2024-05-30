@@ -13,6 +13,9 @@ defmodule Cell.State do
   require Logger
 
   @all_fields [
+    :prev_col,
+    :prev_row,
+    :prev_depth,
     :col,
     :row,
     :depth,
@@ -33,6 +36,9 @@ defmodule Cell.State do
   @primary_key false
   @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
+    field(:prev_col, :integer)
+    field(:prev_row, :integer)
+    field(:prev_depth, :integer)
     field(:col, :integer)
     field(:row, :integer)
     field(:depth, :integer)
@@ -54,6 +60,9 @@ defmodule Cell.State do
 
   def from_life(%LifeState{} = life) do
     %CellState{
+      prev_col: life.prev_pos.x,
+      prev_row: life.prev_pos.y,
+      prev_depth: life.prev_pos.z,
       col: life.pos.x,
       row: life.pos.y,
       depth: life.pos.z,

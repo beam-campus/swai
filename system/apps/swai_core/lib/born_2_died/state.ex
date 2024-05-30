@@ -45,6 +45,7 @@ defmodule Born2Died.State do
     :status,
     :world_dimensions,
     :life,
+    :prev_pos,
     :pos,
     :vitals
   ]
@@ -75,6 +76,7 @@ defmodule Born2Died.State do
     field(:status, :string)
     embeds_one(:world_dimensions, Vector)
     embeds_one(:life, Life)
+    embeds_one(:prev_pos, Vector)
     embeds_one(:pos, Vector)
     embeds_one(:vitals, Vitals)
   end
@@ -107,6 +109,8 @@ defmodule Born2Died.State do
       life: life,
       world_dimensions:
         Vector.new(mng_farm_init.max_col, mng_farm_init.max_row, mng_farm_init.max_depth),
+      prev_pos:
+        Vector.random(mng_farm_init.max_col, mng_farm_init.max_row, mng_farm_init.max_depth),
       pos: Vector.random(mng_farm_init.max_col, mng_farm_init.max_row, mng_farm_init.max_depth),
       vitals: Vitals.random(),
       ticks: 0,
@@ -120,6 +124,7 @@ defmodule Born2Died.State do
     |> cast_embed(:world_dimensions, with: &Vector.changeset/2, required: true)
     |> cast_embed(:life, with: &Life.changeset/2, required: true)
     |> cast_embed(:pos, with: &Vector.changeset/2, required: true)
+    |> cast_embed(:prev_pos, with: &Vector.changeset/2, required: true)
     |> cast_embed(:vitals, with: &Vitals.changeset/2, required: true)
     |> validate_required(@all_fields)
   end

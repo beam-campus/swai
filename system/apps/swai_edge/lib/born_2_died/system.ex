@@ -86,6 +86,7 @@ defmodule Born2Died.System do
 
     state =
       state
+      |> Map.put(:prev_pos, state.pos)
       |> Map.put(:pos, movement.to)
       |> Map.put(:status, "moving")
 

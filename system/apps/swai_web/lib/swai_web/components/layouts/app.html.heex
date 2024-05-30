@@ -22,10 +22,11 @@
           phx-click={SwaiWeb.Layouts.App.toggle_dropdown_menu()}
         >
           <img
-            src="/images/logged-user-image.svg"
+            src={"https://api.dicebear.com/8.x/bottts/svg?seed=#{@current_user.id}"}
             alt="Profile Image"
             class="w-8 h-8 round-image-padding-user"
           />
+
         </button>
       <% else %>
         <button
@@ -221,7 +222,9 @@
 
   <%!-- MAIN CONTENT --%>
 
-  <main class="flex-grow pt-12 overflow-auto">
+  <main 
+  class="flex-grow pt-12 overflow-auto" 
+  id="main-page">
     <.flash_group flash={@flash} />
     <%= @inner_content %>
   </main>

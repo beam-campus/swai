@@ -6,7 +6,6 @@ defmodule Cells.Service do
 
   alias Lives.Service, as: Lives
   alias Cell.State, as: CellState
-  alias Born2Died.State, as: LifeState
 
   def get_cell_states(nil), do: []
 

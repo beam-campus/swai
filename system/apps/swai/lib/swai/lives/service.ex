@@ -57,7 +57,8 @@ defmodule Lives.Service do
         {:delete, state}
       )
 
-  def get_by_mng_farm_id(nil), do: []
+  def get_by_mng_farm_id(nil),
+    do: []
 
   def get_by_mng_farm_id(mng_farm_id),
     do:
@@ -204,12 +205,14 @@ defmodule Lives.Service do
            movement.born2died_id,
            fn life_init ->
              life_init
+             |> Map.put(:prev_pos, life_init.pos)
              |> Map.put(:pos, movement.to)
              |> Map.put(:status, "moving")
            end
          ) do
       {:commit, life_init} ->
-        Logger.alert("Life position updated in cachex")
+
+
         notify_cache_updated({@life_moved_v1, life_init})
         {:noreply, state}
 
