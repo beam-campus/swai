@@ -8,11 +8,11 @@ defmodule Born2Died.System do
 
   require Logger
 
+  alias Schema.Identity, as: Identity
   alias Born2Died.Movement, as: Movement
   alias Born2Died.MotionState
   alias Born2Died.State, as: LifeState
-  alias Born2Died.MotionEmitter, as: MotionChannel
-
+  alias Born2Died.HealthEmitter, as: HealthChannel
 
   def do_birth(life_id, delta_x, delta_y),
     do:
@@ -29,13 +29,6 @@ defmodule Born2Died.System do
     end
   end
 
-  def register_movement(life_id, movement),
-    do:
-      GenServer.cast(
-        via(life_id),
-        {:register_movement, movement}
-      )
-
   def get_state(life_id),
     do:
       GenServer.call(
@@ -43,20 +36,34 @@ defmodule Born2Died.System do
         {:get_state}
       )
 
+  def save_state(life_id, state),
+    do:
+      GenServer.cast(
+        via(life_id),
+        {:save_state, state}
+      )
+
   ########################## CALLBACKS ####################################
   @impl GenServer
   def init(%LifeState{} = state) do
     # Process.flag(:trap_exit, true)
-    Logger.debug("born2died.system: #{Colors.born2died_theme(self())}")
+    Logger.debug("drone.system: #{Colors.born2died_theme(self())}")
 
-    motion_state = MotionState.from_life_state(state)
+    identity = %Identity{
+      edge_id: state.edge_id,
+      scape_id: state.scape_id,
+      region_id: state.region_id,
+      farm_id: state.mng_farm_id,
+      drone_id: state.id
+    }
 
     children =
       [
-        {Born2Died.HealthWorker, state},
-        {Born2Died.MotionWorker, motion_state}
-        # {Born2Died.AiWorker, state},
-        # {Born2Died.VisionWorker, state},
+        {Born2Died.AiWorker, identity},
+        {Born2Died.MotionWorker, identity},
+        {Born2Died.HealthWorker, identity},
+        {Born2Died.VisionWorker, identity},
+
         # {Born2Died.MilkingWorker, state},
         # {Born2Died.CombatWorker, state},
         # {Born2Died.MatingWorker, state}
@@ -68,6 +75,7 @@ defmodule Born2Died.System do
       strategy: :one_for_one
     )
 
+    HealthChannel.emit_life_initialized(state)
     {:ok, state}
   end
 
@@ -77,29 +85,16 @@ defmodule Born2Died.System do
     :ok
   end
 
+  ############### handle_cast ############################
+  @impl GenServer
+  def handle_cast({:save_state, state}, _state), do: {:noreply, state}
+
+  ############### handle_call ############################
   @impl GenServer
   def handle_call({:get_state}, _from, state),
     do: {:reply, state, state}
 
-  @impl GenServer
-  def handle_cast({:register_movement, %Movement{} = movement}, state) do
-
-    state =
-      state
-      |> Map.put(:prev_pos, state.pos)
-      |> Map.put(:pos, movement.to)
-      |> Map.put(:status, "moving")
-
-    # movement =
-    #   movement
-    #   |> Map.put(:life, state)
-
-    MotionChannel.emit_life_moved(movement)
-
-    {:noreply, state}
-  end
-
-  ######### handle_info #################
+  ################ handle_info #################
   @impl GenServer
   def handle_info({:EXIT, _from_id, reason}, state) do
     # Born2Died.HealthWorker.die(state.life.id)
@@ -119,6 +114,9 @@ defmodule Born2Died.System do
 
   def via_pubsub(life_id),
     do: Edge.Registry.via_tuple({:life_pubsub, to_name(life_id)})
+
+  def via_agent(life_id),
+    do: Edge.Registry.via_tuple({:life_agent, to_name(life_id)})
 
   def child_spec(%LifeState{} = state) do
     %{

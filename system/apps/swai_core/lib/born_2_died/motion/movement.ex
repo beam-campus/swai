@@ -3,23 +3,40 @@ defmodule Born2Died.Movement do
 
   alias Schema.Vector, as: Vector
   alias Born2Died.MotionState, as: MotionState
+  alias Schema.Life, as: Life
 
   import Ecto.Changeset
 
   @moduledoc """
   the payload for the edge:attached:v1 fact
   """
-
   @all_fields [
     :born2died_id,
+    :mng_farm_id,
     :edge_id,
+    :life,
+    :from,
     :to,
+    :heading,
+    :delta_t
+  ]
+
+  @required_fields [
+    :born2died_id,
+    :mng_farm_id,
+    :edge_id,
+    :life,
+    :from,
+    :to,
+    :heading,
     :delta_t
   ]
 
   @flat_fields [
     :edge_id,
+    :mng_farm_id,
     :born2died_id,
+    :heading,
     :delta_t
   ]
 
@@ -28,15 +45,23 @@ defmodule Born2Died.Movement do
   embedded_schema do
     field(:born2died_id, :string)
     field(:edge_id, :string)
-    embeds_one(:to, Vector)
+    field(:mng_farm_id, :string)
     field(:delta_t, :integer)
+    field(:heading, :float)
+    embeds_one(:to, Vector)
+    embeds_one(:from, Vector)
+    embeds_one(:life, Life)
   end
 
-  def from_born2died(%MotionState{} = life, %Vector{} = to, delta_t),
+  def from_born2died(%MotionState{} = motion, %Vector{} = to, delta_t),
     do: %__MODULE__{
-      born2died_id: life.born2died_id,
-      edge_id: life.edge_id,
+      born2died_id: motion.born2died_id,
+      edge_id: motion.edge_id,
+      mng_farm_id: motion.mng_farm_id,
+      life: motion,
+      from: motion.pos,
       to: to,
+      heading: Euclid2D.heading(motion.pos, to),
       delta_t: delta_t
     }
 
@@ -54,19 +79,14 @@ defmodule Born2Died.Movement do
     end
   end
 
-  def random(%MotionState{} = life) do
-    %__MODULE__{
-      edge_id: life.edge_id,
-      born2died_id: life.born2died_id,
-      to: Vector.new_position(life.pos, life.world_dimensions),
-      delta_t: :rand.uniform(10)
-    }
-  end
+
 
   def changeset(%__MODULE__{} = movement, map) when is_map(map) do
     movement
     |> cast(map, @flat_fields)
     |> cast_embed(:to, with: &Vector.changeset/2)
+    |> cast_embed(:from, with: &Vector.changeset/2)
+    |> cast_embed(:life, with: &Life.changeset/2)
     |> validate_required(@all_fields)
   end
 end

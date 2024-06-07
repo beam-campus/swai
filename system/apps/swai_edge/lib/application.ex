@@ -38,7 +38,7 @@ defmodule Edge.Application do
 
     children = [
       {Edge.Registry, name: Edge.Registry},
-      {Phoenix.PubSub, name: EdgePubSub},
+      {Phoenix.PubSub, name: Edge.PubSub},
       {Edge.Client, edge_init}
     ]
 

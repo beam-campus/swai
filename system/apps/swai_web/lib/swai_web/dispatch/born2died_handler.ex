@@ -76,6 +76,9 @@ defmodule SwaiWeb.Dispatch.Born2DiedHandler do
   end
 
   def pub_life_moved_v1(payload, socket) do
+
+    Logger.alert("pub_life_moved_v1 #{inspect(payload)}")
+
     {:ok, %Movement{} = movement} = Movement.from_map(payload["movement"])
 
     PubSub.broadcast(

@@ -1,15 +1,21 @@
 import Config
 
+# # Configure your database
+# config :swai, Swai.Repo,
+#   database: Path.expand("../swai_dev.db", __DIR__),
+#   pool_size: 5,
+#   stacktrace: true,
+#   show_sensitive_data_on_connection_error: true
+
 # Configure your database
 config :swai, Swai.Repo,
-  database: Path.expand("../swai_dev.db", __DIR__),
-  pool_size: 5,
+  username: "logatron_dev",
+  password: "erlang_tops",
+  hostname: "localhost",
+  database: "logatron_dev",
   stacktrace: true,
-  show_sensitive_data_on_connection_error: true
-
-
-
-
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10
 
 # For development, we disable any cache and enable
 # debugging and code reloading.

@@ -13,6 +13,8 @@ defmodule Born2Died.MotionState do
   @all_fields [
     :born2died_id,
     :edge_id,
+    :mng_farm_id,
+    :life,
     :pos,
     :world_dimensions
   ]
@@ -22,6 +24,8 @@ defmodule Born2Died.MotionState do
   embedded_schema do
     field(:born2died_id, :string)
     field(:edge_id, :string)
+    field(:mng_farm_id, :string)
+    embeds_one(:life, LifeState)
     embeds_one(:pos, Vector)
     embeds_one(:world_dimensions, Vector)
   end
@@ -30,6 +34,8 @@ defmodule Born2Died.MotionState do
     %MotionState{
       born2died_id: life_init.id,
       edge_id: life_init.edge_id,
+      mng_farm_id: life_init.mng_farm_id,
+      life: life_init,
       pos: life_init.pos,
       world_dimensions: life_init.world_dimensions
     }

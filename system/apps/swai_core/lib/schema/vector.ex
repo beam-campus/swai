@@ -20,6 +20,12 @@ defmodule Schema.Vector do
     :z
   ]
 
+  @required_fields [
+    :x,
+    :y,
+    :z
+  ]
+
   @derive {Jason.Encoder, only: @all_fields}
   @primary_key false
   embedded_schema do
@@ -58,6 +64,18 @@ defmodule Schema.Vector do
     )
   end
 
+  def substract(%Vector{} = vector1, %Vector{} = vector2) do
+    new(
+      vector1.x - vector2.x,
+      vector1.y - vector2.y,
+      vector1.z - vector2.z
+    )
+  end
+
+  def as_tuple(%Vector{} = vector) do
+    {vector.x, vector.y, vector.z, vector.t}
+  end
+
   defp new_val(val, _max_val) when val < 0,
     do: 0
 
@@ -75,6 +93,26 @@ defmodule Schema.Vector do
       _ ->
         val + random_sign()
     end
+  end
+
+  def new_val(origin, relative, max_val, :increase_distance) do
+    case max_val do
+      ^origin ->
+        origin - relative + 1
+
+      0 ->
+        origin + 1 + random_sign()
+
+      _ ->
+        origin + random_sign()
+    end
+  end
+
+  def increase_distance({vector1, origin, max_dimensions}) do
+    x = new_val(vector1.x, origin.x, max_dimensions.x, :increase_distance)
+    y = new_val(vector1.y, origin.y, max_dimensions.y, :increase_distance)
+    z = new_val(vector1.z, origin.z, max_dimensions.z, :increase_distance)
+    new(x, y, z)
   end
 
   def new_position(%Vector{} = pos, %Vector{} = world_dimensions) do
@@ -107,6 +145,6 @@ defmodule Schema.Vector do
   def changeset(vector, attr) do
     vector
     |> cast(attr, @flat_fields)
-    |> validate_required(@all_fields)
+    |> validate_required(@required_fields)
   end
 end

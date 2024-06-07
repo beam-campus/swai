@@ -7,7 +7,7 @@ defmodule SwaiWeb.ViewFieldsLive.FieldGrid do
 
   alias Lives.Service, as: Lives
   alias Cell.State, as: CellState
-  import LiveMotion
+  
 
   # def get_lives(mng_farm_id),
   #   do: Lives.get_by_mng_farm_id(mng_farm_id)
@@ -60,33 +60,6 @@ defmodule SwaiWeb.ViewFieldsLive.FieldGrid do
     </div>
     """
   end
-
-
-  # @impl true
-  # def render(assigns) do
-  #   ~H"""
-  #   <div>
-  #     <%= for %CellState{} = state <- @cell_states do  %>
-  #       <p> <%= "(#{state.col}, #{state.row}) => (#{state.col}, #{state.row})" %> </p>
-#       <LiveMotion.motion
-  #         id={@current_user.id <> "field-cell" <> "#{state.depth}" <> "_col_#{state.col}" <> "_row_#{state.row}"}
-  #         class={"#{state.class}"}
-  #         animate={[
-  #           x: [state.prev_col*20, state.col*20],
-  #           y: [state.prev_row*20, state.row*20]
-  #         ]}
-  #         transition={[
-  #           duration: 0.2,
-  #           offset: 0.1,
-  #         ]}
-  #       >
-  #       </LiveMotion.motion>
-  #     <% end %>
-  #   </div>
-  #   """
-  # end
-
-
 
 
 

@@ -18,6 +18,8 @@ defmodule SwaiWeb.ViewFieldsLive.Index do
   @edges_cache_updated_v1 EdgeFacts.edges_cache_updated_v1()
   @life_moved_v1 LifeFacts.life_moved_v1()
 
+
+  @impl true
   def mount(params, _session, socket) do
     Logger.info("params: #{inspect(params)}")
 
@@ -34,6 +36,8 @@ defmodule SwaiWeb.ViewFieldsLive.Index do
 
         cell_states = Cells.get_cell_states(mng_farm_id)
 
+
+
         {:ok,
          socket
          |> assign(
@@ -42,7 +46,8 @@ defmodule SwaiWeb.ViewFieldsLive.Index do
            mng_farm_id: mng_farm_id,
            farm: farm,
            fields: fields,
-           cell_states: cell_states
+           cell_states: cell_states,
+           tick: 16
          )}
 
       false ->
@@ -54,7 +59,8 @@ defmodule SwaiWeb.ViewFieldsLive.Index do
            mng_farm_id: mng_farm_id,
            farm: %MngFarmInit{},
            fields: [],
-           cell_states: []
+           cell_states: [],
+            tick: 16
          )}
     end
   end
@@ -72,7 +78,22 @@ defmodule SwaiWeb.ViewFieldsLive.Index do
   end
 
   @impl true
+  def handle_info({@lives_cache_updated_v1, _payload}, socket) do
+    mng_farm_id = socket.assigns.mng_farm_id
+
+    {
+      :noreply,
+      socket
+      |> assign(:lives, Lives.get_by_mng_farm_id(mng_farm_id))
+      |> assign(:cell_states, Cells.get_cell_states(mng_farm_id))
+    }
+  end
+
+  @impl true
   def handle_info(_msg, socket), do: {:noreply, socket}
+
+
+
 
   @impl true
   def render(assigns) do
@@ -117,6 +138,7 @@ defmodule SwaiWeb.ViewFieldsLive.Index do
       lives={@lives},
       farm={@farm},
       cell_states={@cell_states}
+      tick={@tick}
     />
     </div>
 

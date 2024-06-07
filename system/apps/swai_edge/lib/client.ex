@@ -27,11 +27,11 @@ defmodule Edge.Client do
   def handle_cast({:publish, topic, event, payload}, socket) do
     # Logger.debug(":publish :\n event => #{inspect(event)}\n payload => #{inspect(payload)}")
 
-    res =
+    _res =
       socket
       |> push(topic, event, payload)
 
-    Logger.debug("#{inspect(event)} => #{inspect(res)}")
+    # Logger.debug("#{inspect(event)} => #{inspect(res)}")
     {:noreply, socket}
   end
 

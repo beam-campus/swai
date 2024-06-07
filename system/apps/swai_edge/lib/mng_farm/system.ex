@@ -15,7 +15,7 @@ defmodule MngFarm.System do
   def init(%MngFarmInit{} = mng_farm_init) do
     Process.flag(:trap_exit, true)
 
-    Logger.debug("mng_farm.system: #{Colors.farm_theme(self())}")
+    Logger.debug("farm.system: #{Colors.farm_theme(self())}")
 
     RegionEmitter.emit_initializing_farm(mng_farm_init)
 
@@ -68,6 +68,9 @@ defmodule MngFarm.System do
 
   def via_sup(farm_id),
     do: Edge.Registry.via_tuple({:mng_farm_sup, to_name(farm_id)})
+
+  def via_pubsub(farm_id),
+    do: Edge.Registry.via_tuple({:mng_farm_pubsub, to_name(farm_id)})
 
   def child_spec(mng_farm_init) do
     %{

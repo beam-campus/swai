@@ -250,14 +250,14 @@
 
 .sw-life {
     background: transparent;
-    border: 2px solid #fa2323;
-    border-radius: 20px;
+    border: 3px solid #fa2323;
+    border-radius: 50%;
     color: #70A521;
     font-family: 'WorkSans', sans-serif;
     font-size: 2rem;
     font-weight: bold;
     text-align: center;
-    padding: 3px;
+    padding: 10px;
     margin: 1px;
 }
 

@@ -11,7 +11,7 @@ defmodule Apis.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      Apis.Countries
+      {Apis.Countries, [true]}
     ]
 
     Supervisor.start_link(

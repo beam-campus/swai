@@ -12,13 +12,9 @@ defmodule Apis.Countries do
   @countries_timeout 240_000
   @all_countries_url "https://restcountries.com/v3.1/all"
 
-
-
-  # @all_countries_url "https://gist.githubusercontent.com/rgfaber/ddcde59939f0b9c7a82b94430d3dfe69/raw/8454618d95c1d160e1f62570055d166d4ef56a52/countries.json"
-
   ####### API ###############
-  def refresh,
-    do: GenServer.cast(__MODULE__, {:refresh})
+  def refresh(is_local \\ true),
+    do: GenServer.cast(__MODULE__, {:refresh, is_local})
 
   def clear(),
     do: GenServer.cast(__MODULE__, {:clear})
@@ -49,31 +45,53 @@ defmodule Apis.Countries do
       )
 
   ##### INTERNALS ##########
-  defp request_countries(),
-    do: Req.get!(@all_countries_url, receive_timeout: @countries_timeout, connect_options: [timeout: @countries_timeout]).body()
+  defp request_countries(false),
+    do:
+      Req.get!(@all_countries_url,
+        receive_timeout: @countries_timeout,
+        connect_options: [timeout: @countries_timeout]
+      ).body()
 
+  defp request_countries(true) do
+    case :code.priv_dir(:apis) do
+      {:error, _} ->
+        Logger.error("Could not find the priv directory")
+        {:error, "Could not find the priv directory"}
 
+      app_path ->
+        file_path = Path.join([app_path, "countries.json"])
+
+        case File.read(file_path) do
+          {:error, _} ->
+            Logger.error("Could not read the countries file")
+            {:error, "Could not read the countries file"}
+
+          {:ok, content} ->
+            {:ok, countries} = Jason.decode(content)
+            countries
+        end
+    end
+  end
 
   ######## CALLBACKS ##########
   @impl true
-  def init(_url) do
+  def init(is_local) do
     # state = Req.get!(@all_countries_url, connect_options: [timeout: @countries_timeout]).body()
-    state = request_countries()
+    state = request_countries(is_local)
     # state = []
     {:ok, state}
   end
 
   @impl true
-  def handle_cast({:refresh}, _state) do
+  def handle_cast({:refresh, is_local}, _state) do
     Logger.info("Refreshing countries cache")
-    state = request_countries()
+    state = request_countries(is_local)
     {:noreply, state}
   end
 
   @impl true
-  def handle_cast({:clear}, _state) do
-    {:noreply, []}
-  end
+  def handle_cast({:clear}, _state),
+    do: {:noreply, []}
 
   @impl true
   def handle_call(
@@ -182,8 +200,8 @@ defmodule Apis.Countries do
   def stop(),
     do: GenServer.stop(__MODULE__)
 
-  def start() do
-    case res = start_link([]) do
+  def start(is_local) do
+    case res = start_link(is_local) do
       {:ok, _pid} ->
         res
 
@@ -192,10 +210,10 @@ defmodule Apis.Countries do
     end
   end
 
-  def child_spec(),
+  def child_spec(is_local \\ true),
     do: %{
       id: __MODULE__,
-      start: {__MODULE__, :start},
+      start: {__MODULE__, :start, is_local},
       type: :worker,
       restart: :transient
     }

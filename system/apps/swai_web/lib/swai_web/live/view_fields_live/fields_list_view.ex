@@ -27,6 +27,7 @@ defmodule SwaiWeb.ViewFieldsLive.FieldsListView do
           current_user={@current_user}
           mng_farm_id={@mng_farm_id}
           cell_states={@cell_states}
+          tick={@tick}
           />
       <% end %>
     </div>

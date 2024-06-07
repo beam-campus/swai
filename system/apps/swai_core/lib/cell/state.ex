@@ -36,6 +36,7 @@ defmodule Cell.State do
   @primary_key false
   @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
+    
     field(:prev_col, :integer)
     field(:prev_row, :integer)
     field(:prev_depth, :integer)
@@ -79,8 +80,10 @@ defmodule Cell.State do
 
   def content_from_life(%LifeState{} = life) do
     case life.life.gender do
-      "male" -> "♂"
-      "female" -> "♀"
+      #  "male" -> "♂"
+      "male" -> "\u{1F402}"
+      #  "female" -> "♀"
+      "female" -> "\u{1F404}"
       _ -> "?"
     end
   end

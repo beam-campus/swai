@@ -18,8 +18,8 @@
 // Include phoenix_html to handle method=PUT/DELETE in forms and buttons.
 import "phoenix_html"
 // Establish Phoenix Socket and LiveView configuration.
-import {Socket} from "phoenix"
-import {LiveSocket} from "phoenix_live_view"
+import { Socket } from "phoenix"
+import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
 const getPixelRatio = context => {
@@ -60,6 +60,13 @@ const cubehelix = (s, r, h) => d => {
 };
 
 let hooks = {
+  cell_state_changed: {
+    mounted() {
+      this.handleEvent("cell_state_changed", ({ cell_states }) => {
+        this.el.dataset.cell_states = JSON.stringify(cell_states);
+      });  
+    }
+  },
   canvas: {
     mounted() {
       let canvas = this.el.firstElementChild;
@@ -83,7 +90,6 @@ let hooks = {
     updated() {
       let { canvas, colorizer, context, ratio } = this;
       let cell_states = JSON.parse(this.el.dataset.cell_states);
-
       let halfHeight = canvas.height / 2;
       let halfWidth = canvas.width / 2;
       let smallerHalf = Math.min(halfHeight, halfWidth);
@@ -103,22 +109,21 @@ let hooks = {
       this.animationFrameRequest = requestAnimationFrame(() => {
         this.animationFrameRequest = undefined;
 
-        fade(canvas, context, 0.5);
-        cell_states.forEach(([state]) => {
-          let [r, g, b] = colorizer(state);
-          
-          context.fillStyle = `rgb(${r * 255}, ${g * 255}, ${b * 255})`;
-          context.beginPath();
-          context.arc(
-            halfWidth + x * smallerHalf,
-            halfHeight + y * smallerHalf,
-            a * (smallerHalf / 16),
-            0,
-            2 * Math.PI
-          );
-          context.fill();
-          
-        });
+        
+        // context.fillStyle = "transparent";
+        context.fillStyle = "#55bb00"; // Replace #yourColor with the color you want
+        context.fillRect(0, 0, canvas.width, canvas.height);
+
+        fade(canvas, context, 0.8);
+
+        cell_states.forEach(state => {
+          oldFont = context.font;
+          context.font = "50px Arial";            
+          posX = (state.col*40)
+          posY = 60 + (state.row*20)
+          context.fillText(state.content, posX, posY);
+          context.font = oldFont;
+        })
 
         this.i++;
         if (this.i % 5 === 0) {
@@ -128,14 +133,14 @@ let hooks = {
           this.fpsNow = now;
         }
         context.textBaseline = "top";
-        context.font = "20pt monospace";
+        context.font = "8pt monospace";
         context.fillStyle = "#f0f0f0";
         context.beginPath();
-        context.rect(0, 0, 260, 80);
+        context.rect(0, 0, 160, 40);
         context.fill();
         context.fillStyle = "black";
         context.fillText(`Client FPS: ${Math.round(this.fps)}`, 10, 10);
-        context.fillText(`Server FPS: ${Math.round(this.ups)}`, 10, 40);
+        context.fillText(`Server FPS: ${Math.round(this.ups)}`, 10, 22);
       });
     }
   }
@@ -145,11 +150,11 @@ let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: hooks,
   longPollFallbackMs: 2500,
-  params: {_csrf_token: csrfToken}
+  params: { _csrf_token: csrfToken }
 })
 
 // Show progress bar on live navigation and form submits
-topbar.config({barColors: {0: "#29d"}, shadowColor: "rgba(0, 0, 0, .3)"})
+topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" })
 window.addEventListener("phx:page-loading-start", _info => topbar.show(300))
 window.addEventListener("phx:page-loading-stop", _info => topbar.hide())
 

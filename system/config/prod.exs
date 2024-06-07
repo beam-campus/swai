@@ -2,7 +2,7 @@ import Config
 
 
 config :swai_edge, Edge.Client,
-  uri: "wss://swarm-wars.io/edge_socket/websocket",
+  uri: "wss://swarm-wars.ai/edge_socket/websocket",
   reconnect_after_msec: [200, 500, 1_000, 2_000]
 
 # Note we also include the path to a cache manifest
@@ -11,7 +11,7 @@ config :swai_edge, Edge.Client,
 # which you should run after static files are built and
 # before starting your production server.
 config :swai_web, SwaiWeb.Endpoint,
-  url: [host: "swai.io", port: 443],
+  url: [host: "swarm-wars.ai", port: 443],
   server: true,
   cache_static_manifest: "priv/static/cache_manifest.json"
 

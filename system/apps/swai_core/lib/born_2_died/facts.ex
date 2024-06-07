@@ -23,6 +23,9 @@ defmodule Born2Died.Facts do
   def life_moved_v1,
     do: "life_moved_v1"
 
+  def life_seen_v1,
+    do: "life_seen_v1"
+
   def infected_v1,
     do: "infected_v1"
 

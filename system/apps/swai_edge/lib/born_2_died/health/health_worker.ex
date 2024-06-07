@@ -5,69 +5,51 @@ defmodule Born2Died.HealthWorker do
   use GenServer
   require Logger
 
-  alias Born2Died.HealthEmitter, as: LifeEmitter
-  alias Born2Died.State, as: LifeState
+  alias Born2Died.HealthEmitter, as: HealthChannel
+  alias Schema.Identity, as: Identity
 
   ################ INTERFACE ###############
-  def live(life_init_id),
+  def live(life_state_id),
     do:
       GenServer.cast(
-        via(life_init_id),
+        via(life_state_id),
         {:live}
       )
 
-  def die(life_init_id),
+  def die(life_state_id),
     do:
       GenServer.cast(
-        via(life_init_id),
+        via(life_state_id),
         {:die}
       )
 
-  def get_state(life_init_id),
+  def get_state(life_state_id),
     do:
       GenServer.call(
-        via(life_init_id),
+        via(life_state_id),
         {:get_state}
       )
 
-  def heal(life_init_id, amount),
+  def heal(life_state_id, amount),
     do:
       GenServer.cast(
-        via(life_init_id),
+        via(life_state_id),
         {:heal, amount}
       )
 
-  def hurt(life_init_id, amount),
+  def hurt(life_state_id, amount),
     do:
       GenServer.cast(
-        via(life_init_id),
+        via(life_state_id),
         {:hurt, amount}
       )
-
-  ############################### INTERNALS #############################
-  defp do_cron(state) do
-    state =
-      state
-      |> do_process_health()
-
-    live(state.id)
-    state
-  end
-
-  defp do_process_health(state) when state.vitals.health <= 0 do
-    die(state.life.id)
-    state
-  end
-
-  defp do_process_health(state),
-    do: state
 
   defp do_die(state) do
     new_state =
       state
       |> Map.put(:status, "died")
 
-    LifeEmitter.emit_life_died(new_state)
+    HealthChannel.emit_life_died(new_state)
 
     Born2Died.System.stop(state.life.id)
 
@@ -76,33 +58,22 @@ defmodule Born2Died.HealthWorker do
 
   ################# CALLBACKS #####################
   @impl GenServer
-  def init(state) do
+  def init(%Identity{} = identity) do
+    # Process.flag(:trap_exit, true)
     Logger.info("health.worker: #{Colors.born2died_theme(self())}")
-
-    Process.flag(:trap_exit, true)
-    LifeEmitter.emit_initializing_life(state)
-
-
-    Cronlike.start_link(%{
-      interval: :rand.uniform(10),
-      unit: :second,
-      callback_function: &do_cron/1,
-      caller_state: state
-    })
-
-    LifeEmitter.emit_life_initialized(state)
-    {:ok, state}
+    
+    {:ok, identity}
   end
 
-  @impl GenServer
-  def terminate(reason, state) do
-    {:stop, reason, state}
-  end
+  # @impl GenServer
+  # def terminate(reason, state) do
+  #   {:stop, reason, state}
+  # end
 
-  @impl GenServer
-  def handle_info({:EXIT, _from_id, reason}, state) do
-    {:stop, reason, state}
-  end
+  # @impl GenServer
+  # def handle_info({:EXIT, _from_id, reason}, state) do
+  #   {:stop, reason, state}
+  # end
 
   @impl GenServer
   def handle_call({:get_state}, _from, state) do
@@ -112,42 +83,41 @@ defmodule Born2Died.HealthWorker do
 
   ################# HANDLE_CAST #####################
   @impl GenServer
-  def handle_cast({:live}, state) when state.status == "died" do
-    {:noreply, state}
-  end
+  def handle_cast({:live}, state)
+      when state.status == "died",
+      do: {:noreply, state}
 
   @impl GenServer
-  def handle_cast({:live}, state) do
-    {:noreply, state}
-  end
+  def handle_cast({:live}, state),
+    do: {:noreply, state}
 
   @impl GenServer
   def handle_cast({:die}, state),
     do: {:noreply, do_die(state)}
 
-
   ################# PLUMBING #####################
-  def to_name(life_init_id),
-    do: "born2died.health_worker.#{life_init_id}"
+  def to_name(id),
+    do: "drone.health_worker.#{id}"
 
-  def via(life_init_id),
-    do: Edge.Registry.via_tuple({:health_worker, to_name(life_init_id)})
+  def via(id),
+    do: Edge.Registry.via_tuple({:health_worker, to_name(id)})
 
-  def child_spec(%LifeState{} = life_init) do
+  def child_spec(%Identity{} = identity) do
     %{
-      id: __MODULE__,
-      start: {__MODULE__, :start_link, [life_init]},
+      id: to_name(identity.drone_id),
+      start: {__MODULE__, :start_link, [identity]},
       type: :worker,
       restart: :transient
     }
   end
 
-  def start_link(%LifeState{} = life_init),
-    do:
-      GenServer.start_link(
-        __MODULE__,
-        life_init,
-        name: via(life_init.id)
-      )
+  def start_link(%Identity{} = identity) do
+    Logger.debug("health.worker: #{Colors.born2died_theme(self())}")
+    GenServer.start_link(
+      __MODULE__,
+      identity,
+      name: via(identity.drone_id)
+    )
+  end
 
 end

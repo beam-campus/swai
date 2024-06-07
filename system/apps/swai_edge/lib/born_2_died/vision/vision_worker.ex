@@ -7,36 +7,85 @@ defmodule Born2Died.VisionWorker do
 
   require Logger
 
+  alias Phoenix.PubSub, as: Exchange
+
   alias Born2Died.State, as: LifeState
+  alias Born2Died.Facts, as: Facts
+  alias Born2Died.Movement, as: Movement
+  alias Born2Died.AiWorker, as: AiWorker
+  alias Schema.Identity, as: Identity
+
+  @life_moved_v1 Facts.life_moved_v1()
+  @life_initialized_v1 Facts.life_initialized_v1()
 
   ############# CALLBACKS #############
 
   @impl GenServer
-  def init(state) do
+  def init(%Identity{} = identity) do
     Logger.info("vision.worker: #{Colors.born2died_theme(self())}")
-    {:ok, state}
+    Exchange.subscribe(Edge.PubSub, @life_moved_v1)
+    Exchange.subscribe(Edge.PubSub, @life_initialized_v1)
+    {:ok, identity}
   end
 
+  ############## HANDLE_INFO ############
+  @impl GenServer
+  def handle_info(
+        {@life_moved_v1, %Movement{born2died_id: drone_id} = _movement},
+        %Identity{} = this
+      )
+      when drone_id == this.drone_id do
+    {:noreply, this}
+  end
+
+
+  @impl GenServer
+  def handle_info(
+        {@life_moved_v1, %Movement{mng_farm_id: mng_farm_id} = movement},
+        %Identity{} = this
+      )
+      when mng_farm_id == this.farm_id do
+        this
+        |> AiWorker.register_movement(movement)
+    {:noreply, this}
+  end
+
+
+
+  @impl GenServer
+  def handle_info(
+        {@life_initialized_v1, %LifeState{} = life},
+        %Identity{} = this
+      )
+      when life.id != this.drone_id do
+        this
+    |> AiWorker.register_birth(life)
+    {:noreply, this}
+  end
+
+  @impl GenServer
+  def handle_info(_msg, identity), do: {:noreply, identity}
+
   ############# PLUMBING ############
-  def via(life_init_id),
-    do: Edge.Registry.via_tuple({:vision_worker, to_name(life_init_id)})
+  def via(id),
+    do: Edge.Registry.via_tuple({:vision_worker, to_name(id)})
 
-  def to_name(life_init_id),
-    do: "born2died.vision_worker.#{life_init_id}"
+  def to_name(id),
+    do: "drone.vision_worker.#{id}"
 
-  def child_spec(%LifeState{} = life_init),
+  def child_spec(%Identity{} = identity),
     do: %{
-      id: to_name(life_init.id),
-      start: {__MODULE__, :start_link, [life_init]},
+      id: to_name(identity.drone_id),
+      start: {__MODULE__, :start_link, [identity]},
       type: :worker,
       restart: :transient
     }
 
-  def start_link(%LifeState{} = life_init),
+  def start_link(%Identity{} = identity),
     do:
       GenServer.start_link(
         __MODULE__,
-        life_init,
-        name: via(life_init.id)
+        identity,
+        name: via(identity.drone_id)
       )
 end

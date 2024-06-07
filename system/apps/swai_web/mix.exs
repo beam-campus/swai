@@ -68,13 +68,9 @@ defmodule SwaiWeb.MixProject do
        depth: 1},
       {:heroicons_liveview, "~> 0.5.0"},
       # {:apis, in_umbrella: true},
-      {:swai, in_umbrella: true},
+      {:swai, in_umbrella: true}
       # {:tucan, "~> 0.3.0"},
       # {:kino_vega_lite, "~> 0.1.8" }
-      {
-        :live_motion,
-        git: "https://github.com/beam-campus/live_motion.git", branch: "main"
-      }
     ]
   end
 

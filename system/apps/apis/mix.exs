@@ -41,7 +41,7 @@ defmodule Apis.MixProject do
     [
       {:mix_test_watch, "~> 1.2.0", only: [:dev, :test], runtime: false},
       {:credo, "~> 1.7.5", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.32.1", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.34.0", only: [:dev], runtime: false},
       {:dialyze, "~> 0.2.0", only: [:dev]},
       {:dialyxir, "~> 1.4.3", only: [:dev], runtime: false},
 

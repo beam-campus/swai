@@ -7,11 +7,14 @@ defmodule Born2Died.State do
   """
 
   import Ecto.Changeset
+  import Euclid2D
 
   alias Schema.Id, as: Id
   alias Schema.Vitals, as: Vitals
   alias Schema.Life, as: Life
   alias Schema.Vector, as: Vector
+  alias Born2Died.State, as: LifeState
+
 
   alias MngFarm.Init, as: MngFarmInit
 
@@ -41,6 +44,23 @@ defmodule Born2Died.State do
     :region_id,
     :farm_id,
     :mng_farm_id,
+    :herd_id,
+    :ticks,
+    :status,
+    :world_dimensions,
+    :life,
+    :prev_pos,
+    :pos,
+    :vitals
+  ]
+
+  @required_fields [
+    :id,
+    :edge_id,
+    :scape_id,
+    :region_id,
+    :farm_id,
+    :mng_farm_id,
     :ticks,
     :status,
     :world_dimensions,
@@ -57,6 +77,7 @@ defmodule Born2Died.State do
     :region_id,
     :farm_id,
     :mng_farm_id,
+    :herd_id,
     :ticks,
     :status
   ]
@@ -72,6 +93,7 @@ defmodule Born2Died.State do
     field(:region_id, :string)
     field(:farm_id, :string)
     field(:mng_farm_id, :string)
+    field(:herd_id, :string)
     field(:ticks, :integer)
     field(:status, :string)
     embeds_one(:world_dimensions, Vector)
@@ -81,22 +103,37 @@ defmodule Born2Died.State do
     embeds_one(:vitals, Vitals)
   end
 
-  # def random(edge_id, scape_id, region_id, farm_id, %{x: max_x, y: max_y, z: z} = _vector, life) do
-  #   %Born2Died.State{
-  #     id: Id.new(@id_prefix) |> Id.as_string(),
-  #     edge_id: edge_id,
-  #     scape_id: scape_id,
-  #     region_id: region_id,
-  #     farm_id: farm_id,
-  #     field_id: Id.new("field", to_string(z)) |> Id.as_string(),
-  #     life: life,
-  #     pos: Vector.random(max_x, max_y, 1),
-  #     vitals: Vitals.random(),
-  #     status: "unknown",
-  #     ticks: 0,
-  #     status: 0
-  #   }
-  # end
+
+  def is_approaching?(%LifeState{} = me, %LifeState{} = it) do
+    # Calculate the initial distance
+    prev_distance = distance(me.pos, it.prev_pos)
+    new_distance = distance(me.pos, me.prev_pos)
+    # Check if the distance is decreasing
+    new_distance < prev_distance
+  end
+
+  def is_moving?(%LifeState{} = me) do
+    # Calculate the initial distance
+    distance(me.pos, me.prev_pos) > 0
+  end
+
+  def is_still?(%LifeState{} = me) do
+    # Calculate the initial distance
+    distance(me.pos, me.prev_pos) == 0
+  end
+
+  def is_alive?(%LifeState{} = state) do
+    state.status == "alive"
+  end
+
+  def is_dead?(%LifeState{} = state) do
+    state.status == "dead"
+  end
+
+  def heading(%LifeState{} = state) do
+    heading(state.pos, state.prev_pos)
+  end
+
 
   def from_life(%Life{} = life, %MngFarmInit{} = mng_farm_init) do
     %Born2Died.State{
@@ -126,7 +163,7 @@ defmodule Born2Died.State do
     |> cast_embed(:pos, with: &Vector.changeset/2, required: true)
     |> cast_embed(:prev_pos, with: &Vector.changeset/2, required: true)
     |> cast_embed(:vitals, with: &Vitals.changeset/2, required: true)
-    |> validate_required(@all_fields)
+    |> validate_required(@required_fields)
   end
 
   def from_map(map) when is_map(map) do

@@ -8,6 +8,7 @@ defmodule Born2Died.HealthEmitter do
   alias Born2Died.State, as: LifeState
   alias Edge.Client, as: Client
   alias Born2Died.Facts, as: LifeFacts
+  alias Phoenix.PubSub, as: Exchange
 
   require Logger
 
@@ -35,13 +36,19 @@ defmodule Born2Died.HealthEmitter do
         %{life_init: life_init}
       )
 
-  def emit_life_initialized(life_init),
-    do:
-      Client.publish(
-        life_init.edge_id,
-        @life_initialized_v1,
-        %{life_init: life_init}
-      )
+  def emit_life_initialized(%LifeState{} = life) do
+    Exchange.broadcast!(
+      Edge.PubSub,
+      @life_initialized_v1,
+      {@life_initialized_v1, life}
+    )
+
+    Client.publish(
+      life.edge_id,
+      @life_initialized_v1,
+      %{life_init: life}
+    )
+  end
 
   def emit_life_state_changed(life_init),
     do:

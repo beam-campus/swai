@@ -54,7 +54,7 @@
           role="menuitem"
           tabindex="-1"
           method="get"
-          id="user-menu-item-1"
+          id="user-menu-item-about"
         >
           About us...
         </.link>
@@ -66,19 +66,20 @@
             role="menuitem"
             tabindex="-1"
             method="get"
-            id="user-menu-item-0"
+            id="user-menu-item-profile"
           >
             Singed in as <%= @current_user.email %>
           </.link>
+          
           <.link
             href="/edges_live"
             class="menu-item"
             role="menuitem"
             tabindex="-1"
             method="get"
-            id="user-menu-item-1"
+            id="user-menu-item-producers"
           >
-            View Producers
+            Connected Producers
           </.link>
           
           <.link
@@ -111,9 +112,8 @@
             method="get"
             id="user-menu-item-2"
           >
-            Emulated Farms
+            Active Hives
           </.link>
-
           <.link
             href="/view_lives"
             class="border-b border-white border-opacity-50 menu-item"            
@@ -122,7 +122,7 @@
             method="get"
             id="user-menu-item-2"
           >
-            Emulated Lives
+            Ongoing Wars
           </.link>
 
 
