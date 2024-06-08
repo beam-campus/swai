@@ -14,6 +14,12 @@ defmodule Born2Died.VisionWorker do
   alias Born2Died.Movement, as: Movement
   alias Born2Died.AiWorker, as: AiWorker
   alias Schema.Identity, as: Identity
+  alias Born2Died.System, as: System
+
+
+  @vision_radius 10
+  @action_radius 2
+
 
   @life_moved_v1 Facts.life_moved_v1()
   @life_initialized_v1 Facts.life_initialized_v1()
@@ -38,19 +44,29 @@ defmodule Born2Died.VisionWorker do
     {:noreply, this}
   end
 
-
   @impl GenServer
   def handle_info(
         {@life_moved_v1, %Movement{mng_farm_id: mng_farm_id} = movement},
-        %Identity{} = this
+        %Identity{} = identity
       )
-      when mng_farm_id == this.farm_id do
-        this
-        |> AiWorker.register_movement(movement)
-    {:noreply, this}
+      when mng_farm_id == identity.farm_id do
+    this = System.get_state(identity.drone_id)
+
+    cond do
+      Euclid2D.in_radius?(this.pos, movement.to, @action_radius) ->
+        identity
+        |> AiWorker.perform_action(movement)
+
+      Euclid2D.in_radius?(this.pos, movement.to, @vision_radius) ->
+        identity
+        |> AiWorker.process_movement(movement)
+
+      true ->
+        true
+    end
+
+    {:noreply, identity}
   end
-
-
 
   @impl GenServer
   def handle_info(
@@ -58,8 +74,9 @@ defmodule Born2Died.VisionWorker do
         %Identity{} = this
       )
       when life.id != this.drone_id do
-        this
+    this
     |> AiWorker.register_birth(life)
+
     {:noreply, this}
   end
 

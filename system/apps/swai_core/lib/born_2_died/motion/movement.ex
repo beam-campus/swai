@@ -87,6 +87,6 @@ defmodule Born2Died.Movement do
     |> cast_embed(:to, with: &Vector.changeset/2)
     |> cast_embed(:from, with: &Vector.changeset/2)
     |> cast_embed(:life, with: &Life.changeset/2)
-    |> validate_required(@all_fields)
+    |> validate_required(@required_fields)
   end
 end

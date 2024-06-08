@@ -11,8 +11,19 @@ defmodule Euclid2D do
   alias Schema.Vector, as: Vector
 
 
+  def radians_to_gradians(radians), do: radians * 200 / :math.pi
+  def gradians_to_radians(gradians), do: gradians * :math.pi / 200
+  def radians_to_degrees(radians), do: radians * 180 / :math.pi
+  def degrees_to_radians(degrees), do: degrees * :math.pi / 180
+  def degrees_to_gradians(degrees), do: degrees * 10 / 9
+  def gradians_to_degrees(gradians), do: gradians * 9 / 10
+
   def distance(%Vector{} = here, %Vector{} = there) do
     sqrt(pow((here.x - there.x),2) + pow((here.y - there.y),2))
+  end
+
+  def in_radius?(%Vector{} = here, %Vector{} = there, radius) do
+    distance(here, there) <= radius
   end
 
   def heading(%Vector{} = from, %Vector{} = to) do
@@ -31,8 +42,8 @@ defmodule Euclid2D do
   end
 
   def calculate_endpoint(%Vector{} = here , heading, d) do
-    new_x = round(here.x + (d * cos(heading)))
-    new_y = round(here.y + (d * sin(heading)))
+    new_x = here.x + (d * cos(heading))
+    new_y = here.y + (d * sin(heading))
 
     %Vector{x: new_x, y: new_y, z: here.z}
   end

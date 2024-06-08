@@ -9,8 +9,11 @@ defmodule Schema.Farm do
   alias Schema.Id
   alias Schema.Vector, as: Vector
 
-  @cols 20
-  @rows 20
+  ### world dimensions
+  @cols 200
+  @rows 200
+
+
   @depth 1
   @max_pct_good 10
   @max_pct_bad 10

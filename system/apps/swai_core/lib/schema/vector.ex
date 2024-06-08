@@ -29,8 +29,8 @@ defmodule Schema.Vector do
   @derive {Jason.Encoder, only: @all_fields}
   @primary_key false
   embedded_schema do
-    field(:x, :integer)
-    field(:y, :integer)
+    field(:x, :float)
+    field(:y, :float)
     field(:z, :integer)
   end
 
@@ -73,7 +73,7 @@ defmodule Schema.Vector do
   end
 
   def as_tuple(%Vector{} = vector) do
-    {vector.x, vector.y, vector.z, vector.t}
+    {vector.x, vector.y, vector.z}
   end
 
   defp new_val(val, _max_val) when val < 0,
@@ -133,6 +133,13 @@ defmodule Schema.Vector do
       _ ->
         -1
     end
+  end
+
+  def random_from(%Vector{} = vector) do
+    x = vector.x + random_sign()
+    y = vector.y + random_sign()
+    z = vector.z
+    new(x, y, z)
   end
 
   def random(max_x, max_y, max_z) do

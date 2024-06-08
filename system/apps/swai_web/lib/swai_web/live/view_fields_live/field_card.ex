@@ -6,6 +6,7 @@ defmodule SwaiWeb.ViewFieldsLive.FieldCard do
   """
 
   alias Lives.Service, as: Lives
+  import :math
 
 
   def get_lives(mng_farm_id),
@@ -41,24 +42,40 @@ defmodule SwaiWeb.ViewFieldsLive.FieldCard do
   # end
 
   @impl true
-  def render(assigns) do
-    ~H"""
-    <div>
+def render(assigns) do
+  ~H"""
+  <div class="flex flex-row">
+
+    <div class="w-1/4">
+      <!-- List of drones goes here -->
+      <ul>
+        <%= for drone <- @cell_states do %>
+          <li><%= "(#{round(drone.col)}, #{round(drone.row)})" %></li>
+        <% end %>
+      </ul>
+    </div>
+
+
+    <div class="w-1/4 my-1">
       <div
         phx-hook="canvas"
         data-cell_states={Jason.encode!(@cell_states)}
         id="canvas-div"
+        class="w-full"
       >
         <canvas
           phx-update="ignore"
-          id="canvas">
+          id="canvas"
+          class="w-full">
           Canvas is not supported!
         </canvas>
       </div>
     </div>
-    """
-  end
 
 
+
+  </div>
+  """
+end
 
 end

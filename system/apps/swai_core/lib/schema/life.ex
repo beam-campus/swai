@@ -15,6 +15,8 @@ defmodule Schema.Life do
 
   @genders [
     "male",
+    "female",
+    "female",
     "female"
   ]
 

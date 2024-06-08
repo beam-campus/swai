@@ -15,8 +15,11 @@ defmodule Born2Died.AiWorker do
 
   alias Euclid2D
 
-  ############# API ############
   alias Schema.Identity
+
+  @normal_speed 2
+
+  ############# API ############
 
   def register_birth(%Identity{} = identity, %LifeState{} = life),
     do:
@@ -25,17 +28,23 @@ defmodule Born2Died.AiWorker do
         {:register_birth, life}
       )
 
-  def register_movement(%Identity{} = identity, %Movement{} = movement),
+  def process_movement(%Identity{} = identity, %Movement{} = movement),
     do:
       GenServer.cast(
         via(identity.drone_id),
-        {:register_movement, movement}
+        {:process_movement, movement}
+      )
+
+  def perform_action(%Identity{} = identity, %Movement{} = movement),
+    do:
+      GenServer.cast(
+        via(identity.drone_id),
+        {:perform_action, movement}
       )
 
   defp on_new_life(%LifeState{} = drone, %LifeState{} = new_life) do
-    Logger.info("ai.worker[#{inspect(self())}] => #{new_life.id} is born")
     drone
-    |> MotionWorker.move_away_from(new_life)
+    |> MotionWorker.move_away_from(new_life, :rand.uniform(3))
   end
 
   ####################### CALLBACKS #######################
@@ -45,7 +54,7 @@ defmodule Born2Died.AiWorker do
     {:ok, identity}
   end
 
-  ####################### handle_cast #######################
+  ####################### register_birth  #######################
   @impl GenServer
   def handle_cast({:register_birth, %LifeState{} = life}, identity)
       when life.id == identity.drone_id do
@@ -70,12 +79,12 @@ defmodule Born2Died.AiWorker do
   end
 
   @impl GenServer
-  def handle_cast({:register_birth, %LifeState{} = _life}, identity),
-    do: {:noreply, identity}
+  def handle_cast({:register_birth, %LifeState{} = _life}, identity), do: {:noreply, identity}
 
+  ########################## process_movement ############################
   @impl GenServer
-  def handle_cast({:register_movement, %Movement{} = movement}, identity)
-  when movement.born2died_id == identity.drone_id do
+  def handle_cast({:process_movement, %Movement{} = movement}, identity)
+      when movement.born2died_id == identity.drone_id do
     this = System.get_state(identity.drone_id)
 
     new_state =
@@ -88,28 +97,26 @@ defmodule Born2Died.AiWorker do
     {:noreply, identity}
   end
 
+  @impl GenServer
+  def handle_cast({:process_movement, %Movement{} = movement}, identity), do: {:noreply, identity}
+
+  ########################## perform_action ############################
 
   @impl GenServer
-  def handle_cast({:register_movement, %Movement{} = movement}, identity) do
+  def handle_cast({:perform_action, %Movement{} = movement}, identity) do
     %LifeState{} = this = System.get_state(identity.drone_id)
-    %LifeState{} = that = System.get_state(movement.born2died_id)
+    %LifeState{} = _that = System.get_state(movement.born2died_id)
 
     new_state =
-      cond do
-      that.life.gender == this.life.gender ->
-        this
-        |> MotionWorker.move_towards(that)
-      that.life.gender != this.life.gender ->
-        this
-        |> MotionWorker.move_towards(that)
-        true ->
-          this
-    end
+      this
+      |> Map.put(:status, "performing_action")
 
     System.save_state(identity.drone_id, new_state)
     {:noreply, identity}
   end
 
+  defp same_gender?(%LifeState{} = this, %LifeState{} = that),
+    do: that.life.gender == this.life.gender
 
   ################# PLUMBING #################
   def via(id),

@@ -26,7 +26,7 @@ defmodule MngFarm.Server do
 
 
   def populate_live_stock(%MngFarmInit{} = mng_farm_init) do
-    Enum.to_list(1..mng_farm_init.farm.nbr_of_lives)
+    Enum.to_list(1..mng_farm_init.farm.nbr_of_lives+5)
     |> Enum.map(&do_new_life/1)
     |> Enum.each(&do_start_born2died(&1, mng_farm_init))
   end

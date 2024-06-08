@@ -36,7 +36,6 @@ defmodule Cell.State do
   @primary_key false
   @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
-    
     field(:prev_col, :integer)
     field(:prev_row, :integer)
     field(:prev_depth, :integer)

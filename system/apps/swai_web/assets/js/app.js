@@ -64,7 +64,7 @@ let hooks = {
     mounted() {
       this.handleEvent("cell_state_changed", ({ cell_states }) => {
         this.el.dataset.cell_states = JSON.stringify(cell_states);
-      });  
+      });
     }
   },
   canvas: {
@@ -73,6 +73,14 @@ let hooks = {
       let context = canvas.getContext("2d");
       let ratio = getPixelRatio(context);
       let colorizer = cubehelix(3, 0.5, 2.0);
+
+      // Set the canvas width and height to match the parent div
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+
+      // Set the internal size to match
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
 
       resize(canvas, ratio);
 
@@ -109,18 +117,18 @@ let hooks = {
       this.animationFrameRequest = requestAnimationFrame(() => {
         this.animationFrameRequest = undefined;
 
-        
+
         // context.fillStyle = "transparent";
-        context.fillStyle = "#55bb00"; // Replace #yourColor with the color you want
+        context.fillStyle = "#55bb00";
         context.fillRect(0, 0, canvas.width, canvas.height);
 
         fade(canvas, context, 0.8);
 
         cell_states.forEach(state => {
           oldFont = context.font;
-          context.font = "50px Arial";            
-          posX = (state.col*40)
-          posY = 60 + (state.row*20)
+          context.font = "20px Arial";
+          posX = (state.col * 4)
+          posY = 60 + (state.row * 2)
           context.fillText(state.content, posX, posY);
           context.font = oldFont;
         })

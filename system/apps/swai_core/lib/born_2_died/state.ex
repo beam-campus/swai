@@ -15,7 +15,6 @@ defmodule Born2Died.State do
   alias Schema.Vector, as: Vector
   alias Born2Died.State, as: LifeState
 
-
   alias MngFarm.Init, as: MngFarmInit
 
   require Logger
@@ -103,7 +102,6 @@ defmodule Born2Died.State do
     embeds_one(:vitals, Vitals)
   end
 
-
   def is_approaching?(%LifeState{} = me, %LifeState{} = it) do
     # Calculate the initial distance
     prev_distance = distance(me.pos, it.prev_pos)
@@ -134,8 +132,12 @@ defmodule Born2Died.State do
     heading(state.pos, state.prev_pos)
   end
 
-
   def from_life(%Life{} = life, %MngFarmInit{} = mng_farm_init) do
+    prev_pos =
+      Vector.random(mng_farm_init.max_col, mng_farm_init.max_row, mng_farm_init.max_depth)
+
+    pos = Vector.random_from(prev_pos)
+
     %Born2Died.State{
       id: Id.new(@id_prefix) |> Id.as_string(),
       edge_id: mng_farm_init.edge_id,
@@ -146,12 +148,11 @@ defmodule Born2Died.State do
       life: life,
       world_dimensions:
         Vector.new(mng_farm_init.max_col, mng_farm_init.max_row, mng_farm_init.max_depth),
-      prev_pos:
-        Vector.random(mng_farm_init.max_col, mng_farm_init.max_row, mng_farm_init.max_depth),
-      pos: Vector.random(mng_farm_init.max_col, mng_farm_init.max_row, mng_farm_init.max_depth),
+      prev_pos: prev_pos,
+      pos: pos,
       vitals: Vitals.random(),
       ticks: 0,
-      status: "unknown"
+      status: "idle"
     }
   end
 
