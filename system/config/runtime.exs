@@ -15,11 +15,11 @@ import Config
 # any compile-time configuration in here, as it won't be applied.
 # The block below contains prod specific runtime configuration.
 if config_env() == :prod do
-  database_path =
-    System.get_env("SWAI_DATABASE_PATH") ||
+  database_url =
+    System.get_env("SWAI_DB_URL") ||
       raise """
-      environment variable SWAI_DATABASE_PATH is missing.
-      For example: /etc/swai/temp_sqlite.db
+      environment variable SWAI_DB_URL is missing.
+      For example: ecto://USER:PASS@HOST/DATABASE
       """
 
   config :swai, Swai.Repo,
