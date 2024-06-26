@@ -9,15 +9,6 @@ defmodule Scape.System do
   alias Edge.Emitter, as: EdgeEmitter
   alias Scape.Init, as: ScapeInit
 
-
-  # def start_region_system(scape_id, region_init) do
-  #   Logger.debug("for [#{scape_id}] with region_init #{inspect(region_init)}")
-  #   GenServer.cast(
-  #     via(scape_id),
-  #     {:start_region_system, region_init}
-  #   )
-  # end
-
   @doc """
   Returns the list of children supervised by this module
   """
@@ -48,17 +39,6 @@ defmodule Scape.System do
     {:noreply, state}
   end
 
-  # @impl GenServer
-  # def handle_cast({:start_region_system, region_init}, %{id: scape_id} = scape_init) do
-  #   debug("in:region_init=#{inspect(region_init)}")
-
-  #   Supervisor.start_child(
-  #     via_sup(scape_id),
-  #     {Region.System, region_init}
-  #   )
-
-  #   {:noreply, scape_init}
-  # end
 
   @impl GenServer
   def terminate(reason, scape_init) do

@@ -1,6 +1,6 @@
 defmodule Born2Died.MotionEmitter do
   @moduledoc """
-  Born2Died.HealthEmitter is a GenServer that manages a channel to client
+  Born2Died.HealthChannel is a GenServer that manages a channel to client
   """
   alias Born2Died.Movement, as: Movement
   alias Edge.Client, as: Client

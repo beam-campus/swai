@@ -36,6 +36,15 @@ defmodule EnvVars do
   def swai_edge_scape_nbr_of_countries,
     do: "SWAI_MAX_COUNTRIES"
 
+  def swai_edge_scape_description,
+    do: "SWAI_SCAPE_DESCRIPTION"
+
+  def swai_edge_scape_theme,
+    do: "SWAI_SCAPE_THEME"
+
+  def swai_edge_scape_image_url,
+    do: "SWAI_SCAPE_IMAGE_URL"
+
   def get_env_var_as_integer(var_name, default \\ 0) do
     case System.get_env(var_name) do
       nil ->

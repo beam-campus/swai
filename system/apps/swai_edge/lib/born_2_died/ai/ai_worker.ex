@@ -7,7 +7,7 @@ defmodule Born2Died.AiWorker do
 
   require Logger
 
-  alias Born2Died.MotionWorker, as: MotionWorker
+  alias Born2Died.MotionActuator, as: MotionActuator
   alias Born2Died.State, as: LifeState
   alias Born2Died.Movement, as: Movement
   alias Born2Died.System, as: System
@@ -17,7 +17,9 @@ defmodule Born2Died.AiWorker do
 
   alias Schema.Identity
 
-  @normal_speed 2
+  @normal_speed 1
+  @action_radius 5
+  @vision_radius 300
 
   ############# API ############
 
@@ -44,7 +46,7 @@ defmodule Born2Died.AiWorker do
 
   defp on_new_life(%LifeState{} = drone, %LifeState{} = new_life) do
     drone
-    |> MotionWorker.move_away_from(new_life, :rand.uniform(3))
+    |> MotionActuator.move_away_from(new_life, :rand.uniform(@normal_speed))
   end
 
   ####################### CALLBACKS #######################
@@ -59,7 +61,7 @@ defmodule Born2Died.AiWorker do
   def handle_cast({:register_birth, %LifeState{} = life}, identity)
       when life.id == identity.drone_id do
     this = System.get_state(identity.drone_id)
-    this |> Map.put(:status, "born")
+    this = %{this | status: "born"}
     System.save_state(identity.drone_id, this)
     {:noreply, identity}
   end
@@ -88,35 +90,110 @@ defmodule Born2Died.AiWorker do
     this = System.get_state(identity.drone_id)
 
     new_state =
-      this
-      |> Map.put(:prev_pos, this.pos)
-      |> Map.put(:pos, movement.to)
-      |> Map.put(:status, "moving")
+      %{this | status: "moving", prev_pos: this.pos, pos: movement.to}
 
     System.save_state(identity.drone_id, new_state)
     {:noreply, identity}
   end
 
   @impl GenServer
-  def handle_cast({:process_movement, %Movement{} = movement}, identity), do: {:noreply, identity}
+  def handle_cast({:process_movement, %Movement{} = movement}, %Identity{} = identity)
+      when movement.mng_farm_id == identity.farm_id do
+    %LifeState{} = this = System.get_state(identity.drone_id)
+    %LifeState{} = that = System.get_state(movement.born2died_id)
+
+    case calculate_motion(this, that) do
+      {:away_from, speed} ->
+        this
+        |> MotionActuator.move_away_from(that, speed)
+
+      {:towards, speed} ->
+        this
+        |> MotionActuator.move_towards(that, speed)
+
+      {:forward, speed} ->
+        this
+        |> MotionActuator.move_forward(speed)
+    end
+
+    # cond do
+    #   Euclid2D.in_radius?(this.pos, movement.to, @action_radius) ->
+    #     identity
+    #     |> perform_action(that)
+
+    #   Euclid2D.in_radius?(this.pos, movement.to, @vision_radius) ->
+    #     case calculate_motion(this, that) do
+    #       {:away_from, speed} ->
+    #         this
+    #         |> MotionActuator.move_away_from(that, speed)
+
+    #       {:towards, speed} ->
+    #         this
+    #         |> MotionActuator.move_towards(that, speed)
+
+    #       {:forward, speed} ->
+    #         this
+    #         |> MotionActuator.move_forward(speed)
+    #     end
+    # end
+
+    {:noreply, identity}
+  end
+
+  @impl GenServer
+  def handle_cast({:process_movement, %Movement{} = _movement}, identity),
+    do: {:noreply, identity}
 
   ########################## perform_action ############################
 
   @impl GenServer
-  def handle_cast({:perform_action, %Movement{} = movement}, identity) do
+  def handle_cast({:perform_action, %LifeState{} = _that}, identity) do
     %LifeState{} = this = System.get_state(identity.drone_id)
-    %LifeState{} = _that = System.get_state(movement.born2died_id)
 
+    # TODO: implement action
     new_state =
-      this
-      |> Map.put(:status, "performing_action")
+      %{this | status: "performing_action"}
 
     System.save_state(identity.drone_id, new_state)
     {:noreply, identity}
   end
 
-  defp same_gender?(%LifeState{} = this, %LifeState{} = that),
-    do: that.life.gender == this.life.gender
+  defp calculate_motion(%LifeState{} = this, %LifeState{} = that) do
+    cond do
+      could_breed?(this, that) or could_fight?(this, that) ->
+        {:towards, @normal_speed}
+
+      could_fear?(this, that) ->
+        {:away_from, @normal_speed}
+
+      true ->
+        {:forward, @normal_speed}
+    end
+  end
+
+  defp could_fear?(%LifeState{} = this, %LifeState{} = that),
+    do:
+      this.vitals.health < 20 or that.vitals.health < 20 or
+        this.vitals.energy <= 50 or that.vitals.energy <= 50 or
+        this.vitals.age >= 30 or that.vitals.age >= 30 or
+        this.vitals.is_pregnant or that.vitals.is_pregnant
+
+  defp could_fight?(%LifeState{} = this, %LifeState{} = that),
+    do:
+      this.life.gender == "male" and that.life.gender == "male" and
+        this.vitals.health > 50 and that.vitals.health > 50 and
+        this.vitals.energy > 50 and that.vitals.energy > 50 and
+        this.vitals.age > 5 and that.vitals.age > 5 and
+        this.vitals.age < 20 and that.vitals.age < 20
+
+  defp could_breed?(%LifeState{} = this, %LifeState{} = that),
+    do:
+      this.life.gender != that.life.gender and
+        this.vitals.health > 50 and that.vitals.health > 50 and
+        this.vitals.energy > 50 and that.vitals.energy > 50 and
+        this.vitals.age > 5 and that.vitals.age > 5 and
+        this.vitals.age < 20 and that.vitals.age < 20 and
+        not this.vitals.is_pregnant and not that.vitals.is_pregnant
 
   ################# PLUMBING #################
   def via(id),

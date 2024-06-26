@@ -1,5 +1,23 @@
 defmodule Swai.Limits do
+  defstruct [
+    :ticks_per_year,
+    :min_area,
+    :min_people,
+    :min_lives,
+    :max_lives,
+    :min_age,
+    :max_age,
+    :max_countries,
+    :max_farms,
+    :min_weight,
+    :max_weight,
+    :max_robots,
+    :min_robots,
+    :select_from
+  ]
+
   require Config
+  alias Swai.Limits, as: Limits
 
   @moduledoc """
   Agrex.Limits is the module that contains the limits for the Life Subsystem
@@ -9,19 +27,53 @@ defmodule Swai.Limits do
     ticks_per_year: 20,
     min_area: 30_000,
     min_people: 10_000_000,
-    min_lives: 7,
-    max_lives: 50,
+    min_lives: 10,
+    max_lives: 40,
     min_age: 1,
     max_age: 25,
-    max_countries: 3,
+    max_countries: 1,
     max_farms: 5,
     min_weight: 50,
     max_weight: 750,
     max_robots: 3,
     min_robots: 2,
-    select_from: "Europe",
-    init_nbr_of_lives: 5
+    select_from: "Europe"
   ]
+
+  @type t :: %Limits{
+          ticks_per_year: integer,
+          min_area: integer,
+          min_people: integer,
+          min_lives: integer,
+          max_lives: integer,
+          min_age: integer,
+          max_age: integer,
+          max_countries: integer,
+          max_farms: integer,
+          min_weight: integer,
+          max_weight: integer,
+          max_robots: integer,
+          min_robots: integer,
+          select_from: String.t
+        }
+
+  def default_map,
+    do: %Limits{
+      ticks_per_year: 20,
+      min_area: 30_000,
+      min_people: 10_000_000,
+      min_lives: 10,
+      max_lives: 40,
+      min_age: 1,
+      max_age: 25,
+      max_countries: 1,
+      max_farms: 5,
+      min_weight: 50,
+      max_weight: 750,
+      max_robots: 3,
+      min_robots: 2,
+      select_from: "Europe"
+    }
 
   def min_area,
     do:
@@ -35,19 +87,15 @@ defmodule Swai.Limits do
         @defaults[:min_people]
       )
 
-  def init_nbr_of_lives,
-    do:
-    EnvVars.get_env_var_as_integer(
-      EnvVars.swai_edge_max_animals(),
-      EnvVars.get_env_var_as_integer(
-        EnvVars.swai_init_animals_per_farm(),
-        @defaults[:max_lives]
-      )
-
-    )
-
-
-
+  # def init_nbr_of_lives,
+  #   do:
+  #   EnvVars.get_env_var_as_integer(
+  #     EnvVars.swai_edge_max_animals(),
+  #     EnvVars.get_env_var_as_integer(
+  #       EnvVars.swai_init_animals_per_farm(),
+  #       @defaults[:max_lives]
+  #     )
+  #   )
 
   def min_lives,
     do: @defaults[:min_lives]

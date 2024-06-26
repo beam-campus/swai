@@ -34,7 +34,7 @@ defmodule Edge.Application do
 
     \n\n\n")
 
-    Process.sleep(5_000)
+    Process.sleep(2_000)
 
     children = [
       {Edge.Registry, name: Edge.Registry},

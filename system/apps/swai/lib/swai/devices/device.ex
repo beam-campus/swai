@@ -19,7 +19,7 @@ defmodule Swai.Devices.Device do
     field :user_id, :string
     field :brand, :string
     field :model, :string
-    field :arcitecture, :string
+    field :architecture, :string
     field :clock_mhz, :string
     field :cores, :integer
     field :ram_gb, :integer
@@ -35,7 +35,7 @@ defmodule Swai.Devices.Device do
   @doc false
   def changeset(device, attrs) do
     device
-    |> cast(attrs, [:add, :name, :description, :user_id, :brand, :model, :arcitecture, :cpu, :clock_mhz, :cores, :ram_gb, :storage_gb, :network, :mac_address, :root_os, :os_version, :runtime, :runtime_version])
-    |> validate_required([:add, :name, :description, :user_id, :brand, :model, :arcitecture, :cpu, :clock_mhz, :cores, :ram_gb, :storage_gb, :network, :mac_address, :root_os, :os_version, :runtime, :runtime_version])
+    |> cast(attrs, [:add, :name, :description, :user_id, :brand, :model, :architecture, :cpu, :clock_mhz, :cores, :ram_gb, :storage_gb, :network, :mac_address, :root_os, :os_version, :runtime, :runtime_version])
+    |> validate_required([:add, :name, :description, :user_id, :brand, :model, :architecture, :cpu, :clock_mhz, :cores, :ram_gb, :storage_gb, :network, :mac_address, :root_os, :os_version, :runtime, :runtime_version])
   end
 end

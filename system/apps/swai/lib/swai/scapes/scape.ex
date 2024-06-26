@@ -66,8 +66,7 @@ defmodule Service.Scapes.Scape do
     case Enum.member?(scape.sourced_by, edge_id) do
       false ->
         scape =
-          scape
-          |> Map.put(:sourced_by, [edge_id | scape.sourced_by])
+          %{ scape | sourced_by: [edge_id | scape.sourced_by] }
         {:ok, scape}
       true ->
         {:ok, scape}

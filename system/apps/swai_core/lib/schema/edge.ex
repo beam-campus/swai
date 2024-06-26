@@ -1,13 +1,13 @@
-defmodule Swai.Schema.Edge do
+defmodule Schema.Edge do
   use Ecto.Schema
 
   @moduledoc """
-  Swai.Schema.Edge contains the Ecto schema for the edge.
+  Schema.Edge contains the Ecto schema for the edge.
   """
 
   import Ecto.Changeset
 
-  alias Swai.Schema.Edge, as: Edge
+  alias Schema.Edge, as: Edge
   alias Schema.Id, as: Id
 
   @all_fields [

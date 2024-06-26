@@ -5,6 +5,7 @@ defmodule Edge.Init do
   Edge.Init is the struct that identifies the state of a Region.
   """
   alias Edge.Init, as: EdgeInit
+  alias Schema.Edge, as: Edge
   alias AppUtils
 
   import Ecto.Changeset
@@ -104,14 +105,14 @@ defmodule Edge.Init do
 
   def default,
     do: %EdgeInit{
-      id: Swai.Schema.Edge.random_id(),
+      id: Edge.random_id(),
       api_key: "europe_",
       is_container: AppUtils.running_in_container?()
     }
 
   def from_environment() do
     {:ok, chost} = :inet.gethostname()
-    edge_id = "#{to_string(chost)}-" <> Swai.Schema.Edge.random_id()
+    edge_id = "#{to_string(chost)}-" <> Edge.random_id()
 
     api_key =
       case System.get_env("SWAI_EDGE_API_KEY") do
@@ -158,7 +159,7 @@ defmodule Edge.Init do
 
   def from_environment(ip_info) when is_map(ip_info) do
     {:ok, chost} = :inet.gethostname()
-    edge_id = "#{to_string(chost)}-" <> Swai.Schema.Edge.random_id()
+    edge_id = "#{to_string(chost)}-" <> Edge.random_id()
 
     api_key = System.get_env(EnvVars.swai_edge_api_key(), "no-api-key")
     scape_id = System.get_env(EnvVars.swai_edge_scape_id(), "dairy-logs")

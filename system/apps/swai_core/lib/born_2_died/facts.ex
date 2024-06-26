@@ -8,6 +8,12 @@ defmodule Born2Died.Facts do
   def life_died_v1,
     do: "life_died_v1"
 
+  def is_mating_v1,
+    do: "is_mating_v1"
+
+  def is_impregnated_v1,
+    do: "is_impregnated_v1"
+
   def calved_v1,
     do: "calved_v1"
 

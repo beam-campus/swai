@@ -127,8 +127,8 @@ let hooks = {
         cell_states.forEach(state => {
           oldFont = context.font;
           context.font = "20px Arial";
-          posX = (state.col * 4)
-          posY = 60 + (state.row * 2)
+          posX = (state.col * 2)
+          posY = 60 + (state.row * 1)
           context.fillText(state.content, posX, posY);
           context.font = oldFont;
         })
@@ -140,6 +140,7 @@ let hooks = {
           this.fps = 1 / ((now - (this.fpsNow || now)) / 5000);
           this.fpsNow = now;
         }
+        
         context.textBaseline = "top";
         context.font = "8pt monospace";
         context.fillStyle = "#f0f0f0";

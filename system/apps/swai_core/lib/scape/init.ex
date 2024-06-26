@@ -8,9 +8,14 @@ defmodule Scape.Init do
   require MnemonicSlugs
 
   alias Scape.Init, as: ScapeInit
+  alias Schema.Scape, as: Scape
 
   @env_scape_id EnvVars.swai_edge_scape_id()
   @env_scape_name EnvVars.swai_edge_scape_name()
+  @env_scape_description EnvVars.swai_edge_scape_description()
+  @env_scape_theme EnvVars.swai_edge_scape_theme()
+  @env_scape_image_url EnvVars.swai_edge_scape_image_url()
+
   # @env_scape_select_from EnvVars.Swai_edge_scape_select_from()
   # @env_scape_nbr_of_countries EnvVars.Swai_edge_scape_nbr_of_countries()
   # @env_scape_min_area EnvVars.Swai_edge_scape_min_area()
@@ -19,6 +24,9 @@ defmodule Scape.Init do
   @all_fields [
     :id,
     :name,
+    :description,
+    :theme,
+    :image_url,
     :edge_id,
     :nbr_of_countries,
     :min_area,
@@ -29,6 +37,9 @@ defmodule Scape.Init do
   @required_fields [
     :id,
     :name,
+    :description,
+    :theme,
+    :image_url,
     :edge_id,
     :nbr_of_countries,
     :min_area,
@@ -40,9 +51,13 @@ defmodule Scape.Init do
   @primary_key false
   embedded_schema do
     field(:id, :string)
-    field(:name, :string)
     field(:edge_id, :string)
-    field(:nbr_of_countries, :integer)
+    field(:name, :string)
+    field(:description, :string, default: "A scape is an darwinian environment with specific characteristics,
+    that determine the fitness of a life form, for that specific environment.")
+    field(:theme, :string, default: "some theme")
+    field(:image_url, :string, default: "https://picsum.photos/400/300")
+    field(:nbr_of_countries, :integer, default: 1)
     field(:min_area, :integer)
     field(:min_people, :integer)
     field(:select_from, :string)
@@ -84,6 +99,10 @@ defmodule Scape.Init do
     %ScapeInit{
       id: System.get_env(@env_scape_id, "dairy-logs"),
       name: System.get_env(@env_scape_name, "DairyLogs"),
+      description: System.get_env(@env_scape_description, "DairyLogs is a dairy farm Darwinian Environment.
+      Drones are rewarded for breeding, producing milk and staying healthy."),
+      theme: System.get_env(@env_scape_theme, "agriculture"),
+      image_url: System.get_env(@env_scape_image_url, "https://picsum.photos/400/300"),
       edge_id: edge_id,
       nbr_of_countries: Swai.Limits.max_countries(),
       min_area: Swai.Limits.min_area(),
@@ -121,7 +140,7 @@ defmodule Scape.Init do
 
   def from_random(edge_id) do
     %ScapeInit{
-      id: Swai.Schema.Scape.random_id(),
+      id: Scape.random_id(),
       name: MnemonicSlugs.generate_slug(2),
       edge_id: edge_id,
       nbr_of_countries: Swai.Limits.max_countries(),

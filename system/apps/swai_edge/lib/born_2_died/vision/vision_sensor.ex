@@ -1,8 +1,8 @@
-defmodule Born2Died.VisionWorker do
+defmodule Born2Died.VisionSensor do
   use GenServer, restart: :transient
 
   @moduledoc """
-  Born2Died.VisionWorker is a GenServer that manages the vision of a life
+  Born2Died.VisionSensor is a GenServer that manages the vision of a life
   """
 
   require Logger
@@ -14,12 +14,10 @@ defmodule Born2Died.VisionWorker do
   alias Born2Died.Movement, as: Movement
   alias Born2Died.AiWorker, as: AiWorker
   alias Schema.Identity, as: Identity
-  alias Born2Died.System, as: System
+  # alias Born2Died.System, as: System
 
-
-  @vision_radius 10
-  @action_radius 2
-
+  # @vision_radius 300
+  # @action_radius 5
 
   @life_moved_v1 Facts.life_moved_v1()
   @life_initialized_v1 Facts.life_initialized_v1()
@@ -47,25 +45,13 @@ defmodule Born2Died.VisionWorker do
   @impl GenServer
   def handle_info(
         {@life_moved_v1, %Movement{mng_farm_id: mng_farm_id} = movement},
-        %Identity{} = identity
+        %Identity{} = me
       )
-      when mng_farm_id == identity.farm_id do
-    this = System.get_state(identity.drone_id)
+      when mng_farm_id == me.farm_id do
+    me
+    |> AiWorker.process_movement(movement)
 
-    cond do
-      Euclid2D.in_radius?(this.pos, movement.to, @action_radius) ->
-        identity
-        |> AiWorker.perform_action(movement)
-
-      Euclid2D.in_radius?(this.pos, movement.to, @vision_radius) ->
-        identity
-        |> AiWorker.process_movement(movement)
-
-      true ->
-        true
-    end
-
-    {:noreply, identity}
+    {:noreply, me}
   end
 
   @impl GenServer

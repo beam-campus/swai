@@ -8,11 +8,10 @@ defmodule Born2Died.System do
 
   require Logger
 
+  alias Born2Died.HealthActuator
   alias Schema.Identity, as: Identity
-  alias Born2Died.Movement, as: Movement
-  alias Born2Died.MotionState
   alias Born2Died.State, as: LifeState
-  alias Born2Died.HealthEmitter, as: HealthChannel
+  alias Born2Died.HealthChannel, as: HealthChannel
 
   def do_birth(life_id, delta_x, delta_y),
     do:
@@ -60,13 +59,13 @@ defmodule Born2Died.System do
     children =
       [
         {Born2Died.AiWorker, identity},
-        {Born2Died.MotionWorker, identity},
-        {Born2Died.HealthWorker, identity},
-        {Born2Died.VisionWorker, identity},
-
+        {Born2Died.MotionActuator, identity},
+        {Born2Died.HealthActuator, identity},
+        # {Born2Died.BreedingActuator, identity},
+        {Born2Died.VisionSensor, identity}
         # {Born2Died.MilkingWorker, state},
         # {Born2Died.CombatWorker, state},
-        # {Born2Died.MatingWorker, state}
+
       ]
 
     Supervisor.start_link(
@@ -75,7 +74,10 @@ defmodule Born2Died.System do
       strategy: :one_for_one
     )
 
+    Process.send_after(self(), :live, 1000)
+
     HealthChannel.emit_life_initialized(state)
+
     {:ok, state}
   end
 
@@ -85,9 +87,17 @@ defmodule Born2Died.System do
     :ok
   end
 
-  ############### handle_cast ############################
+  ############### save_state ############################
   @impl GenServer
-  def handle_cast({:save_state, state}, _state), do: {:noreply, state}
+  def handle_cast({:save_state, state}, _state),
+    do: {:noreply, state}
+
+    ################## live ############################
+  @impl GenServer
+  def handle_cast({:live}, %LifeState{} = state) do
+    HealthActuator.live(state.id)
+    {:noreply, state}
+  end
 
   ############### handle_call ############################
   @impl GenServer
@@ -97,8 +107,15 @@ defmodule Born2Died.System do
   ################ handle_info #################
   @impl GenServer
   def handle_info({:EXIT, _from_id, reason}, state) do
-    # Born2Died.HealthWorker.die(state.life.id)
+    # Born2Died.HealthActuator.die(state.life.id)
     {:stop, reason, state}
+  end
+
+  @impl GenServer
+  def handle_info(:live, %LifeState{} = state) do
+    GenServer.cast(via(state.id), {:live})
+    Process.send_after(self(), :live, 1000)
+    {:noreply, state}
   end
 
   ######### INTERNALS ###################

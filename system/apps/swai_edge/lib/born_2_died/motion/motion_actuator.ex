@@ -1,8 +1,8 @@
-defmodule Born2Died.MotionWorker do
+defmodule Born2Died.MotionActuator do
   use GenServer, restart: :transient
 
   @moduledoc """
-  Born2Died.MotionWorker is a GenServer that manages the movements of a life
+  Born2Died.MotionActuator is a GenServer that manages the movements of a life
   """
 
   require Logger
@@ -15,15 +15,12 @@ defmodule Born2Died.MotionWorker do
 
   import Euclid2D
 
-  @scaling_factor 1
-
-
+  @scaling_factor 0.5
 
   ################ INTERFACE ############
 
-
-  def move_forward(%LifeState{} = me, distance)
-      when me.status == "idle" do
+  def move_forward(%LifeState{} = me, distance) do
+    # when me.status == "idle" do
     heading = heading(me.prev_pos, me.pos)
 
     new_pos =
@@ -37,18 +34,18 @@ defmodule Born2Died.MotionWorker do
       edge_id: me.edge_id,
       life: me.life,
       from: me.pos,
-      heading: Euclid2D.heading(me.pos, new_pos)
+      heading: heading
     }
 
     move(movement)
 
     me
   end
+
   def move_away_from(%LifeState{} = me, %LifeState{} = other, distance)
-      when me.id != other.id
-      and
-      me.status == "idle" do
-    heading = away_heading(other.prev_pos, other.pos)
+      when me.id != other.id and
+             me.status == "idle" do
+    heading = orth_heading(other.prev_pos, other.pos)
 
     new_pos =
       calculate_endpoint(me.pos, heading, distance * @scaling_factor)
@@ -71,11 +68,9 @@ defmodule Born2Died.MotionWorker do
 
   def move_away_from(%LifeState{} = me, %LifeState{} = _other, _distance), do: me
 
-
   def move_towards(%LifeState{} = me, %LifeState{} = other, distance)
-      when me.id != other.id
-      and
-      me.status == "idle" do
+      when me.id != other.id and
+             me.status == "idle" do
     heading = Euclid2D.heading(me.pos, other.pos)
 
     new_pos =
@@ -106,7 +101,6 @@ defmodule Born2Died.MotionWorker do
       via(movement.born2died_id),
       {:move, movement}
     )
-
   end
 
   ############### CALLBACKS #############
@@ -117,23 +111,21 @@ defmodule Born2Died.MotionWorker do
     {:ok, identity}
   end
 
+  ####################### move #######################
   @impl GenServer
   def handle_cast({:move, %Movement{} = movement}, %Identity{} = identity) do
-
     this = System.get_state(identity.drone_id)
 
-    this
-    |> Map.put(:status, "moving")
-    |> Map.put(:prev_pos, this.pos)
-    |> Map.put(:pos, movement.to)
+    new_this =
+      %{this | status: "moving", prev_pos: this.pos, pos: movement.to}
 
-    System.save_state(identity.drone_id, this)
+    System.save_state(identity.drone_id, new_this)
 
     MotionChannel.emit_life_moved(movement)
 
-    this
-    |> Map.put(:status, "idle")
-    System.save_state(identity.drone_id, this)
+    new_this = %{new_this | status: "idle"}
+
+    System.save_state(identity.drone_id, new_this)
 
     {:noreply, identity}
   end

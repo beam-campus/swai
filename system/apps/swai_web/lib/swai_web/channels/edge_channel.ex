@@ -15,7 +15,6 @@ defmodule SwaiWeb.EdgeChannel do
   alias SwaiWeb.Dispatch.Born2DiedHandler, as: LifeHandler
   alias SwaiWeb.Dispatch.ChannelWatcher
 
-
   alias Edge.Facts, as: EdgeFacts
   alias Scape.Facts, as: ScapeFacts
   alias Region.Facts, as: RegionFacts
@@ -57,6 +56,7 @@ defmodule SwaiWeb.EdgeChannel do
 
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
 
+
   ################ CALLBACKS ################
   @impl true
   def join("edge:lobby", edge_init, socket) do
@@ -82,7 +82,9 @@ defmodule SwaiWeb.EdgeChannel do
 
     broadcast(socket, @presence_changed_v1, EdgePresence.list(socket))
 
-    {:noreply, socket}
+    {:noreply,
+     socket
+     }
   end
 
   @impl true

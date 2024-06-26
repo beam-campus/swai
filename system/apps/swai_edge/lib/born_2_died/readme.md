@@ -21,8 +21,8 @@ graph TD
 
   System[Born2Died.System]
   Supervisor[Born2Died.System.Supervisor]
-  Worker[Born2Died.HealthWorker]
-  Channel[Swai.Born2Died.HealthEmitter]
+  Worker[Born2Died.HealthActuator]
+  Channel[Swai.Born2Died.HealthChannel]
 
   System --> |start_link| Supervisor  
   Supervisor --> |start_child| Worker
@@ -36,8 +36,8 @@ graph TD
 sequenceDiagram
   participant Born2Died.System
   participant Born2Died.Supervisor
-  participant Born2Died.HealthWorker
-  participant Born2Died.HealthEmitter
+  participant Born2Died.HealthActuator
+  participant Born2Died.HealthChannel
 
   Born2Died.System->>Born2Died.Supervisor : start_link(Born2Died_id)
 

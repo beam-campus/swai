@@ -204,15 +204,15 @@ defmodule Lives.Service do
          |> Cachex.get_and_update(
            movement.born2died_id,
            fn life_init ->
-             life_init
-             |> Map.put(:prev_pos, life_init.pos)
-             |> Map.put(:pos, movement.to)
-             |> Map.put(:status, "moving")
+             %{
+               life_init
+               | status: "moving",
+                 prev_pos: life_init.pos,
+                 pos: movement.to
+             }
            end
          ) do
       {:commit, life_init} ->
-
-
         notify_cache_updated({@life_moved_v1, life_init})
         {:noreply, state}
 

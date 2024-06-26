@@ -9,10 +9,10 @@ import Config
 
 # Configure your database
 config :swai, Swai.Repo,
-  username: "logatron_dev",
-  password: "erlang_tops",
+  username: "swai_dev",
+  password: "swai_dev",
   hostname: "localhost",
-  database: "logatron_dev",
+  database: "swai_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10

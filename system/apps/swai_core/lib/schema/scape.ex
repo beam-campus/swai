@@ -1,4 +1,4 @@
-defmodule Swai.Schema.Scape do
+defmodule Schema.Scape do
   use Ecto.Schema
 
   @moduledoc """
@@ -7,7 +7,10 @@ defmodule Swai.Schema.Scape do
 
   import Ecto.Changeset
 
-  alias Swai.Schema.{Edge, Scape, Id, Region}
+  alias Schema.Edge
+  alias Schema.Scape
+  alias Schema.Id
+  alias Schema.Region
 
   def id_prefix(), do: "scape"
 
@@ -19,11 +22,13 @@ defmodule Swai.Schema.Scape do
   @required_fields [:name]
 
   @derive {Jason.Encoder, only: @all_fields}
-
   @primary_key false
   embedded_schema do
     field(:id, :string)
     field(:name, :string)
+    field(:description, :string, default: "")
+    field(:image_url, :string, default: "")
+    embeds_many(:tags, :string)
     embeds_many(:sourced_by, Edge)
     embeds_many(:regions, Region)
   end
@@ -37,12 +42,8 @@ defmodule Swai.Schema.Scape do
       when is_map(args) do
     scape
     |> cast(args, @all_fields)
-    |> cast_embed(:sourced_by,
-      with: &Edge.changeset/2
-    )
-    |> cast_embed(:regions,
-      with: &Region.changeset/2
-    )
+    |> cast_embed(:sourced_by, with: &Edge.changeset/2)
+    |> cast_embed(:regions, with: &Region.changeset/2)
     |> validate_required(@required_fields)
   end
 
@@ -76,11 +77,11 @@ defmodule Swai.Schema.Scape do
         scape =
           changeset
           |> apply_changes()
+
         {:ok, scape}
+
       changeset ->
         {:error, changeset}
     end
   end
-
-
 end

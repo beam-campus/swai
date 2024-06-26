@@ -1,5 +1,16 @@
 import Config
 
+config :swai, Swai.Repo,
+  username: System.get_env("POSTGRES_USER"),
+  password: System.get_env("POSTGRES_PASSWORD"),
+  hostname: "postgres",
+  database: System.get_env("POSTGRES_DB"),
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10
+
+
+
 
 config :swai_edge, Edge.Client,
   uri: "wss://swarm-wars.ai/edge_socket/websocket",

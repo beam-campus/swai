@@ -1,5 +1,4 @@
 defmodule Euclid2D do
-
   @moduledoc """
   Euclid2D is a module that contains functions for 2D Euclidean geometry
   """
@@ -10,16 +9,15 @@ defmodule Euclid2D do
 
   alias Schema.Vector, as: Vector
 
-
-  def radians_to_gradians(radians), do: radians * 200 / :math.pi
-  def gradians_to_radians(gradians), do: gradians * :math.pi / 200
-  def radians_to_degrees(radians), do: radians * 180 / :math.pi
-  def degrees_to_radians(degrees), do: degrees * :math.pi / 180
+  def radians_to_gradians(radians), do: radians * 200 / :math.pi()
+  def gradians_to_radians(gradians), do: gradians * :math.pi() / 200
+  def radians_to_degrees(radians), do: radians * 180 / :math.pi()
+  def degrees_to_radians(degrees), do: degrees * :math.pi() / 180
   def degrees_to_gradians(degrees), do: degrees * 10 / 9
   def gradians_to_degrees(gradians), do: gradians * 9 / 10
 
   def distance(%Vector{} = here, %Vector{} = there) do
-    sqrt(pow((here.x - there.x),2) + pow((here.y - there.y),2))
+    sqrt(pow(here.x - there.x, 2) + pow(here.y - there.y, 2))
   end
 
   def in_radius?(%Vector{} = here, %Vector{} = there, radius) do
@@ -32,18 +30,17 @@ defmodule Euclid2D do
 
   def orth_heading(%Vector{} = from, %Vector{} = to) do
     heading = heading(from, to)
-    heading + (:math.pi / 2)
+    heading + :math.pi() / 2
   end
 
   def away_heading(%Vector{} = from, %Vector{} = to) do
-    atan2(from.y - to.y, from.x - to.x)
-    # heading = heading(from, to)
-    # heading + :math.pi
+    heading = heading(from, to)
+    heading + :math.pi()
   end
 
-  def calculate_endpoint(%Vector{} = here , heading, d) do
-    new_x = here.x + (d * cos(heading))
-    new_y = here.y + (d * sin(heading))
+  def calculate_endpoint(%Vector{} = here, heading, d) do
+    new_x = here.x + d * cos(heading)
+    new_y = here.y + d * sin(heading)
 
     %Vector{x: new_x, y: new_y, z: here.z}
   end
@@ -53,8 +50,6 @@ defmodule Euclid2D do
     angle = :math.acos(dot_product)
     angle * 180 / :math.pi()
   end
-
-
 
   # Helper functions
   def calculate_speed_vector({px, py, pz}, delta_t) do
@@ -76,7 +71,4 @@ defmodule Euclid2D do
   def new_position({xo, yo, zo}, {dx, dy, dz}) do
     %Vector{x: xo + dx, y: yo + dy, z: zo + dz}
   end
-
-
-
 end

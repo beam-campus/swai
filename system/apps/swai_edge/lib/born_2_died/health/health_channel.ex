@@ -1,8 +1,6 @@
-defmodule Born2Died.HealthEmitter do
-  # use GenServer, restart: :transient
-
+defmodule Born2Died.HealthChannel do
   @moduledoc """
-  Born2Died.HealthEmitter is a GenServer that manages a channel to client
+  Born2Died.HealthChannel is a GenServer that manages a channel to client
   """
 
   alias Born2Died.State, as: LifeState

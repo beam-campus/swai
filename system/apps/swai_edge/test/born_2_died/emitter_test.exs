@@ -1,12 +1,12 @@
-defmodule Swai.Born2Died.HealthEmitterTest do
+defmodule Swai.Born2Died.HealthChannelTest do
   use ExUnit.Case
 
   @moduledoc """
-  These are the tests for Swai.Born2Died.HealthEmitter
+  These are the tests for Swai.Born2Died.HealthChannel
  """
 
   require Logger
-  alias Swai.Born2Died.HealthEmitter
+  alias Swai.Born2Died.HealthChannel
 
   @edge_id "edge-1"
 
@@ -17,8 +17,8 @@ defmodule Swai.Born2Died.HealthEmitterTest do
   end
 
   @tag :ignore_test
-  test "that the Swai.Born2Died.HealthEmitter module exists" do
-    assert is_list(Swai.Born2Died.HealthEmitter.module_info())
+  test "that the Swai.Born2Died.HealthChannel module exists" do
+    assert is_list(Swai.Born2Died.HealthChannel.module_info())
   end
 
   test "emit_born/2 emits the 'emit_born' fact" do
@@ -66,7 +66,7 @@ defmodule Swai.Born2Died.HealthEmitterTest do
     # Assert
     assert result == %{
              id: {:emitter, "life-123"},
-             start: {Swai.Born2Died.HealthEmitter, :start_link, [state]},
+             start: {Swai.Born2Died.HealthChannel, :start_link, [state]},
              type: :worker,
              restart: :transient
            }

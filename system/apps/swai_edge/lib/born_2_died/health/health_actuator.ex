@@ -1,12 +1,15 @@
-defmodule Born2Died.HealthWorker do
+defmodule Born2Died.HealthActuator do
   @moduledoc """
-  Born2Died.HealthWorker is the worker process that is spawned for each Life.
+  Born2Died.HealthActuator is the worker process that is spawned for each Life.
   """
   use GenServer
   require Logger
 
-  alias Born2Died.HealthEmitter, as: HealthChannel
+  alias Born2Died.HealthChannel, as: HealthChannel
+  alias Born2Died.HealthRules, as: HealthRules
   alias Schema.Identity, as: Identity
+  alias Born2Died.System, as: Drone
+  alias Born2Died.State, as: LifeState
 
   ################ INTERFACE ###############
   def live(life_state_id),
@@ -46,8 +49,7 @@ defmodule Born2Died.HealthWorker do
 
   defp do_die(state) do
     new_state =
-      state
-      |> Map.put(:status, "died")
+      %{state | status: "died"}
 
     HealthChannel.emit_life_died(new_state)
 
@@ -61,7 +63,7 @@ defmodule Born2Died.HealthWorker do
   def init(%Identity{} = identity) do
     # Process.flag(:trap_exit, true)
     Logger.info("health.worker: #{Colors.born2died_theme(self())}")
-    
+
     {:ok, identity}
   end
 
@@ -75,11 +77,6 @@ defmodule Born2Died.HealthWorker do
   #   {:stop, reason, state}
   # end
 
-  @impl GenServer
-  def handle_call({:get_state}, _from, state) do
-    Logger.debug(" \n\tGETTING STATE: #{state.life.name}  ")
-    {:reply, state, state}
-  end
 
   ################# HANDLE_CAST #####################
   @impl GenServer
@@ -88,8 +85,13 @@ defmodule Born2Died.HealthWorker do
       do: {:noreply, state}
 
   @impl GenServer
-  def handle_cast({:live}, state),
-    do: {:noreply, state}
+  def handle_cast({:live}, %Identity{} = identity) do
+    %LifeState{} = state = Drone.get_state(identity.drone_id)
+    %LifeState{} = new_state = HealthRules.live(state)
+    Drone.save_state(identity.drone_id, new_state)
+    HealthChannel.emit_life_state_changed(new_state)
+    {:noreply, identity}
+  end
 
   @impl GenServer
   def handle_cast({:die}, state),

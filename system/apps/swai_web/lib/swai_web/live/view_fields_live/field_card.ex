@@ -6,7 +6,9 @@ defmodule SwaiWeb.ViewFieldsLive.FieldCard do
   """
 
   alias Lives.Service, as: Lives
+  alias Cell.State, as: CellState
   import :math
+
 
 
   def get_lives(mng_farm_id),
@@ -49,7 +51,7 @@ def render(assigns) do
     <div class="w-1/4">
       <!-- List of drones goes here -->
       <ul>
-        <%= for drone <- @cell_states do %>
+        <%= for %CellState{} = drone <- @cell_states do %>
           <li><%= "(#{round(drone.col)}, #{round(drone.row)})" %></li>
         <% end %>
       </ul>

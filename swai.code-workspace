@@ -1,13 +1,16 @@
 {
 	"folders": [
 		{
-			"path": "."
-		},
-		{
 			"path": "../swai_deploy"
 		},
 		{
-			"path": "../compose-dev-stack"
+			"path": "../logatron_deploy"
+		},
+		{
+			"path": "."
+		},
+		{
+			"path": "../logatron"
 		}
 	],
 	"settings": {

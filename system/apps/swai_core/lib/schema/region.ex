@@ -1,21 +1,31 @@
-defmodule Swai.Schema.Region do
+defmodule Schema.Region do
   use Ecto.Schema
-
+  @moduledoc """
+    Swai.Schema.Region contains the schema for Regions that make up a Scape
+    A Region is a grouping of Farms
+  """
   import Ecto.Changeset
 
   alias Schema.Farm
   alias Schema.Id
+  require Jason
 
-  @moduledoc """
-  Swai.Schema.Region contains the schema for Regions that make up a Scape
-  A Region is a grouping of Farms
-  """
+  @all_fields [
+    :id,
+    :name,
+    :description,
+    :flag,
+    :farms
+  ]
+
 
   @primary_key false
+  @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
     field(:id, :string)
     field(:name, :string)
     field(:description, :string)
+    field(:flag, :string, default: "🇺🇳")
     embeds_many(:farms, Schema.Farm)
   end
 
