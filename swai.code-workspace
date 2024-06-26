@@ -4,13 +4,7 @@
 			"path": "../swai_deploy"
 		},
 		{
-			"path": "../logatron_deploy"
-		},
-		{
 			"path": "."
-		},
-		{
-			"path": "../logatron"
 		}
 	],
 	"settings": {

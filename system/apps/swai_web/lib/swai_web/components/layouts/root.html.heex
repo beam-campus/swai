@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title suffix=" · Streams Exchange">
-      <%= assigns[:page_title] || "Swai" %>
+      <%= assigns[:page_title] || "Swarm Wars AI Research" %>
       
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
@@ -18,7 +18,7 @@
     data-cfasync="false" 
     src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" 
     data-id="beamologist" 
-    data-description="Support me on Buy me a coffee!" 
+    data-description="Buy me a coffee!"
     data-message="Hello and thank you for visiting. " 
     data-color="#FF5F5F" 
     data-position="Right" 
@@ -27,7 +27,7 @@
     </script>
     <meta
       name="description"
-      content=""
+      content="Swarm Warms is a platform for distributed AI research and development."
     />
     <meta
       name="keywords"
@@ -60,17 +60,15 @@
     />
   </head>
 
-    <!-- Google tag (gtag.js) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ND78DY419W"></script>
+<!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PZJ71LQ4GN"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
 
-    gtag('config', 'G-ND78DY419W');
+    gtag('config', 'G-PZJ71LQ4GN');
   </script>
-
-
 
   <body class="antialiased  bg-ltDark-dark" id="root_body">
     <%= @inner_content %>
