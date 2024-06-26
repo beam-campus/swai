@@ -9,6 +9,7 @@ defmodule Edges.Service do
 
   alias Edge.Facts, as: EdgeFacts
   alias Phoenix.PubSub
+  alias Edge.Init, as: EdgeInit
 
   require Logger
 
@@ -28,6 +29,20 @@ defmodule Edges.Service do
       GenServer.call(
         __MODULE__,
         :get_all
+      )
+
+  def get_stats(),
+    do:
+      GenServer.call(
+        __MODULE__,
+        :get_stats
+      )
+
+  def get_edge_stats(edge_id),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:get_edge_stats, edge_id}
       )
 
   def get_by_id(id),
@@ -60,6 +75,30 @@ defmodule Edges.Service do
        :edges_cache
        |> Cachex.get!(id)
        |> Enum.map(& &1), state}
+
+  @impl GenServer
+  def handle_call(:get_stats, _from, state),
+    do:
+      {:reply,
+       :edges_cache
+       |> Cachex.stats!(), state}
+
+  @impl GenServer
+  def handle_call({:get_edge_stats, edge_id}, _from, state) do
+    case   :edges_cache
+      |> Cachex.get!(edge_id) do
+        {:ok, nil} ->
+          {:error, "Edge not found"}
+
+        {:ok, edge} ->
+          num_of_sc =
+            :edges_cache
+            |> Cachex.stream!()
+            |> Enum.filter(fn {:entry, _, _, _, edge} -> edge.id == edge_id end)
+
+          {:reply, %{edge: edge, num_of_sc: num_of_sc}, state}
+      end
+  end
 
   ################### handle_info ###################
   @impl GenServer

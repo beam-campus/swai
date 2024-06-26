@@ -38,7 +38,9 @@ defmodule Edge.Init do
     :mobile,
     :proxy,
     :hosting,
-    :connected_since
+    :connected_since,
+    :image_url,
+    :flag
   ]
 
   @required_fields [
@@ -80,6 +82,8 @@ defmodule Edge.Init do
     field(:proxy, :boolean)
     field(:hosting, :boolean)
     field(:connected_since, :utc_datetime)
+    field(:image_url, :string, default: "https://picsum.photos/400/300")
+    field(:flag, :string, default: "\u127988")
   end
 
   def changeset(edge, args)
@@ -161,8 +165,8 @@ defmodule Edge.Init do
     {:ok, chost} = :inet.gethostname()
     edge_id = "#{to_string(chost)}-" <> Edge.random_id()
 
-    api_key = System.get_env(EnvVars.swai_edge_api_key(), "no-api-key")
-    scape_id = System.get_env(EnvVars.swai_edge_scape_id(), "dairy-logs")
+    api_key = System.get_env(EnvVars.swai_edge_api_key()) || "no-api-key"
+    scape_id = System.get_env(EnvVars.swai_edge_scape_id()) || "dairy-logs"
 
     %EdgeInit{
       id: edge_id,
