@@ -18,7 +18,7 @@ defmodule SwaiWeb.EdgesLive.EdgeCard do
         <div class="relative p-4">
           <div class="uppercase tracking-wide text-sm text-red-800 font-semibold">
             <%= @edge.ip_address %>
-            <p class="block mt-1 text-sm leading-tight font-normal text-red-800"> <%= @edge.api_key %></p>
+            <p class="block mt-1 text-sm leading-tight font-normal text-green-200"> <%= "Running #{@edge.stats.nbr_of_agents} agents" %></p>
           </div>
           <p class="block mt-1 text-sm leading-tight font-medium text-white"> <%= @edge.isp %></p>
           <p class="block mt-1 text-sm leading-tight font-medium text-white"> <%= @edge.reverse %></p>

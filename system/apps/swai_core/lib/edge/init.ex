@@ -4,9 +4,16 @@ defmodule Edge.Init do
   @moduledoc """
   Edge.Init is the struct that identifies the state of a Region.
   """
-  alias Edge.Init, as: EdgeInit
-  alias Schema.Edge, as: Edge
+  alias Edge.Init,
+    as: EdgeInit
+
+  alias Schema.Edge,
+    as: Edge
+
   alias AppUtils
+
+  alias Schema.EdgeStats,
+    as: Stats
 
   import Ecto.Changeset
 
@@ -40,7 +47,45 @@ defmodule Edge.Init do
     :hosting,
     :connected_since,
     :image_url,
-    :flag
+    :flag,
+    :stats
+  ]
+
+  @flat_fields [
+    :id,
+    :scape_id,
+    :api_key,
+    :is_container,
+    :ip_address,
+    :continent,
+    :continent_code,
+    :country,
+    :country_code,
+    :region,
+    :region_name,
+    :city,
+    :district,
+    :zip,
+    :lat,
+    :lon,
+    :timezone,
+    :offset,
+    :currency,
+    :isp,
+    :org,
+    :as,
+    :asname,
+    :reverse,
+    :mobile,
+    :proxy,
+    :hosting,
+    :connected_since,
+    :image_url,
+    :flag,
+  ]
+
+  @embedded_fields [
+    :stats
   ]
 
   @required_fields [
@@ -84,13 +129,15 @@ defmodule Edge.Init do
     field(:connected_since, :utc_datetime)
     field(:image_url, :string, default: "https://picsum.photos/400/300")
     field(:flag, :string, default: "\u127988")
+    embeds_one(:stats, Stats)
   end
 
   def changeset(edge, args)
       when is_map(args),
       do:
         edge
-        |> cast(args, @all_fields)
+        |> cast(args, @flat_fields)
+        |> cast_embed(:stats, with: &Stats.changeset/2)
         |> validate_required(@required_fields)
 
   def from_map(map) when is_map(map) do
@@ -157,7 +204,10 @@ defmodule Edge.Init do
       mobile: false,
       proxy: false,
       hosting: false,
-      connected_since: DateTime.utc_now()
+      connected_since: DateTime.utc_now(),
+      image_url: "https://picsum.photos/400/300",
+      flag: "\u127988",
+      stats: Stats.empty()
     }
   end
 
@@ -195,13 +245,15 @@ defmodule Edge.Init do
       mobile: ip_info["mobile"],
       proxy: ip_info["proxy"],
       hosting: ip_info["hosting"],
-      connected_since: DateTime.utc_now()
+      connected_since: DateTime.utc_now(),
+      image_url: "https://picsum.photos/400/300",
+      flag: "\u127988",
+      stats: Stats.empty()
     }
   end
 
   def enriched() do
     {:ok, ip_info} = Apis.IpInfoCache.refresh()
-
     from_environment(ip_info)
   end
 end

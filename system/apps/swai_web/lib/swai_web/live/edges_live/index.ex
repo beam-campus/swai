@@ -4,12 +4,19 @@ defmodule SwaiWeb.EdgesLive.Index do
   require Logger
   require Seconds
 
-  alias Edges.Service, as: EdgesCache
-  alias Phoenix.PubSub
-  alias Edge.Facts, as: EdgeFacts
-  alias Edge.Init, as: Producer
+  alias Edges.Service,
+  as: EdgesCache
 
-  # @edges_cache_updated_v1 EdgeFacts.edges_cache_updated_v1()
+  alias Phoenix.PubSub
+  alias Edge.Facts,
+  as: EdgeFacts
+
+  alias Edge.Init,
+    as: Edge
+
+ @edges_cache_updated_v1 EdgeFacts.edges_cache_updated_v1()
+ @edge_attached_v1 EdgeFacts.edge_attached_v1()
+ @edge_detached_v1 EdgeFacts.edge_detached_v1()
 
   # def refresh(_caller_state),
   #   do: Process.send(self(), :refresh, @refresh_seconds * 1_000)
@@ -19,7 +26,7 @@ defmodule SwaiWeb.EdgesLive.Index do
     case connected?(socket) do
       true ->
         Logger.info("Connected")
-        PubSub.subscribe(Swai.PubSub, EdgeFacts.edges_cache_updated_v1())
+        PubSub.subscribe(Swai.PubSub, @edges_cache_updated_v1)
         {
           :ok,
           socket
@@ -36,16 +43,18 @@ defmodule SwaiWeb.EdgesLive.Index do
           :ok,
           socket
           |> assign(
-            edges: [],
+            edges: EdgesCache.get_all(),
             now: DateTime.utc_now()
           )
         }
     end
   end
 
+
+
   # @impl true
   # def handle_info({@edges_cache_updated_v1, _payload}, socket) do
-
+  #   Logger.info("Edges updated")
   #   {
   #     :noreply,
   #     socket
@@ -57,7 +66,15 @@ defmodule SwaiWeb.EdgesLive.Index do
   # end
 
   @impl true
-  def handle_info(_msg, socket), do: {:noreply, socket}
+  def handle_info(_msg, socket),
+  do: {
+    :noreply,
+    socket
+    |> assign(
+      edges: EdgesCache.get_all(),
+      now: DateTime.utc_now()
+    )
+  }
 
   @impl true
   def render(assigns) do
@@ -85,6 +102,11 @@ defmodule SwaiWeb.EdgesLive.Index do
 
 
     <div class="px-8">
+    <p>
+      <span class="text-sm text-white font-brand font-regular">
+        Connected producers are displayed below.
+      </span>
+      </p>
     <div class="flex flex-col w-full gap-2 text-sm text-white" >
     <%= if @current_user do %>
       <.live_component
@@ -93,6 +115,10 @@ defmodule SwaiWeb.EdgesLive.Index do
         edges={@edges}
         current_user={@current_user}
       />
+    <% else %>
+      <div class="text-sm text-white font-brand font-regular">
+        Please sign in or register to view connected producers
+      </div>
     <% end %>
     </div>
     </div>

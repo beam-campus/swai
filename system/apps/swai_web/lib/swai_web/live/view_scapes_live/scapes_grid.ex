@@ -36,7 +36,7 @@ defmodule SwaiWeb.ViewScapesLive.ScapesGrid do
       <%= for scape <- @scapes do %>
         <.live_component
           module={SwaiWeb.ViewScapesLive.ScapeCard}
-          id={"scape_card_#{scape.id}"}
+          id={"#{@id}_scape_card_#{scape.id}"}
           scape={scape}
         />
       <% end %>

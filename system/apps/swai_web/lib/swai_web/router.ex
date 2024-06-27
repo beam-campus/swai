@@ -60,7 +60,7 @@ defmodule SwaiWeb.Router do
         {SwaiWeb.EdgesInfo, :mount_edges_count},
         {SwaiWeb.UserAuth, :mount_current_user}
       ] do
-      live("/edges_live", EdgesLive.Index, :index)
+      # live("/edges_live", EdgesLive.Index, :index)
     end
   end
 

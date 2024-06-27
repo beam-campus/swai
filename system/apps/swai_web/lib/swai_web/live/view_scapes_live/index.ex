@@ -104,6 +104,7 @@ defmodule SwaiWeb.ViewScapesLive.Index do
     module={SwaiWeb.ViewScapesLive.ScapesGrid}
     id={@current_user.id <> "_scapes_grid"}
     scapes={@scapes}
+    current_user={@current_user}
     />
     </div>
     """

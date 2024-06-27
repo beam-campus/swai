@@ -8,7 +8,9 @@ defmodule SwaiWeb.EdgeChannel do
   require Phoenix.PubSub
 
   alias SwaiWeb.Dispatch.EdgePresence
-  alias SwaiWeb.Dispatch.EdgeHandler
+  alias SwaiWeb.Dispatch.EdgeHandler,
+  as: EdgeHandler
+
   alias SwaiWeb.Dispatch.ScapeHandler
   alias SwaiWeb.Dispatch.RegionHandler
   alias SwaiWeb.Dispatch.FarmHandler
@@ -139,7 +141,7 @@ defmodule SwaiWeb.EdgeChannel do
 
   @impl true
   def handle_in(@edge_attached_v1, payload, socket) do
-    # Logger.info("#{@edge_attached_v1} #{inspect(payload)}")
+    Logger.info("#{@edge_attached_v1} #{inspect(payload)}")
     EdgeHandler.pub_edge_attached(payload)
     {:reply, {:ok, payload}, socket}
   end
