@@ -86,9 +86,9 @@ RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
 
 
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8
+ENV LANGUAGE=en_US:en
+ENV LC_ALL=en_US.UTF-8
 
 WORKDIR /system
 
@@ -119,8 +119,9 @@ USER nobody
 
 ENV HOME=/system
 ENV MIX_ENV="prod"
-ENV SWAI_DB_URL=irrelevant
-ENV SWAI_SECRET_KEY_BASE=irrelevant
+
+ENV SWAI_DB_URL="irrelevant"
+ENV SWAI_SECRET_KEY_BASE="irrelevant"
 
 # ENTRYPOINT [ "/bin/bash", "-c", "/etc/init.d/nordvpn start && sleep 20 && ./run-edge.sh" ]
 
