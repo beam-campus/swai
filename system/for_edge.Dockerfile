@@ -119,8 +119,8 @@ USER nobody
 
 ENV HOME=/system
 ENV MIX_ENV="prod"
-ENV DATABASE_URL=irrelevant
-ENV SECRET_KEY_BASE=irrelevant
+ENV SWAI_DB_URL=irrelevant
+ENV SWAI_SECRET_KEY_BASE=irrelevant
 
 # ENTRYPOINT [ "/bin/bash", "-c", "/etc/init.d/nordvpn start && sleep 20 && ./run-edge.sh" ]
 

@@ -8,12 +8,6 @@
 		},
 		{
 			"path": "../swai_edge_deploy"
-		},
-		{
-			"path": "../macula_deploy"
-		},
-		{
-			"path": "../logatron_deploy"
 		}
 	],
 	"settings": {
