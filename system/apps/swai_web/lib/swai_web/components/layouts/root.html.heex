@@ -2,11 +2,18 @@
 <%!-- <html lang="en" class="[scrollbar-gutter:stable]"> --%>
 <html lang="en">
   <head>
+      <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-W2T9NFJ2');</script>
+    <!-- End Google Tag Manager -->
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
-    <.live_title suffix=" · Streams Exchange">
-      <%= assigns[:page_title] || "Swarm Wars AI Research" %>
+    <.live_title suffix=" · AI Research">
+      <%= assigns[:page_title] || "Swarm Wars" %>
       
     </.live_title>
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
@@ -60,7 +67,7 @@
     />
   </head>
 
-<!-- Google tag (gtag.js) -->
+<%!-- <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-PZJ71LQ4GN"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -68,9 +75,13 @@
     gtag('js', new Date());
 
     gtag('config', 'G-PZJ71LQ4GN');
-  </script>
+  </script> --%>
 
   <body class="antialiased  bg-ltDark-dark" id="root_body">
+      <!-- Google Tag Manager (noscript) -->
+    <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W2T9NFJ2"
+    height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+    <!-- End Google Tag Manager (noscript) -->
     <%= @inner_content %>
   </body>
 </html>

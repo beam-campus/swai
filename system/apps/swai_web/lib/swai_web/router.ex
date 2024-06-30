@@ -104,6 +104,7 @@ defmodule SwaiWeb.Router do
       live("/view_lives", ViewBorn2DiedsLive.Index, :index)
       live("/view_fields", ViewFieldsLive.Index, :index)
       live("/edges_live", EdgesLive.Index, :index)
+      live("my_workspace", MyWorkspaceLive.Index, :index)
     end
   end
 

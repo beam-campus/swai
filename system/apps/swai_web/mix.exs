@@ -9,7 +9,7 @@ defmodule SwaiWeb.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.14",
+      elixir: "~> 1.18.0-dev",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -67,10 +67,7 @@ defmodule SwaiWeb.MixProject do
        compile: false,
        depth: 1},
       {:heroicons_liveview, "~> 0.5.0"},
-      # {:apis, in_umbrella: true},
       {:swai, in_umbrella: true}
-      # {:tucan, "~> 0.3.0"},
-      # {:kino_vega_lite, "~> 0.1.8" }
     ]
   end
 
