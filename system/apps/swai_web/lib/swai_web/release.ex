@@ -3,6 +3,7 @@ defmodule SwaiWeb.Release do
   Used for executing DB release tasks when run in production without Mix
   installed.
   """
+  require Code
   @app :swai_web
 
   def migrate do
@@ -11,7 +12,13 @@ defmodule SwaiWeb.Release do
     for repo <- repos() do
       {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
     end
+
+    path_to_seeds = Application.app_dir(@app, "priv/repo/seeds.exs")
+
+    Code.eval_file(path_to_seeds)
+
   end
+  
 
   def rollback(repo, version) do
     load_app()

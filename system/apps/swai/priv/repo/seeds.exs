@@ -19,7 +19,7 @@ Repo.insert_all("biotopes", [
     description: "Traders of Macao is a darwinian ecosystem that allows for swarms to trade resources and stocks.
     Individual worker bees are rewarded for making a profit and evolutionary selection happens by simple ranking.
     The ecosystem is fed by stock tickers and the bees can trade stocks, commodities, and cryptocurrencies.",
-    image_url: "/images/trade_wars.jpg",
+    image_url: "/images/trade_wars1.jpg",
     theme: "Finance",
     tags: "finance, stock market, trade, profit, cash"
   },
@@ -42,8 +42,8 @@ Repo.insert_all("biotopes", [
   },
   %Biotope{
     name: "The Fitness Challenge",
-    description: "The Fitness Challenge is a simulation of a gym.
-    The ecosystem is fed by weather data and the people can exercise and compete in fitness challenges.",
+    description: "The Fitness Challenge is a simulation of a population carrying wearable devices.
+    The purpose of the ecosystem is to generate realistic streams of data with health metrics.",
     image_url: "/images/health_wars1.jpg",
     theme: "Life style",
     tags: "fitness, gym, health, exercise, competition"
