@@ -326,8 +326,7 @@
 
 .swai-model-card:hover {
     transform: translateY(-5px);        
-    /* Slight raise effect on hover */
-    background-color: #8d6666;
+    /* Slight raise effect on hover */    
 }
 
 
