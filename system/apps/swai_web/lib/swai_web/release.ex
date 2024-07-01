@@ -4,6 +4,7 @@ defmodule SwaiWeb.Release do
   installed.
   """
   require Code
+  require Swai.Seeds
 
   @web_app :swai_web
   @app :swai
@@ -19,11 +20,9 @@ defmodule SwaiWeb.Release do
   end
 
   def seed do
-    load_app()
-    
-    path_to_seeds = Application.app_dir(@app, "priv/repo/seeds.exs")
+    {:ok, _} = Application.ensure_all_started(@app)
 
-    Code.eval_file(path_to_seeds)
+    Swai.Seeds.seed_biotopes()
   end
 
   def rollback(repo, version) do
@@ -33,11 +32,6 @@ defmodule SwaiWeb.Release do
 
   defp repos do
     Application.fetch_env!(@web_app, :ecto_repos)
-  end
-
-
-  defp load_app do
-    Application.load(@app)
   end
 
 
