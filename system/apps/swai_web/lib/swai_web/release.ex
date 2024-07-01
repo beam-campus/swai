@@ -3,8 +3,7 @@ defmodule SwaiWeb.Release do
   Used for executing DB release tasks when run in production without Mix
   installed.
   """
-  require Code
-  require Swai.Seeds
+  
 
   @web_app :swai_web
   @app :swai
