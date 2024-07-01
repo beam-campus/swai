@@ -2,30 +2,32 @@
 
   <%!-- HEADER   --%>
 
-  <header class="fixed top-0 left-0 right-0 flex items-center justify-between px-6 py-3 bg-ltDark">
+  <header class="fixed top-0 left-0 right-0 flex items-center justify-between px-6 py-3 bg-ltDark top-bar">
     <!-- Left side of toolbar -->
-    <div class="relative flex">
-      <div>
+    <div class="flex flex-row">
+
         <a href={~p"/"}>
           <img src="/images/swai-logo-nobg.svg" alt="swai logo" width="200" />
         </a>
-      </div>
-
-      <div class="px-10 py-3 m-0 text-sm text-white font-mono font-regular">
-        <%= edges_count = Enum.count(@edges)
-          if edges_count > 0 do %>
-          <%= edges_count %> producer(s) connected
-        <% else %>
-          awaiting producers...
-        <% end %>
-    </div>
-
-
+        <p class="text-ltRed-light text-2xl font-brand mt-2 px-5"><%= assigns[:page_title] %> </p>
 
     </div>
     
     <!-- Right side of toolbar -->
-    <div class="relative">
+    <div class="flex items-center">
+
+      <div 
+      
+      class="px-10 py-3 m-0 text-sm text-ltRed-light font-mono font-regular">
+          <%= edges_count = Enum.count(@edges)
+            if edges_count > 0 do %>
+            <%= edges_count %> producer(s) connected
+          <% else %>
+            awaiting producers...
+          <% end %>
+      </div>
+
+
       <%= if @current_user do %>
         <button
           class="img-down-arrow-user"
@@ -83,14 +85,14 @@
             Singed in as <%= @current_user.email %>
           </.link>
           <.link
-            href="/training_grounds"
+            href="/marketplace"
             class="border-b border-white border-opacity-50 menu-item"
             role="menuitem"
             tabindex="-1"
             method="get"
             id="user-menu-training-grounds"
           >
-            Training Grounds
+            Marketplace
           </.link>
 
           <.link
@@ -105,14 +107,14 @@
           </.link>
         <% else %>
          <.link
-            href="/training_grounds"
+            href="/marketplace"
             class="menu-item"
             role="menuitem"
             tabindex="-1"
             method="get"
             id="user-menu-training-grounds"
           >
-            Training Grounds
+            Marketplace
           </.link>
           
           <.link

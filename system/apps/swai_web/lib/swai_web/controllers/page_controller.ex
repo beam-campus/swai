@@ -3,7 +3,7 @@ defmodule SwaiWeb.PageController do
 
 
   def home(conn, _params) do
-    redirect(conn, to: "/my_workspace")
+    redirect(conn, to: "/marketplace")
   end
 
 

@@ -8,6 +8,9 @@
 		},
 		{
 			"path": "../swai_edge_deploy"
+		},
+		{
+			"path": "../compose-dev-stack"
 		}
 	],
 	"settings": {
