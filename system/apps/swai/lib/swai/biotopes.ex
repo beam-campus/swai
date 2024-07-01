@@ -4,7 +4,8 @@ defmodule Swai.Biotopes do
   """
 
   import Ecto.Query, warn: false
-  alias Swai.Repo
+
+  alias Swai.Repo, as: Repo
 
   alias Schema.Biotope, as: Biotope
 
