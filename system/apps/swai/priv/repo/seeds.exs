@@ -11,6 +11,7 @@
 # and so on) as they will fail if something goes wrong.
 
 alias Swai.Repo, as: Repo
+
 alias Schema.Biotope, as: Biotope
 
 

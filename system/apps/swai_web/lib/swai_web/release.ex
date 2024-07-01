@@ -9,21 +9,25 @@ defmodule SwaiWeb.Release do
   @app :swai
 
   def migrate do
-    load_app()
+    load_web_app()
 
     for repo <- repos() do
       {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
     end
 
+    seed()
+  end
+
+  def seed do
+    load_app()
+    
     path_to_seeds = Application.app_dir(@app, "priv/repo/seeds.exs")
 
     Code.eval_file(path_to_seeds)
-
   end
 
-
   def rollback(repo, version) do
-    load_app()
+    load_web_app()
     {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :down, to: version))
   end
 
@@ -31,7 +35,13 @@ defmodule SwaiWeb.Release do
     Application.fetch_env!(@web_app, :ecto_repos)
   end
 
+
   defp load_app do
+    Application.load(@app)
+  end
+
+
+  defp load_web_app do
     Application.load(@web_app)
   end
 end
