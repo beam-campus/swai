@@ -1,14 +1,12 @@
 defmodule SwaiWeb.UserLoginLive do
   use SwaiWeb, :live_view
 
-
   alias Edges.Service,
     as: Edges
 
-
-
+  @impl true
   def mount(_params, _session, socket) do
-    email = live_flash(socket.assigns.flash, :email)
+    email = Phoenix.Flash.get(socket.assigns.flash, :email)
     form = to_form(%{"email" => email}, as: "user")
 
     {:ok,
@@ -19,6 +17,12 @@ defmodule SwaiWeb.UserLoginLive do
      ), temporary_assigns: [form: form]}
   end
 
+  @impl true
+  def handle_info(_msg, socket) do
+    {:noreply, socket |> assign(edges: Edges.get_all())}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div class="lt-edit-gradient flex items-center justify-center flex-col">
