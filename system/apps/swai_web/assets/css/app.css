@@ -268,6 +268,13 @@
     background-size: stretch;
 }
 
+#dropdown_menu {
+    position: absolute;
+    top: 80%; /* This positions the top of the dropdown right at the bottom of the header */
+    right: 20;
+    z-index: 100; /* Ensures it's above other content */
+  }
+
 
 #root_body::before {
     content: "";
@@ -318,8 +325,9 @@
 }
 
 .swai-model-card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-5px);        
     /* Slight raise effect on hover */
+    background-color: #8d6666;
 }
 
 
@@ -382,7 +390,7 @@
 }
 
 .top-bar {
-    position: fixed;
+    position: relative;
     /* or 'fixed' if the top bar should stay at the top of the viewport */
     z-index: 10;
     /* Higher than the z-index of ModelCards */
