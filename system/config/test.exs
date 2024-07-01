@@ -1,5 +1,19 @@
 import Config
 
+
+# Disable swoosh api client as it is only required for production adapters.
+config :swoosh, :api_client, false
+
+# Print only warnings and errors during test
+config :logger, level: :warning
+
+# Initialize plugs at runtime for faster test compilation
+config :phoenix, :plug_init_mode, :runtime
+
+config :phoenix_live_view,
+  # Enable helpful, but potentially expensive runtime checks
+  enable_expensive_runtime_checks: true
+
 # Only in tests, remove the complexity from the password hashing algorithm
 config :argon2_elixir, t_cost: 1, m_cost: 8
 
@@ -16,7 +30,6 @@ config :swai, Swai.Repo,
   pool_size: 5,
   pool: Ecto.Adapters.SQL.Sandbox
 
-
 # We don't run a server during test. If one is required,
 # you can enable the server option below.
 config :swai_web, SwaiWeb.Endpoint,
@@ -26,10 +39,9 @@ config :swai_web, SwaiWeb.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, :console,
-level: :debug,
-format: "$time[$level]\e[33;44m$metadata\e[0m>> $message\n",
-metadata: [:request_id, :initial_call, :mfa]
-
+  level: :debug,
+  format: "$time[$level]\e[33;44m$metadata\e[0m>> $message\n",
+  metadata: [:request_id, :initial_call, :mfa]
 
 # In test we don't send emails.
 config :swai, Swai.Mailer, adapter: Swoosh.Adapters.Test

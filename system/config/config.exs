@@ -7,7 +7,17 @@
 # all use the same configuration file. If you want different
 # configurations or dependencies per app, it is best to
 # move said applications out of the umbrella.
+# This file is responsible for configuring your application
+# and its dependencies with the aid of the Config module.
+#
+# This configuration file is loaded before any dependency and
+# is restricted to this project.
+
+# General application configuration
 import Config
+
+config :github_proxy,
+  github_token: System.get_env("GITHUB_PAT_SWARM_WARS_SCAPE")
 
 config :swai_edge, Edge.Client,
   uri: "ws://localhost:4000/edge_socket/websocket",
@@ -32,7 +42,17 @@ config :swai, Swai.Mailer, adapter: Swoosh.Adapters.Local
 
 config :swai_web,
   ecto_repos: [Swai.Repo],
-  generators: [context_app: :swai, binary_id: true]
+  generators: [
+    context_app: :swai,
+    migration: true,
+    binary_id: true,
+    timestamp_type: :utc_datetime_usec,
+    sample_binary_id: "00000000-0000-0000-0000-000000000000"  # UUID.nil()
+  ]
+
+# configure RemoteImageController
+config :swai_web, SwaiWeb.RemoteImageController,
+  base_url: "https://localhost:4000"
 
 # Configures the endpoint
 config :swai_web, SwaiWeb.Endpoint,
@@ -67,7 +87,6 @@ config :tailwind,
     ),
     cd: Path.expand("../apps/swai_web/assets", __DIR__)
   ]
-
 
 # Configures Elixir's Logger
 config :logger, :console,

@@ -7,11 +7,23 @@ defmodule Swai.CachesSystem do
 
   require Logger
 
+  require Cachex
+
+  defp start_caches() do
+    Logger.info("Starting caches")
+    :edges_cache |> Cachex.start()
+    :scapes_cache |> Cachex.start()
+    :regions_cache |> Cachex.start()
+    :farms_cache |> Cachex.start()
+    :lives_cache |> Cachex.start()
+    :nature_cache |> Cachex.start()
+    :workspaces_cache |> Cachex.start()
+  end
 
   ################## CALLBACKS ############
   @impl GenServer
   def init(opts) do
-    Logger.info("Starting caches system")
+    start_caches()
 
     children = [
       Edges.Service,
@@ -19,7 +31,8 @@ defmodule Swai.CachesSystem do
       Regions.Service,
       Farms.Service,
       Lives.Service,
-      Nature.Service
+      Nature.Service,
+      Workspaces.Service
     ]
 
     Supervisor.start_link(
@@ -47,5 +60,4 @@ defmodule Swai.CachesSystem do
         opts,
         name: __MODULE__
       )
-
 end

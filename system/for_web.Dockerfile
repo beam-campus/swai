@@ -94,7 +94,7 @@ RUN apt-get update -y && \
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
-RUN echo ${DATABASE_URL}
+RUN echo ${SWAI_DB_URL}
 
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en

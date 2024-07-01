@@ -1,6 +1,24 @@
 defmodule SwaiWeb.UserLoginLive do
   use SwaiWeb, :live_view
 
+
+  alias Edges.Service,
+    as: Edges
+
+
+
+  def mount(_params, _session, socket) do
+    email = live_flash(socket.assigns.flash, :email)
+    form = to_form(%{"email" => email}, as: "user")
+
+    {:ok,
+     socket
+     |> assign(
+       form: form,
+       edges: Edges.get_all()
+     ), temporary_assigns: [form: form]}
+  end
+
   def render(assigns) do
     ~H"""
     <div class="lt-edit-gradient flex items-center justify-center flex-col">
@@ -55,11 +73,5 @@ defmodule SwaiWeb.UserLoginLive do
       </.simple_form>
     </div>
     """
-  end
-
-  def mount(_params, _session, socket) do
-    email = live_flash(socket.assigns.flash, :email)
-    form = to_form(%{"email" => email}, as: "user")
-    {:ok, assign(socket, form: form), temporary_assigns: [form: form]}
   end
 end

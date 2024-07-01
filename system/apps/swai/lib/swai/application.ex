@@ -12,7 +12,7 @@ defmodule Swai.Application do
 
   @impl true
   def start(_type, _args) do
-    start_caches()
+    # start_caches()
 
     children = [
       Swai.Repo,
@@ -27,15 +27,15 @@ defmodule Swai.Application do
   end
 
 
-  defp start_caches() do
-    Logger.info("Starting caches")
-    :edges_cache  |> Cachex.start()
-    :scapes_cache |> Cachex.start()
-    :regions_cache |> Cachex.start()
-    :farms_cache |> Cachex.start()
-    :lives_cache |> Cachex.start()
-    :nature_cache |> Cachex.start()
-  end
+  # defp start_caches() do
+  #   Logger.info("Starting caches")
+  #   :edges_cache  |> Cachex.start()
+  #   :scapes_cache |> Cachex.start()
+  #   :regions_cache |> Cachex.start()
+  #   :farms_cache |> Cachex.start()
+  #   :lives_cache |> Cachex.start()
+  #   :nature_cache |> Cachex.start()
+  # end
 
 
 

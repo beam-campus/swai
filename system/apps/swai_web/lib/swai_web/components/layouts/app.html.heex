@@ -10,6 +10,18 @@
           <img src="/images/swai-logo-nobg.svg" alt="swai logo" width="200" />
         </a>
       </div>
+
+      <div class="px-10 py-3 m-0 text-sm text-white font-mono font-regular">
+        <%= edges_count = Enum.count(@edges)
+          if edges_count > 0 do %>
+          <%= edges_count %> producer(s) connected
+        <% else %>
+          awaiting producers...
+        <% end %>
+    </div>
+
+
+
     </div>
     
     <!-- Right side of toolbar -->
@@ -70,61 +82,16 @@
           >
             Singed in as <%= @current_user.email %>
           </.link>
-          
           <.link
-            href="/edges_live"
-            class="menu-item"
-            role="menuitem"
-            tabindex="-1"
-            method="get"
-            id="user-menu-item-producers"
-          >
-            Connected Producers
-          </.link>
-          
-          <.link
-            href="/view_scapes"
+            href="/training_grounds"
             class="border-b border-white border-opacity-50 menu-item"
             role="menuitem"
             tabindex="-1"
             method="get"
-            id="user-menu-item-2"
+            id="user-menu-training-grounds"
           >
-            Emulated Consumers
+            Training Grounds
           </.link>
-
-          <.link
-            href="/view_regions"
-            class="menu-item"
-            role="menuitem"
-            tabindex="-1"
-            method="get"
-            id="user-menu-item-2"
-          >
-            Emulated Countries
-          </.link>
-
-          <.link
-            href="/view_farms"
-            class="menu-item"            
-            role="menuitem"
-            tabindex="-1"
-            method="get"
-            id="user-menu-item-2"
-          >
-            Active Hives
-          </.link>
-          <.link
-            href="/view_lives"
-            class="border-b border-white border-opacity-50 menu-item"            
-            role="menuitem"
-            tabindex="-1"
-            method="get"
-            id="user-menu-item-2"
-          >
-            Ongoing Wars
-          </.link>
-
 
           <.link
             href={~p"/users/log_out"}
@@ -138,14 +105,14 @@
           </.link>
         <% else %>
          <.link
-            href="/edges_live"
+            href="/training_grounds"
             class="menu-item"
             role="menuitem"
             tabindex="-1"
             method="get"
-            id="user-menu-item-1"
+            id="user-menu-training-grounds"
           >
-            View Producers
+            Training Grounds
           </.link>
           
           <.link

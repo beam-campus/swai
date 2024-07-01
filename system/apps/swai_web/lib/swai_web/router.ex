@@ -14,6 +14,7 @@ defmodule SwaiWeb.Router do
   end
 
   pipeline :api do
+    plug(CORSPlug)
     plug(:accepts, ["json"])
   end
 
@@ -49,6 +50,7 @@ defmodule SwaiWeb.Router do
     pipe_through(:api)
 
     get("/identicon/:input", IdenticonController, :show)
+    get("/biotope_images/:id/image_url", RemoteImageController, :image_url)
     # get "/countries", CountriesController, :index
   end
 
@@ -60,7 +62,7 @@ defmodule SwaiWeb.Router do
         {SwaiWeb.EdgesInfo, :mount_edges_count},
         {SwaiWeb.UserAuth, :mount_current_user}
       ] do
-      # live("/edges_live", EdgesLive.Index, :index)
+      live("/training_grounds", TrainingGroundsLive.Index, :index)
     end
   end
 
@@ -104,7 +106,14 @@ defmodule SwaiWeb.Router do
       live("/view_lives", ViewBorn2DiedsLive.Index, :index)
       live("/view_fields", ViewFieldsLive.Index, :index)
       live("/edges_live", EdgesLive.Index, :index)
-      live("my_workspace", MyWorkspaceLive.Index, :index)
+      live("/my_workspace", MyWorkspaceLive.Index, :index)
+
+      live("/biotopes", BiotopeLive.Index, :index)
+      live("/biotopes/new", BiotopeLive.Index, :new)
+      live("/biotopes/:id/edit", BiotopeLive.Index, :edit)
+
+      live("/biotopes/:id", BiotopeLive.Show, :show)
+      live("/biotopes/:id/show/edit", BiotopeLive.Show, :edit)
     end
   end
 

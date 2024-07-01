@@ -1,5 +1,17 @@
 import Config
 
+# Configures Swoosh API Client
+config :swoosh, api_client: Swoosh.ApiClient.Finch, finch_name: GithubProxy.Finch
+
+# Disable Swoosh Local Memory Storage
+config :swoosh, local: false
+
+# Do not print debug messages in production
+config :logger, level: :info
+
+# Runtime production configuration, including reading
+# of environment variables, is done on config/runtime.exs.
+
 config :swai, Swai.Repo,
   username: System.get_env("POSTGRES_USER"),
   password: System.get_env("POSTGRES_PASSWORD"),
@@ -8,9 +20,6 @@ config :swai, Swai.Repo,
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
-
-
-
 
 config :swai_edge, Edge.Client,
   uri: "wss://swarm-wars.ai/edge_socket/websocket",

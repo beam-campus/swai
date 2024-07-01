@@ -23,7 +23,7 @@ defmodule Edge.Application do
 
     IO.puts("\n\n\n
     +---------------------------------+
-    |           SWAI EDGE         |
+    |           SWAI EDGE             |
     |           DAIRY FARM            |
     +---------------------------------+
 

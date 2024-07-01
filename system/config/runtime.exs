@@ -1,5 +1,9 @@
 import Config
 
+# if System.get_env("PHX_SERVER") do
+#   config :swai_web, SwaiWeb.Endpoint, server: true
+# end
+
 # config/runtime.exs is executed for all environments, including
 # during releases. It is executed after compilation and before the
 # system starts, so it is typically used to load production configuration
@@ -38,7 +42,7 @@ if config_env() == :prod do
   secret_key_base =
     System.get_env("SWAI_SECRET_KEY_BASE") ||
       raise """
-      environment variable SECRET_KEY_BASE is missing.
+      environment variable SWAI_SECRET_KEY_BASE is missing.
       You can generate one by calling: mix phx.gen.secret
       """
 

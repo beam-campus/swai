@@ -42,7 +42,6 @@ defmodule Swai.MixProject do
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
       # {:ecto_sqlite3, ">= 0.0.0"},
-
       {:jason, "~> 1.2"},
       {:swoosh, "~> 1.5"},
       {:finch, "~> 0.13"},

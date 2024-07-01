@@ -61,7 +61,6 @@ defmodule Colors do
   def white_on_green, do: "\e[37;42m"
   def white_on_blue, do: "\e[37;44m"
 
-
   def edge_theme(pid),
     do: "#{yellow_on_black()}#{inspect(pid)}#{reset()}"
 
@@ -83,4 +82,6 @@ defmodule Colors do
   def born2died_theme(pid),
     do: "#{white_on_magenta()}#{inspect(pid)}#{reset()}"
 
+  def workspace_theme(pid),
+    do: "#{yellow_on_black()}#{inspect(pid)}#{reset()}"
 end

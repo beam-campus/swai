@@ -21,6 +21,7 @@ defmodule SwaiWeb.Endpoint do
     longpoll: false
   )
 
+  plug(CORSPlug, origin: "*")
   # Serve at "/" the static files from "priv/static" directory.
   #
   # You should set gzip to true if you are running phx.digest
@@ -58,5 +59,6 @@ defmodule SwaiWeb.Endpoint do
   plug(Plug.MethodOverride)
   plug(Plug.Head)
   plug(Plug.Session, @session_options)
+
   plug(SwaiWeb.Router)
 end

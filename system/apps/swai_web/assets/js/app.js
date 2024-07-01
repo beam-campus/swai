@@ -22,6 +22,13 @@ import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
 
+// assets/js/app.js
+import "alpinejs"
+import { Alpine } from "alpinejs"
+
+window.Alpine = Alpine
+Alpine.start()
+
 const getPixelRatio = context => {
   var backingStore =
     context.backingStorePixelRatio ||
@@ -159,7 +166,15 @@ let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: hooks,
   longPollFallbackMs: 2500,
-  params: { _csrf_token: csrfToken }
+  params: { _csrf_token: csrfToken },
+  dom: {
+    onBeforeElUpdated(from, to) {
+      if (from.__x) {
+        window.Alpine.clone(from.__x, to)
+      }
+    }
+  }
+
 })
 
 // Show progress bar on live navigation and form submits

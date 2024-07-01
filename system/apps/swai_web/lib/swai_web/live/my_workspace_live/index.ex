@@ -5,38 +5,39 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
   The live view for the workspace index page.
   """
 
+  alias Workspaces.Service, as: Workspaces
+  alias Edges.Service, as: Edges
+  alias MngWorkspace.Root, as: Workspace
+
   @impl true
   def mount(_params, _session, socket) do
+    current_user = socket.assigns.current_user
+
     case connected?(socket) do
       true ->
         {:ok,
          socket
-         |> assign(:workspace, Swai.Workspace.get!(1))}
+         |> assign(
+           workspace: Workspaces.get_workspace(current_user.id),
+           edges: Edges.get_all(),
+           now: DateTime.utc_now()
+         )}
 
       false ->
-        {:ok, socket}
-    end
-  end
-
-  @impl true
-  def handle_event("update_workspace", %{"workspace" => workspace_params}, socket) do
-    workspace = Swai.Workspace.get!(1)
-
-    case Swai.Workspace.update(workspace, workspace_params) do
-      {:ok, _workspace} ->
-        {:noreply, socket |> put_flash(:info, "Workspace updated successfully.")}
-
-      {:error, changeset} ->
-        {:noreply, assign(socket, :workspace_form, to_form(changeset))}
+        {:ok,
+         socket
+         |> assign(
+           workspace: Workspaces.get_workspace(current_user.id),
+           edges: Edges.get_all(),
+           now: DateTime.utc_now()
+         )}
     end
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="space-y-4">
-      <h1 class="text-2xl font-semibold">Workspace</h1>
-
+    <div  id="workspace"  class="flex flex-col">
     </div>
     """
   end

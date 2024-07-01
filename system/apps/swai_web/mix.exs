@@ -66,6 +66,10 @@ defmodule SwaiWeb.MixProject do
        app: false,
        compile: false,
        depth: 1},
+      {:httpoison, "~> 1.8"},
+      {:tesla, "~> 1.4"},
+
+      {:cors_plug, "~> 3.0"},
       {:heroicons_liveview, "~> 0.5.0"},
       {:swai, in_umbrella: true}
     ]
