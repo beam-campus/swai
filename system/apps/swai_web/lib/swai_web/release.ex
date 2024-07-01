@@ -4,7 +4,9 @@ defmodule SwaiWeb.Release do
   installed.
   """
   require Code
-  @app :swai_web
+
+  @web_app :swai_web
+  @app :swai
 
   def migrate do
     load_app()
@@ -18,7 +20,7 @@ defmodule SwaiWeb.Release do
     Code.eval_file(path_to_seeds)
 
   end
-  
+
 
   def rollback(repo, version) do
     load_app()
@@ -26,10 +28,10 @@ defmodule SwaiWeb.Release do
   end
 
   defp repos do
-    Application.fetch_env!(@app, :ecto_repos)
+    Application.fetch_env!(@web_app, :ecto_repos)
   end
 
   defp load_app do
-    Application.load(@app)
+    Application.load(@web_app)
   end
 end
