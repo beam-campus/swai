@@ -44,6 +44,7 @@ defmodule Swai.MixProject do
       # {:ecto_sqlite3, ">= 0.0.0"},
       {:jason, "~> 1.2"},
       {:swoosh, "~> 1.5"},
+      {:gen_smtp, "~> 1.1"},
       {:finch, "~> 0.13"},
       {:ets, "~> 0.9.0"},
       {:cachex, "~> 3.6"},

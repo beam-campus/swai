@@ -46,3 +46,20 @@ config :logger, level: :info
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
+
+config :swai, Swai.Mailer,
+  adapter: Swoosh.Adapters.SMTP,
+  relay: System.get_env("SWAI_SMTP_RELAY"),
+  username: System.get_env("SWAI_SMTP_USERNAME"),
+  password: System.get_env("SWAI_SMTP_PASSWORD"),
+  port: String.to_integer(System.get_env("SWAI_SMTP_PORT") || "587"),
+  tls: :always,
+  auth: :always,
+  ssl: true,
+  # dkim: [
+  #   d: System.get_env("SWAI_SMTP_DKIM_DOMAIN"),
+  #   s: System.get_env("SWAI_SMTP_DKIM_SELECTOR"),
+  #   private_key: System.get_env("SWAI_SMTP_DKIM_PRIVATE_KEY")
+  # ],
+  retries: 3,
+  no_mx_lookups: false
