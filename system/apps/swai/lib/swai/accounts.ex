@@ -4,11 +4,18 @@ defmodule Swai.Accounts do
   """
 
   import Ecto.Query, warn: false
+  alias Swai.Accounts.UserToken
+  alias Hex.API.User
   alias Swai.Repo
 
-  alias Swai.Accounts.{User, UserToken, UserNotifier}
+  alias Swai.Accounts.User, as: User
+  alias Swai.Accounts.UserToken, as: UserToken
+  alias Swai.Accounts.UserNotifier, as: UserNotifier
 
   ## Database getters
+
+  def get_user_count(),
+    do: Repo.aggregate(User, :count, :id)
 
   @doc """
   Gets a user by email.
