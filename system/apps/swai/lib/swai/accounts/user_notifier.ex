@@ -8,7 +8,7 @@ defmodule Swai.Accounts.UserNotifier do
     email =
       new()
       |> to(recipient)
-      |> from({"Swai", "contact@example.com"})
+      |> from({"Swarm Wars AI", "noreply@swarm-wars.ai"})
       |> subject(subject)
       |> text_body(body)
 
