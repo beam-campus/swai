@@ -104,27 +104,28 @@ if config_env() == :prod do
   # Also, you may need to configure the Swoosh API client of your choice if you
   # are not using SMTP. Here is an example of the configuration:
   #
-  # config :swai, Swai.Mailer,
-  #   adapter: Swoosh.Adapters.Mailgun,
-  #   api_key: System.get_env("MAILGUN_API_KEY"),
-  #   domain: System.get_env("MAILGUN_DOMAIN")
-
   config :swai, Swai.Mailer,
-    adapter: Swoosh.Adapters.SMTP,
-    relay: System.get_env("SWAI_SMTP_RELAY"),
-    username: System.get_env("SWAI_SMTP_USERNAME"),
-    password: System.get_env("SWAI_SMTP_PASSWORD"),
-    port: String.to_integer(System.get_env("SWAI_SMTP_PORT") || "587"),
-    tls: :always,
-    auth: :always,
-    ssl: true,
-    # dkim: [
-    #   d: System.get_env("SWAI_SMTP_DKIM_DOMAIN"),
-    #   s: System.get_env("SWAI_SMTP_DKIM_SELECTOR"),
-    #   private_key: System.get_env("SWAI_SMTP_DKIM_PRIVATE_KEY")
-    # ],
-    retries: 3,
-    no_mx_lookups: false
+    adapter: Swoosh.Adapters.Mailgun,
+    api_key: System.get_env("SWAI_MAILGUN_API_KEY"),
+    domain: System.get_env("SWAI_MAILGUN_DOMAIN"),
+    base_url: System.get_env("SWAI_MAILGUN_BASE_URL")
+
+  # config :swai, Swai.Mailer,
+  #   adapter: Swoosh.Adapters.SMTP,
+  #   relay: System.get_env("SWAI_SMTP_RELAY"),
+  #   username: System.get_env("SWAI_SMTP_USERNAME"),
+  #   password: System.get_env("SWAI_SMTP_PASSWORD"),
+  #   port: String.to_integer(System.get_env("SWAI_SMTP_PORT") || "587"),
+  #   tls: :always,
+  #   auth: :always,
+  #   ssl: true,
+  #   # dkim: [
+  #   #   d: System.get_env("SWAI_SMTP_DKIM_DOMAIN"),
+  #   #   s: System.get_env("SWAI_SMTP_DKIM_SELECTOR"),
+  #   #   private_key: System.get_env("SWAI_SMTP_DKIM_PRIVATE_KEY")
+  #   # ],
+  #   retries: 3,
+  #   no_mx_lookups: false
 
   #
   # For this example you need include a HTTP client required by Swoosh API client.
