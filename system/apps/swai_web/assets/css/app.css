@@ -303,15 +303,15 @@
     opacity: 0.5;
 }
 
-.swai-model-card {
+.section-card {
     background-color: rgba(175, 27, 1, 0.8);
     /* Adjusted for transparency */
     color: #fa2323;
     /* Color from .lt-section-header */
     border-radius: 8px;
     /* Rounded corners */
-    padding: 20px;
-    margin: 10px;
+    padding: 10px;
+    margin: 20px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
     /* Shadow for depth */
     transition: transform 0.3s ease-in-out;
@@ -324,23 +324,23 @@
     z-index: 1;
 }
 
-.swai-model-card:hover {
+.section-card:hover {
     transform: translateY(-5px);        
     /* Slight raise effect on hover */    
 }
 
 
 
-.swai-model-card-header {
+.section-card-header {
     font-family: 'WorkSans', sans-serif;
     font-size: 1.2rem;
     font-weight: bold;
     color: #ffffff;
     /* White for contrast */
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
-.swai-model-card-body {
+.section-card-body {
     font-family: 'WorkSans', sans-serif;
     font-size: 1rem;
     color: #ffffff;
@@ -348,7 +348,7 @@
 }
 
 
-.swai-model-card-content {
+.section-card-content {
     flex: 1;
     padding: 10px;
 }
@@ -394,3 +394,49 @@
     z-index: 10;
     /* Higher than the z-index of ModelCards */
 }
+
+.swarm-license-card {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin: 20px;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+  }
+  
+  .card-image img {
+    width: 100%;
+    height: auto;    
+    max-height: 150px;
+    display: block;
+    margin: 5px;
+    border-radius: 8px;
+
+  }
+  
+  .card-header {
+    padding: 20px;
+    background: #f5f5f5;
+    border-bottom: 1px solid #eee;
+  }
+  
+  .card-header-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+  }
+    
+  .card-content {
+    display: flex;
+    padding: 20px;
+    color: #ddd;
+  }
+  
+  .content p {
+    margin-bottom: 10px;
+  }
+
+  .card-info {
+    flex: 3;
+  }

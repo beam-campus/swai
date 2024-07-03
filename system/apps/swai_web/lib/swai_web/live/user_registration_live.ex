@@ -2,7 +2,9 @@ defmodule SwaiWeb.UserRegistrationLive do
   use SwaiWeb, :live_view
 
   alias Swai.Accounts
-  alias Swai.Accounts.User
+
+  alias Schema.User, as: User
+
   alias Edges.Service, as: Edges
 
   @impl true
@@ -32,7 +34,7 @@ defmodule SwaiWeb.UserRegistrationLive do
     end
   end
 
-  
+
   @impl true
   def handle_info(_msg, socket) do
     {

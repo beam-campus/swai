@@ -1,13 +1,15 @@
-defmodule Swai.Accounts.User do
+defmodule Schema.User do
   use Ecto.Schema
   import Ecto.Changeset
 
-  # @all_fields [
-  #   :email,
-  #   :password,
-  #   :hashed_password,
-  #   :confirmed_at
-  # ]
+  @all_fields [
+    :email,
+    :password,
+    :confirmed_at,
+    :user_name,
+    :bio,
+    :image_url
+  ]
 
   @registration_fields [
     :email,
@@ -50,11 +52,29 @@ defmodule Swai.Accounts.User do
       submitting the form), this option can be set to `false`.
       Defaults to `true`.
   """
+
+  def changeset(user, attrs, opts \\ []) do
+    user
+    |> cast(attrs, @all_fields)
+    |> validate_required(opts)
+  end
+
   def registration_changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, @registration_fields)
     |> validate_email(opts)
     |> validate_password(opts)
+  end
+
+  def username_changeset(user, attrs) do
+    user
+    |> cast(attrs, [:user_name])
+    |> validate_length(:user_name, max: 30)
+    |> validate_format(:user_name, ~r/[a-z]/, message: "at least one lower case character")
+    |> validate_format(:user_name, ~r/[A-Z]/, message: "at least one upper case character")
+    |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/,
+      message: "at least one digit or punctuation character"
+    )
   end
 
   defp validate_email(changeset, opts) do
@@ -72,7 +92,9 @@ defmodule Swai.Accounts.User do
     # Examples of additional password validation:
     |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
     |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
-    |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/, message: "at least one digit or punctuation character")
+    |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/,
+      message: "at least one digit or punctuation character"
+    )
     |> maybe_hash_password(opts)
   end
 
@@ -139,7 +161,10 @@ defmodule Swai.Accounts.User do
   Confirms the account by setting `confirmed_at`.
   """
   def confirm_changeset(user) do
-    now = NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+    now =
+      NaiveDateTime.utc_now()
+      |> NaiveDateTime.truncate(:second)
+
     change(user, confirmed_at: now)
   end
 
@@ -149,7 +174,7 @@ defmodule Swai.Accounts.User do
   If there is no user or the user doesn't have a password, we call
   `Argon2.no_user_verify/0` to avoid timing attacks.
   """
-  def valid_password?(%Swai.Accounts.User{hashed_password: hashed_password}, password)
+  def valid_password?(%Schema.User{hashed_password: hashed_password}, password)
       when is_binary(hashed_password) and byte_size(password) > 0 do
     Argon2.verify_pass(password, hashed_password)
   end

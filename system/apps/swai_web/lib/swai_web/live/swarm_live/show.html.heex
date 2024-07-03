@@ -1,0 +1,31 @@
+<.header>
+  Swarm <%= @swarm.id %>
+  <:subtitle>This is a swarm record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/swarms/#{@swarm}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit swarm</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Name"><%= @swarm.name %></:item>
+  <:item title="Description"><%= @swarm.description %></:item>
+  <:item title="User"><%= @swarm.user_id %></:item>
+  <:item title="Status"><%= @swarm.status %></:item>
+  <:item title="Biotope"><%= @swarm.biotope_id %></:item>
+  <:item title="Edge"><%= @swarm.edge_id %></:item>
+</.list>
+
+<.back navigate={~p"/swarms"}>Back to swarms</.back>
+
+<.modal :if={@live_action == :edit} id="swarm-modal" show on_cancel={JS.patch(~p"/swarms/#{@swarm}")}>
+  <.live_component
+    module={SwaiWeb.SwarmLive.FormComponent}
+    id={@swarm.id}
+    title={@page_title}
+    action={@live_action}
+    swarm={@swarm}
+    patch={~p"/swarms/#{@swarm}"}
+  />
+</.modal>

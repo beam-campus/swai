@@ -4,12 +4,12 @@ defmodule Swai.Accounts do
   """
 
   import Ecto.Query, warn: false
-  alias Swai.Accounts.UserToken
+  alias Schema.UserToken
   alias Hex.API.User
   alias Swai.Repo
 
-  alias Swai.Accounts.User, as: User
-  alias Swai.Accounts.UserToken, as: UserToken
+  alias Schema.User, as: User
+  alias Schema.UserToken, as: UserToken
   alias Swai.Accounts.UserNotifier, as: UserNotifier
 
   ## Database getters
@@ -114,6 +114,12 @@ defmodule Swai.Accounts do
   def change_user_email(user, attrs \\ %{}) do
     User.email_changeset(user, attrs, validate_email: false)
   end
+
+
+  def change_user_name(user, attrs \\ %{}) do
+    User.username_changeset(user, attrs)
+  end
+
 
   @doc """
   Emulates that the email will change without actually changing

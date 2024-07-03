@@ -19,7 +19,7 @@ defmodule Edge.Application do
   @impl Application
   def start(_type, _args) do
 
-    edge_init = EdgeInit.enriched()
+    %EdgeInit{} = edge_init = EdgeInit.enriched()
 
     IO.puts("\n\n\n
     +---------------------------------+
@@ -53,6 +53,13 @@ defmodule Edge.Application do
   def stop(scape_init) do
     Scape.System.terminate(:normal, scape_init)
     Supervisor.stop(__MODULE__)
+  end
+
+  def child_spec(_args) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start, []}
+    }
   end
 
   def start_scape(edge_id) do

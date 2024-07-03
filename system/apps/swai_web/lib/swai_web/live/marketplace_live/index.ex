@@ -8,10 +8,11 @@ defmodule SwaiWeb.MarketplaceLive.Index do
   alias Edges.Service, as: Edges
   alias Swai.Biotopes, as: Biotopes
 
+  @impl true
   def mount(_params, _session, socket) do
     biotopes = Biotopes.list_biotopes()
-    active_models = Enum.filter(biotopes, &(&1.is_active?))
-    inactive_models = Enum.reject(biotopes, &(&1.is_active?))
+    active_models = Enum.filter(biotopes, & &1.is_active?)
+    inactive_models = Enum.reject(biotopes, & &1.is_active?)
 
     case connected?(socket) do
       true ->
@@ -22,7 +23,9 @@ defmodule SwaiWeb.MarketplaceLive.Index do
            active_models: active_models,
            inactive_models: inactive_models,
            now: DateTime.utc_now(),
-           page_title: "Marketplace"
+           page_title: "Marketplace",
+           show_init_swarm_modal: false,
+           current_biotope_id: nil
          )}
 
       false ->
@@ -33,11 +36,24 @@ defmodule SwaiWeb.MarketplaceLive.Index do
            active_models: active_models,
            inactive_models: inactive_models,
            now: DateTime.utc_now(),
-           page_title: "Marketplace"
+           page_title: "Marketplace",
+           show_init_swarm_modal: false,
+           current_biotope_id: nil
          )}
     end
   end
 
+  @impl true
+  def handle_event("init_swarm", _params, socket) do
+    {:noreply,
+     socket
+     |> assign(
+       show_init_swarm_modal: not socket.assigns.show_init_swarm_modal,
+       current_biotope_id: socket.assigns.current_biotope_id
+     )}
+  end
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div id="marketplace-view" class="flex flex-col my-5">
@@ -46,7 +62,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
             id="active-models-section"
             module={SwaiWeb.MarketplaceLive.ModelsSection}
             edges={@edges}
-            training_grounds={@active_models}
+            biotopes={@active_models}
             now={@now}
             section_title="Models"
             section_description="These are the Darwinian models that are currently available.
@@ -59,7 +75,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
             id="inactive-models-section"
             module={SwaiWeb.MarketplaceLive.ModelsSection}
             edges={@edges}
-            training_grounds={@inactive_models}
+            biotopes={@inactive_models}
             now={@now}
             section_title="Coming soon..."
             section_description="Do you want to see these models to become available for your research or entertainment?
@@ -70,5 +86,4 @@ defmodule SwaiWeb.MarketplaceLive.Index do
     </div>
     """
   end
-
 end

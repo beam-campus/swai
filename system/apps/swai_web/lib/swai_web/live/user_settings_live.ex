@@ -10,7 +10,7 @@ defmodule SwaiWeb.UserSettingsLive do
       <:subtitle>Manage your account email address and password settings</:subtitle>
     </.header>
 
-    <div class="space-y-12 divide-y bg-ltDark">
+    <div class="section-card">
       <div class="bg-ltDark">
         <.simple_form
           for={@email_form}
@@ -33,6 +33,30 @@ defmodule SwaiWeb.UserSettingsLive do
           </:actions>
         </.simple_form>
       </div>
+
+      <div class="bg-ltDark">
+        <.simple_form
+          for={@username_form}
+          id="username_form"
+          phx-submit="update_username"
+          phx-change="validate_username"
+        >
+          <.input field={@username_form[:user_name]} type="string" label="User Name" required />
+          <.input
+            field={@username_form[:user_name]}
+            name="current_username"
+            id="current_user_name_for_email"
+            type="text"
+            label="Current User Name"
+            value={@username_form_current_username}
+            required
+          />
+          <:actions>
+            <.button phx-disable-with="Changing...">Change User Name</.button>
+          </:actions>
+        </.simple_form>
+      </div>
+
       <div>
         <.simple_form
           for={@password_form}
@@ -90,14 +114,17 @@ defmodule SwaiWeb.UserSettingsLive do
     user = socket.assigns.current_user
     email_changeset = Accounts.change_user_email(user)
     password_changeset = Accounts.change_user_password(user)
+    username_changeset = Accounts.change_user_name(user)
 
     socket =
       socket
       |> assign(:current_password, nil)
       |> assign(:email_form_current_password, nil)
+      |> assign(:username_form_current_username, user.user_name)
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
+      |> assign(:username_form, to_form(username_changeset))
       |> assign(:trigger_submit, false)
 
     {:ok, socket}

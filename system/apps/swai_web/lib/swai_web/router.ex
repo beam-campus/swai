@@ -96,17 +96,12 @@ defmodule SwaiWeb.Router do
       live("/users/settings", UserSettingsLive, :edit)
       live("/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email)
 
-      live("/world/", BrowseWorldLive, :show)
-      live("/stations", StationLive.Index, :index)
-      live("/devices", DeviceLive.Index, :index)
-
-      live("/view_scapes", ViewScapesLive.Index, :index)
-      live("/view_regions", ViewRegionsLive.Index, :index)
-      live("/view_farms", ViewFarmsLive.Index, :index)
-      live("/view_lives", ViewBorn2DiedsLive.Index, :index)
-      live("/view_fields", ViewFieldsLive.Index, :index)
       live("/edges_live", EdgesLive.Index, :index)
+
       live("/my_workspace", MyWorkspaceLive.Index, :index)
+
+      live("/train_swarm/:biotope_id", InitializeSwarmLive.Index, :index)
+
 
       live("/biotopes", BiotopeLive.Index, :index)
       live("/biotopes/new", BiotopeLive.Index, :new)
@@ -114,6 +109,13 @@ defmodule SwaiWeb.Router do
 
       live("/biotopes/:id", BiotopeLive.Show, :show)
       live("/biotopes/:id/show/edit", BiotopeLive.Show, :edit)
+
+      live "/swarms", SwarmLive.Index, :index
+      live "/swarms/new", SwarmLive.Index, :new
+      live "/swarms/:id/edit", SwarmLive.Index, :edit
+
+      live "/swarms/:id", SwarmLive.Show, :show
+      live "/swarms/:id/show/edit", SwarmLive.Show, :edit
     end
   end
 

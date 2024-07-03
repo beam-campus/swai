@@ -1,7 +1,7 @@
-defmodule Swai.Accounts.UserToken do
+defmodule Schema.UserToken do
   use Ecto.Schema
   import Ecto.Query
-  alias Swai.Accounts.UserToken
+  alias Schema.UserToken
 
   @hash_algorithm :sha256
   @rand_size 32
@@ -19,7 +19,7 @@ defmodule Swai.Accounts.UserToken do
     field :token, :binary
     field :context, :string
     field :sent_to, :string
-    belongs_to :user, Swai.Accounts.User
+    belongs_to :user, Schema.User
 
     timestamps(updated_at: false)
   end
