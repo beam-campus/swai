@@ -12,6 +12,7 @@ ARG CORE_APP=swai_core
 ARG SVC_APP=swai
 ARG WEB_APP=swai_web
 ARG APIS_APP=apis
+ARG TRAIN_SWARM_APP=swai_train_swarm
 
 RUN apt-get update -y && \
     apt-get install -y build-essential git npm esbuild  && \
@@ -37,6 +38,7 @@ COPY apps/${SVC_APP} apps/${SVC_APP}/
 COPY apps/${CORE_APP} apps/${CORE_APP}/
 COPY apps/${WEB_APP} apps/${WEB_APP}/
 COPY apps/${APIS_APP} apps/${APIS_APP}/
+COPY apps/${TRAIN_SWARM_APP} apps/${TRAIN_SWARM_APP}/
 
 
 
