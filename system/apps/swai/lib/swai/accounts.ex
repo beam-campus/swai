@@ -11,6 +11,9 @@ defmodule Swai.Accounts do
   alias Schema.User, as: User
   alias Schema.UserToken, as: UserToken
   alias Swai.Accounts.UserNotifier, as: UserNotifier
+  alias UniqueNamesGenerator, as: UNG
+
+  require Logger
 
   ## Database getters
 
@@ -51,6 +54,9 @@ defmodule Swai.Accounts do
     if User.valid_password?(user, password), do: user
   end
 
+  def get_all_users(),
+    do: Repo.all(User)
+
   @doc """
   Gets a single user.
 
@@ -82,6 +88,8 @@ defmodule Swai.Accounts do
 
   """
   def register_user(attrs) do
+    Logger.alert("Registering User attrs: #{inspect(attrs)}")
+
     %User{}
     |> User.registration_changeset(attrs)
     |> Repo.insert()
@@ -97,8 +105,22 @@ defmodule Swai.Accounts do
 
   """
   def change_user_registration(%User{} = user, attrs \\ %{}) do
-    User.registration_changeset(user, attrs, hash_password: false, validate_email: false)
+    User.registration_changeset(
+      user,
+      attrs,
+      hash_password: false,
+      validate_email: false
+    )
   end
+
+  def with_random_alias(changes) do
+    random_alias =
+      UNG.generate([:adjectives, :names, :numbers])
+      |> String.capitalize()
+    changes
+    |> Ecto.Changeset.put_change(:alias, random_alias)
+  end
+
 
   ## Settings
 
@@ -115,11 +137,9 @@ defmodule Swai.Accounts do
     User.email_changeset(user, attrs, validate_email: false)
   end
 
-
-  def change_user_name(user, attrs \\ %{}) do
+  def change_alias(user, attrs \\ %{}) do
     User.username_changeset(user, attrs)
   end
-
 
   @doc """
   Emulates that the email will change without actually changing

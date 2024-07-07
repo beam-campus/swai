@@ -1,12 +1,12 @@
-defmodule Schema.SwarmSpec do
+defmodule Schema.RequestToSwarm do
   @moduledoc """
-  The  Schema.SwarmSpec  module defines the schema for the  swarm_specs  table. The schema has fields for the name, description, image, command, environment variables, ports, networks, volumes, and replicas. The  changeset  function is used to cast and validate the attributes.
+  The  Schema.RequestToSwarm  module defines the schema for the  swarm_specs  table. The schema has fields for the name, description, image, command, environment variables, ports, networks, volumes, and replicas. The  changeset  function is used to cast and validate the attributes.
   """
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Schema.SwarmSpec
-  alias Schema.SwarmSpec, as: SwarmSpec
+  alias Schema.RequestToSwarm
+  alias Schema.RequestToSwarm, as: SwarmSpec
 
   @all_fields [
     :license_id,
@@ -16,7 +16,8 @@ defmodule Schema.SwarmSpec do
     :edge_id,
     :budget,
     :generations,
-    :size
+    :size,
+    :start_time,
   ]
 
   @required_fields [
@@ -38,6 +39,7 @@ defmodule Schema.SwarmSpec do
     field(:budget, :integer)
     field(:generations, :integer)
     field(:size, :integer)
+    field(:start_time, :utc_datetime_usec)
   end
 
   @doc false

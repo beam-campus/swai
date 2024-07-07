@@ -1,4 +1,4 @@
-defmodule SwaiWeb.InitializeSwarmLive.SwarmSpecificationSection do
+defmodule SwaiWeb.InitializeSwarmLive.RequestToSwarmSection do
   use SwaiWeb, :live_component
 
   @impl true
@@ -14,9 +14,11 @@ defmodule SwaiWeb.InitializeSwarmLive.SwarmSpecificationSection do
     <section>
       <.live_component
         id={"init-swarm-specs-#{@swarm_license.id}"}
-        module={SwaiWeb.InitializeSwarmLive.SwarmSpecsCard}
+        module={SwaiWeb.InitializeSwarmLive.RequestToSwarmCard}
         swarm_license={@swarm_license}
         swarm_specs={@swarm_specs}
+        current_user={@current_user}
+        biotope={@biotope}
       />
 
     </section>

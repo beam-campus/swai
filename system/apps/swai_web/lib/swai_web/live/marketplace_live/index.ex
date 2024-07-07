@@ -64,10 +64,9 @@ defmodule SwaiWeb.MarketplaceLive.Index do
             edges={@edges}
             biotopes={@active_models}
             now={@now}
-            section_title="Models"
-            section_description="These are the Darwinian models that are currently available.
-            Click 'Train a Swarm' to start training your Evolutionary AI Swarm.
-            Do keep in mind that currently only one swarm can be trained on the free plan."
+            section_title="Available Ecosystems"
+            section_description="
+            Please do keep in mind that right now, only one swarm can be trained on the free plan."
         />
       </section>
       <section class="py-3">

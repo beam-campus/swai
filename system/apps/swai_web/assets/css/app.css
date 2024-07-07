@@ -76,7 +76,7 @@
     font-family: 'WorkSans', sans-serif;
     font-size: 1rem;
     font-weight: bold;
-    color: #fa2323;
+    color: #c20000;
     text-align: center;
     margin-top: 10px;
 }
@@ -337,7 +337,8 @@
     font-weight: bold;
     color: #ffffff;
     /* White for contrast */
-    margin-bottom: 10px;
+    margin-bottom: 4px;
+
 }
 
 .section-card-body {
@@ -439,4 +440,10 @@
 
   .card-info {
     flex: 3;
+  }
+
+  #discomco-link:hover {
+    color: #3498db; /* Changes the color of the link on hover */
+    text-decoration: underline; /* Underlines the link on hover */
+    cursor: pointer; /* Changes the cursor to a pointer to indicate interactivity */
   }

@@ -5,7 +5,7 @@ defmodule SwaiWeb.InitializeSwarmLive.Index do
 
   alias Swai.Biotopes, as: Biotopes
   alias Schema.SwarmLicense, as: SwarmLicense
-  alias Schema.SwarmSpec, as: SwarmSpec
+  alias Schema.RequestToSwarm, as: SwarmSpec
   alias Swai.SwarmSpecs, as: SwarmSpecs
   alias Schema.Id, as: Id
 
@@ -24,7 +24,7 @@ defmodule SwaiWeb.InitializeSwarmLive.Index do
           socket
           |> assign(
             now: DateTime.utc_now(),
-            page_title: "License to Swarm"
+            page_title: "Request to Swarm"
           )
           |> apply_action(biotope_id)
         }
@@ -47,17 +47,12 @@ defmodule SwaiWeb.InitializeSwarmLive.Index do
     id="initialize-swarm-view"
     class="flex flex-col my-2">
       <.live_component
-        id={"init-swarm-license-#{@swarm_license.id}"}
-        module={SwaiWeb.InitializeSwarmLive.SwarmLicenseSection}
-        swarm_license={@swarm_license}
-        current_user={@current_user}
-        biotope={@biotope}
-      />
-      <.live_component
         id={"init-swarm-specs-#{@swarm_license.id}"}
-        module={SwaiWeb.InitializeSwarmLive.SwarmSpecificationSection}
+        module={SwaiWeb.InitializeSwarmLive.RequestToSwarmSection}
         swarm_license={@swarm_license}
         swarm_specs={@swarm_specs}
+        biotope={@biotope}
+        current_user={@current_user}
       />
     </div>
     """
@@ -81,36 +76,32 @@ defmodule SwaiWeb.InitializeSwarmLive.Index do
   defp apply_action(socket, biotope_id) do
     biotope = Biotopes.get_biotope!(biotope_id)
     user = socket.assigns.current_user
-    valid_until = DateTime.utc_now() |> DateTime.add(1 * 7 * 27, :hour)
-    Logger.alert("Valid until: #{inspect(valid_until)}")
+    valid_until = DateTime.utc_now() |> DateTime.add(1 * 7 * 24, :hour)
 
-    swarm_license =
-      SwarmLicense.from_map(%{
-        id: Id.new(@prefix) |> Id.as_string(),
-        biotope_id: biotope.id,
-        user_id: user.id,
-        valid_until: valid_until,
-        valid_from: DateTime.utc_now(),
-        license_type: 1
-      })
+    case SwarmLicense.from_map(%{
+           id: Id.new(@prefix) |> Id.as_string(),
+           biotope_id: biotope.id,
+           user_id: user.id,
+           valid_until: valid_until,
+           valid_from: DateTime.utc_now(),
+           license_type: 1
+         }) do
+      {:error, changeset} ->
+        Logger.error("Error: #{inspect(changeset)}")
+        socket
 
-    swarm_specs =
-      SwarmSpec.empty()
-      |> SwarmSpecs.with_biotope(biotope)
-      |> SwarmSpecs.with_user(socket.assigns.current_user)
+      {:ok, new_license} ->
+        swarm_specs =
+          SwarmSpec.empty()
+          |> SwarmSpecs.with_biotope(biotope)
+          |> SwarmSpecs.with_user(user)
 
-    Logger.alert("Biotope: #{inspect(biotope)}")
-    Logger.alert("SwarmLicense: #{inspect(swarm_license)}")
-
-    new_socket =
-      socket
-      |> assign(
-        biotope: biotope,
-        swarm_license: swarm_license,
-        swarm_specs: swarm_specs
-      )
-
-    Logger.alert("New Socket assigns: #{inspect(new_socket.assigns)}")
-    new_socket
+        socket
+        |> assign(
+          biotope: biotope,
+          swarm_license: new_license,
+          swarm_specs: swarm_specs
+        )
+    end
   end
 end

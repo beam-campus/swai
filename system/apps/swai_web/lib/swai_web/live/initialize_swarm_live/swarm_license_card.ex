@@ -12,43 +12,21 @@ defmodule SwaiWeb.InitializeSwarmLive.SwarmLicenseCard do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="swarm-license-card">
-      <div class="card-image">
-        <img src={"#{@biotope.image_url} "} alt="Biotope Image" />
+    <div class="max-w-xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden">
+      <div class="px-6 py-4">
+        <div class="font-serif text-xl font-bold text-gray-900 mb-2 text-center">Swarm License Agreement</div>
+        <p class="text-base text-gray-700 mt-4">
+          This license is hereby granted to <span class="font-semibold"><%= @current_user.email %></span>,
+          authorizing the evolution of swarms with a maximum size of <span class="font-semibold"><%= @swarm_license.max_population %> workers</span>,
+          over <span class="font-semibold"><%= @swarm_license.max_generations %> generations</span>,
+          effective between <span class="font-semibold"><%= @swarm_license.valid_from %></span> and <span class="font-semibold"><%= @swarm_license.valid_until %></span>,
+          within the <span class="font-semibold"><%= @biotope.name %></span> ecosystem.
+        </p>
       </div>
-      <div class="card-header">
-        <p class="card-header-title">Swarm License Details</p>
-      </div>
-      <div class="card-content">
-        <div class="content">
-          <p><strong>License ID:</strong> <%= @swarm_license.id %> </p>
-          <p><strong>Swarm Name:</strong> <%= @current_user.user_name %></p>
-          <p><strong>Issued Date:</strong> <%= @swarm_license.valid_from %></p>
-          <p><strong>Expiry Date:</strong> <%= @swarm_license.valid_until %></p>
-          <p><strong>Biotope:</strong> <%= @biotope.name %></p>
-          <!-- Add more details as necessary -->
-        </div>
-      </div>
-    </div>
-    """
-  end
-
-  @impl true
-  def render1(assigns) do
-    ~H"""
-    <div class="card" style="box-shadow: 0 4px 8px rgba(0,0,0,0.1); margin: 20px; padding: 20px; border-radius: 8px;">
-      <div class="card-header" style="padding-bottom: 20px; border-bottom: 1px solid #eee; margin-bottom: 20px;">
-        <p class="card-header-title" style="font-size: 20px; font-weight: bold;">Swarm License Details</p>
-      </div>
-      <div class="card-content">
-        <div class="content">
-          <p><strong>License ID:</strong> <%= @swarm_license.id %> </p>
-          <p><strong>Swarm Name:</strong> <%= @current_user.user_name %></p>
-          <p><strong>Swarm Size:</strong> {@swarm_license.size}</p>
-          <p><strong>Issued Date:</strong> {@swarm_license.issued_date}</p>
-          <p><strong>Expiry Date:</strong> {@swarm_license.expiry_date}</p>
-          <!-- Add more details as necessary -->
-        </div>
+      <div class="px-6 pt-4 pb-2 text-center">
+        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">
+          Accept License
+        </button>
       </div>
     </div>
     """

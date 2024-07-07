@@ -15,18 +15,15 @@
     
     <!-- Right side of toolbar -->
     <div class="flex items-center">
-
-      <%!-- <div  class="px-10 py-3 m-0 text-sm text-ltRed-light font-mono font-regular">
-          <%= edges_count = Enum.count(@edges)
-            if edges_count > 0 do %>
-            <%= edges_count %> producer(s) connected
-          <% else %>
-            awaiting producers...
-          <% end %>
-      </div> --%>
-
+     
 
       <%= if @current_user do %>
+        <.live_component
+          id={"user_budget_box_#{@current_user.id}"}
+          module={SwaiWeb.BudgetBox}          
+          user={@current_user}
+          phx-hook="BudgetBox"
+        />
         <button
           class="img-down-arrow-user"
           type="button"
@@ -61,14 +58,14 @@
         hidden="true"
       >
         <.link
-          href="/about"
+          href="/mission"
           class="border-b border-white border-opacity-50 menu-item"
           role="menuitem"
           tabindex="-1"
           method="get"
           id="user-menu-item-about"
         >
-          About us...
+          Our Mission
         </.link>
 
         <%= if @current_user do %>
@@ -151,8 +148,7 @@
   </main>
 
   <%!-- FOOTER --%>
-
-  <div class="flex-shrink-0">
+ <div class="flex-shrink-0">
     <%!-- <footer class="h-[120px] w-full flex justify-center text-white px-16 py-20"> --%>
     <footer>
       <div class="w-full px-10">
@@ -160,17 +156,17 @@
           <div class="flex items-center py-6 space-x-2">
             <img src="/images/discomco-logo.png" alt="DisComCo Logo image-only" class="h-7 w-7" />
             <p class="text-sm text-white font-brand font-regular">
-              powered with ❤️ by <a href="https://discomco.pl" class="hover:underline">DisComCo</a>
+              with ❤️ from <a href="https://discomco.pl" class="font-regular hover:underline">DisComCo</a>
             </p>
-            <div class="px-4 space-x-2 text-xs text-ltOrange font-brand font-regular">
-              <a href={~p"/"} class="text-red-500 hover:underline">
+            <div class="px-4 space-x-3 text-xs text-ltOrange font-brand font-bold">
+                          <a href={~p"/mission"} class="text-red-500 hover:underline">
+                Our Mission
+              </a>
+              <a href={~p"/terms_of_service"} class="text-red-500 hover:underline">
                 Terms
               </a>
               <a href={~p"/"} class="text-red-500 hover:underline">
                 Privacy
-              </a>
-              <a href={~p"/about"} class="text-red-500 hover:underline">
-                About
               </a>
             </div>
           </div>
@@ -179,3 +175,6 @@
     </footer>
   </div>
 </div>
+
+
+

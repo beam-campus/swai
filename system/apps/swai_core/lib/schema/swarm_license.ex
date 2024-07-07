@@ -2,8 +2,7 @@ defmodule Schema.SwarmLicense do
   @moduledoc """
   The schema for the License model.
   """
-alias ElixirSense.Log
-alias Schema.SwarmLicense
+  alias Schema.SwarmLicense
 
   use Ecto.Schema
 
@@ -18,6 +17,8 @@ alias Schema.SwarmLicense
     :valid_from,
     :valid_until,
     :license_type,
+    :max_generations,
+    :max_population,
     :is_active?,
     :is_realistic?
   ]
@@ -28,7 +29,9 @@ alias Schema.SwarmLicense
     :user_id,
     :valid_from,
     :valid_until,
-    :license_type
+    :license_type,
+    :max_generations,
+    :max_population,
   ]
 
   @primary_key false
@@ -40,10 +43,11 @@ alias Schema.SwarmLicense
     field(:valid_until, :utc_datetime_usec)
     # Free
     field(:license_type, :integer, default: 1)
+    field(:max_generations, :integer, default: 1000)
+    field(:max_population, :integer, default: 20)
     field(:is_active?, :boolean, default: false)
     field(:is_realistic?, :boolean, default: false)
   end
-
 
   def changeset(%SwarmLicense{} = license, %{} = attrs) do
     license
@@ -60,11 +64,8 @@ alias Schema.SwarmLicense
         res =
           changeset
           |> apply_changes()
-        Logger.alert("SwarmLicense: #{inspect(res)}")
 
         {:ok, res}
-
-        struct
 
       changeset ->
         Logger.error("Error in changeset: #{inspect(changeset)}")

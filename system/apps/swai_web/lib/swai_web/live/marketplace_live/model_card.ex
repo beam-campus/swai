@@ -14,12 +14,11 @@ defmodule SwaiWeb.MarketplaceLive.ModelCard do
     ~H"""
     <div class={"section-card " <> active_class(@biotope.is_active?)}>
       <div class="section-card-header">
-        <img class="h-48 w-full object-cover opacity-80"
-        src={"#{@biotope.image_url}"} alt={"#{@biotope.id}"}
-        >
+        <img class="h-24 w-full object-cover opacity-80 rounded radius-5"
+        src={"#{@biotope.image_url}"} alt={"#{@biotope.id}"}>
       </div>
       <div class="section-card-body">
-        <p class="text-sm font-medium text-lt-edit-gradient">
+        <p class="text-sm font-medium uppercase">
           <%= @biotope.theme %>
         </p>
         <a href="#{Routes.biotope_path(@socket, :show, @biotope)}"

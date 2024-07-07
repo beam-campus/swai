@@ -41,11 +41,11 @@ defmodule SwaiWeb.UserSettingsLive do
           phx-submit="update_username"
           phx-change="validate_username"
         >
-          <.input field={@username_form[:user_name]} type="string" label="User Name" required />
+          <.input field={@username_form[:alias]} type="string" label="User Name" required />
           <.input
-            field={@username_form[:user_name]}
+            field={@username_form[:alias]}
             name="current_username"
-            id="current_user_name_for_email"
+            id="current_alias_for_email"
             type="text"
             label="Current User Name"
             value={@username_form_current_username}
@@ -114,13 +114,13 @@ defmodule SwaiWeb.UserSettingsLive do
     user = socket.assigns.current_user
     email_changeset = Accounts.change_user_email(user)
     password_changeset = Accounts.change_user_password(user)
-    username_changeset = Accounts.change_user_name(user)
+    username_changeset = Accounts.change_alias(user)
 
     socket =
       socket
       |> assign(:current_password, nil)
       |> assign(:email_form_current_password, nil)
-      |> assign(:username_form_current_username, user.user_name)
+      |> assign(:username_form_current_username, user.alias)
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))

@@ -63,6 +63,9 @@ defmodule SwaiWeb.Router do
         {SwaiWeb.UserAuth, :mount_current_user}
       ] do
       live("/marketplace", MarketplaceLive.Index, :index)
+      live("/terms_of_service", TermsOfServiceLive.Index, :show)
+      live("/privacy_policy", PrivacyPolicyLive.Index, :show)
+      live("/mission", OurMissionLive.Index, :show)
     end
   end
 
@@ -102,7 +105,6 @@ defmodule SwaiWeb.Router do
 
       live("/train_swarm/:biotope_id", InitializeSwarmLive.Index, :index)
 
-
       live("/biotopes", BiotopeLive.Index, :index)
       live("/biotopes/new", BiotopeLive.Index, :new)
       live("/biotopes/:id/edit", BiotopeLive.Index, :edit)
@@ -110,12 +112,19 @@ defmodule SwaiWeb.Router do
       live("/biotopes/:id", BiotopeLive.Show, :show)
       live("/biotopes/:id/show/edit", BiotopeLive.Show, :edit)
 
-      live "/swarms", SwarmLive.Index, :index
-      live "/swarms/new", SwarmLive.Index, :new
-      live "/swarms/:id/edit", SwarmLive.Index, :edit
+      live("/swarms", SwarmLive.Index, :index)
+      live("/swarms/new", SwarmLive.Index, :new)
+      live("/swarms/:id/edit", SwarmLive.Index, :edit)
 
-      live "/swarms/:id", SwarmLive.Show, :show
-      live "/swarms/:id/show/edit", SwarmLive.Show, :edit
+      live("/swarms/:id", SwarmLive.Show, :show)
+      live("/swarms/:id/show/edit", SwarmLive.Show, :edit)
+
+      live("/drone_orders/:user_id", DroneOrderLive.Index, :index)
+      live("/drone_orders/new", DroneOrderLive.Index, :new)
+      live("/drone_orders/:id/edit", DroneOrderLive.Index, :edit)
+
+      live("/drone_orders/:id", DroneOrderLive.Show, :show)
+      live("/drone_orders/:id/show/edit", DroneOrderLive.Show, :edit)
     end
   end
 
@@ -130,7 +139,6 @@ defmodule SwaiWeb.Router do
       ] do
       live("/users/confirm/:token", UserConfirmationLive, :edit)
       live("/users/confirm", UserConfirmationInstructionsLive, :new)
-      live("/about", AboutLive, :show)
     end
   end
 end

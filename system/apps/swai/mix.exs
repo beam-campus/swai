@@ -48,6 +48,7 @@ defmodule Swai.MixProject do
       {:finch, "~> 0.13"},
       {:ets, "~> 0.9.0"},
       {:cachex, "~> 3.6"},
+      {:unique_names_generator, "~> 0.2.0"},
       {:swai_core, in_umbrella: true}
     ]
   end

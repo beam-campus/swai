@@ -20,11 +20,11 @@ defmodule SwaiWeb.InitializeSwarmLive.UserInfoCard do
         <div class="media" style="align-items: center;">
           <div class="media-left">
             <figure class="image is-64x64">
-              <img src={@current_user.image_url} alt={"#{@current_user.user_name}'s avatar"} class="is-rounded">
+              <img src={@current_user.image_url} alt={"#{@current_user.alias}'s avatar"} class="is-rounded">
             </figure>
           </div>
           <div class="media-content">
-            <p class="title is-4" style="margin-bottom: 0;"><%= @current_user.user_name %></p>
+            <p class="title is-4" style="margin-bottom: 0;"><%= @current_user.alias %></p>
             <p class="subtitle is-6" style="display: flex; align-items: center;">
               <span class="icon" style="margin-right: 5px;">
                 <i class="fas fa-envelope"></i>

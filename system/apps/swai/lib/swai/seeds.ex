@@ -20,7 +20,7 @@ defmodule Swai.Seeds do
         Repo.insert!(%Biotope{
           name: "Traders of Macao",
           description:
-            "Traders of Macao is a darwinian ecosystem that allows for swarms to trade resources and stocks.
+            "Traders of Macao is an ecosystem that allows for swarms to trade resources.
         Individual worker bees are rewarded for making a profit and evolutionary selection happens by simple ranking.
         The ecosystem is fed by stock tickers and the bees can trade stocks, commodities, and cryptocurrencies.",
           image_url: "/images/trade_wars1.jpg",
@@ -33,6 +33,28 @@ defmodule Swai.Seeds do
           is_active?: true,
           biotope_type: "Swarm vs Environment",
           is_realistic?: true
+        })
+
+      _ ->
+        :ok
+    end
+
+    case Repo.get_by(Biotope, name: "The Milk Factory") do
+      nil ->
+        Repo.insert!(%Biotope{
+          name: "The Milk Factory",
+          description: "The Milk Factory is a simulation of a dairy farm.
+    The ecosystem is fed by weather data and the cows can be milked and reproduce.",
+          image_url: "/images/dairy_wars1.jpg",
+          theme: "agriculture",
+          tags: "dairy, cows, milk, farm, agriculture",
+          difficulty: 2,
+          objective: "The objective is to run a successful dairy farm.",
+          environment: "The environment is a dairy farm.",
+          challenges: "The challenges are to keep the cows healthy and productive.",
+          is_active?: false,
+          biotope_type: "Swarm vs Environment",
+          is_realistic?: false
         })
 
       _ ->
@@ -157,26 +179,6 @@ defmodule Swai.Seeds do
         :ok
     end
 
-    case Repo.get_by(Biotope, name: "The Milk Factory") do
-      nil ->
-        Repo.insert!(%Biotope{
-          name: "The Milk Factory",
-          description: "The Milk Factory is a simulation of a dairy farm.
-    The ecosystem is fed by weather data and the cows can be milked and reproduce.",
-          image_url: "/images/dairy_wars1.jpg",
-          theme: "agriculture",
-          tags: "dairy, cows, milk, farm, agriculture",
-          difficulty: 2,
-          objective: "The objective is to run a successful dairy farm.",
-          environment: "The environment is a dairy farm.",
-          challenges: "The challenges are to keep the cows healthy and productive.",
-          is_active?: false,
-          biotope_type: "Swarm vs Environment",
-          is_realistic?: false
-        })
 
-      _ ->
-        :ok
-    end
   end
 end

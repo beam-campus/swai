@@ -32,7 +32,6 @@ defmodule SwaiWeb.AboutLive do
   @impl true
   def render(assigns) do
     ~H"""
-
     <div class="font-brand text-white flex flex-col py-5">
 
     <%!-- <div class="flex-grow"> --%>

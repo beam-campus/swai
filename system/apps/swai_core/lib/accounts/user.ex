@@ -1,31 +1,42 @@
 defmodule Schema.User do
+  require Logger
   use Ecto.Schema
+
   import Ecto.Changeset
 
   @all_fields [
     :email,
     :password,
     :confirmed_at,
-    :user_name,
+    :alias,
     :bio,
-    :image_url
+    :image_url,
+    :budget,
+    :wants_notifications?,
+    :has_accepted_terms?
   ]
 
   @registration_fields [
     :email,
-    :password
+    :alias,
+    :password,
+    :password_confirmation
   ]
 
   @primary_key {:id, :binary_id, autogenerate: true}
   @foreign_key_type :binary_id
   schema "users" do
     field(:email, :string)
-    field(:password, :string, virtual: true, redact: true)
+    field(:password, :string, virtual: true, redact: false)
+    field(:password_confirmation, :string, virtual: true, redact: false)
     field(:hashed_password, :string, redact: true)
     field(:confirmed_at, :naive_datetime)
-    field(:user_name, :string)
+    field(:alias, :string)
     field(:bio, :string)
     field(:image_url, :string)
+    field(:budget, :integer, default: 100)
+    field(:wants_notifications?, :boolean, default: true)
+    field(:has_accepted_terms?, :boolean, default: true)
     timestamps()
   end
 
@@ -52,7 +63,7 @@ defmodule Schema.User do
       submitting the form), this option can be set to `false`.
       Defaults to `true`.
   """
-
+  #
   def changeset(user, attrs, opts \\ []) do
     user
     |> cast(attrs, @all_fields)
@@ -64,63 +75,15 @@ defmodule Schema.User do
     |> cast(attrs, @registration_fields)
     |> validate_email(opts)
     |> validate_password(opts)
+    |> validate_password_confirmation(opts)
+    |> validate_username(opts)
   end
 
-  def username_changeset(user, attrs) do
+
+  def username_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:user_name])
-    |> validate_length(:user_name, max: 30)
-    |> validate_format(:user_name, ~r/[a-z]/, message: "at least one lower case character")
-    |> validate_format(:user_name, ~r/[A-Z]/, message: "at least one upper case character")
-    |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/,
-      message: "at least one digit or punctuation character"
-    )
-  end
-
-  defp validate_email(changeset, opts) do
-    changeset
-    |> validate_required([:email])
-    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
-    |> validate_length(:email, max: 160)
-    |> maybe_validate_unique_email(opts)
-  end
-
-  defp validate_password(changeset, opts) do
-    changeset
-    |> validate_required([:password])
-    |> validate_length(:password, min: 12, max: 72)
-    # Examples of additional password validation:
-    |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
-    |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
-    |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/,
-      message: "at least one digit or punctuation character"
-    )
-    |> maybe_hash_password(opts)
-  end
-
-  defp maybe_hash_password(changeset, opts) do
-    hash_password? = Keyword.get(opts, :hash_password, true)
-    password = get_change(changeset, :password)
-
-    if hash_password? && password && changeset.valid? do
-      changeset
-      # Hashing could be done with `Ecto.Changeset.prepare_changes/2`, but that
-      # would keep the database transaction open longer and hurt performance.
-      |> put_change(:hashed_password, Argon2.hash_pwd_salt(password))
-      |> delete_change(:password)
-    else
-      changeset
-    end
-  end
-
-  defp maybe_validate_unique_email(changeset, opts) do
-    if Keyword.get(opts, :validate_email, true) do
-      changeset
-      |> unsafe_validate_unique(:email, Swai.Repo)
-      |> unique_constraint(:email)
-    else
-      changeset
-    end
+    |> cast(attrs, [:alias])
+    |> validate_username(opts)
   end
 
   @doc """
@@ -164,7 +127,6 @@ defmodule Schema.User do
     now =
       NaiveDateTime.utc_now()
       |> NaiveDateTime.truncate(:second)
-
     change(user, confirmed_at: now)
   end
 
@@ -192,6 +154,104 @@ defmodule Schema.User do
       changeset
     else
       add_error(changeset, :current_password, "is not valid")
+    end
+  end
+
+  defp validate_password_confirmation(changeset, opts) do
+    changeset
+    |> maybe_clear_password_confirmation(opts)
+
+    Logger.alert("Changeset: #{inspect(changeset)}")
+
+    password = get_change(changeset, :password)
+    password_confirmation = get_change(changeset, :password_confirmation)
+
+    Logger.alert(
+      "password: #{inspect(password)}, password_confirmation: #{inspect(password_confirmation)}"
+    )
+
+    if password == password_confirmation do
+      changeset
+    else
+      changeset
+      |> add_error(:password_confirmation, "password confirmation does not match password")
+    end
+  end
+
+  #################### INTERNALS ####################
+  def validate_email(changeset, opts) do
+    changeset
+    |> validate_required([:email])
+    |> validate_format(:email, ~r/^[^\s]+@[^\s]+$/, message: "must have the @ sign and no spaces")
+    |> validate_length(:email, max: 160)
+    |> maybe_validate_unique_email(opts)
+  end
+
+  defp validate_password(changeset, opts) do
+    changeset
+    |> validate_required([:password])
+    |> validate_length(:password, min: 12, max: 72)
+    # Examples of additional password validation:
+    |> validate_format(:password, ~r/[a-z]/, message: "at least one lower case character")
+    |> validate_format(:password, ~r/[A-Z]/, message: "at least one upper case character")
+    |> validate_format(:password, ~r/[!?@#$%^&*_0-9]/,
+      message: "at least one digit or punctuation character"
+    )
+    |> maybe_hash_password(opts)
+  end
+
+  defp validate_username(changeset, opts \\ []) do
+    changeset
+    |> validate_required([:alias])
+    |> validate_length(:alias, min: 3, max: 30)
+    |> validate_format(:alias, ~r/^[a-zA-Z0-9_]+$/,
+      message: "can only contain letters, numbers, and underscores"
+    )
+    |> maybe_validate_unique_username(opts)
+  end
+
+  defp maybe_hash_password(changeset, opts) do
+    hash_password? = Keyword.get(opts, :hash_password, true)
+    password = get_change(changeset, :password)
+
+    if hash_password? && password && changeset.valid? do
+      changeset
+      # Hashing could be done with `Ecto.Changeset.prepare_changes/2`, but that
+      # would keep the database transaction open longer and hurt performance.
+      |> put_change(:hashed_password, Argon2.hash_pwd_salt(password))
+      |> delete_change(:password)
+      |> delete_change(:password_confirmation)
+    else
+      changeset
+    end
+  end
+
+  defp maybe_validate_unique_email(changeset, opts) do
+    if Keyword.get(opts, :validate_email, true) do
+      changeset
+      |> unsafe_validate_unique(:email, Swai.Repo)
+      |> unique_constraint(:email)
+    else
+      changeset
+    end
+  end
+
+  defp maybe_validate_unique_username(changeset, opts) do
+    if Keyword.get(opts, :unique_username, true) do
+      changeset
+      |> unsafe_validate_unique(:alias, Swai.Repo)
+      |> unique_constraint(:alias)
+    else
+      changeset
+    end
+  end
+
+  defp maybe_clear_password_confirmation(changeset, opts) do
+    if Keyword.get(opts, :clear_password_confirmation, true) do
+      changeset
+      |> delete_change(:password_confirmation)
+    else
+      changeset
     end
   end
 end
