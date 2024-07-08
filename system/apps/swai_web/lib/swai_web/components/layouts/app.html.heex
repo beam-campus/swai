@@ -2,19 +2,25 @@
 
   <%!-- HEADER   --%>
 
-  <header class="fixed top-0 left-0 right-0 flex items-center justify-between px-6 py-3 bg-ltDark z-99">
+  <header class="fixed top-0 left-0 right-0 flex items-center justify-between pl-1 pr-3 py-1 bg-ltDark z-99">
     <!-- Left side of toolbar -->
     <div class="flex flex-row">
 
         <a href={~p"/"}>
           <img src="/images/swai-logo-nobg.svg" alt="swai logo" width="200" />
         </a>
-        <p class="text-ltRed text-2xl font-brand mt-2 px-5"><%= assigns[:page_title] %> </p>
+        <p class="text-ltRed text-s font-brand mt-2 px-5"><%= assigns[:page_title] %> </p>
 
     </div>
     
     <!-- Right side of toolbar -->
     <div class="flex items-center">
+      <div class="font-brand text-xs text-white px-5">
+      <span>
+      DISCLAIMER: This site is still WiP!<br/>
+      If you want to support our work, please consider <a href="https://www.buymeacoffee.com/beamologist" class="text-ltOrange hover:underline">buying us a coffee</a> 
+      </span>
+      </div>
      
 
       <%= if @current_user do %>

@@ -118,7 +118,7 @@ defmodule Swai.Accounts do
       UNG.generate([:adjectives, :names, :numbers])
       |> String.capitalize()
     changes
-    |> Ecto.Changeset.put_change(:alias, random_alias)
+    |> Ecto.Changeset.put_change(:user_alias, random_alias)
   end
 
 

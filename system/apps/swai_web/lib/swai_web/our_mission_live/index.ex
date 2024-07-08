@@ -32,9 +32,6 @@ defmodule SwaiWeb.OurMissionLive.Index do
     id="mission-card"
     >
 
-    <%!-- <div class="flex-grow"> --%>
-
-
      <div class="lt-section-header">
        One AI, or another...
      </div>
@@ -43,9 +40,8 @@ defmodule SwaiWeb.OurMissionLive.Index do
      Welcome to Swarm Wars, a platform for decentralized, evolutionary AI.
      <br/>
      Though genetic AI doesn't enjoy the same media exposure as the generative kind,
-     it does have the potential to assist in solving a whole different slew of problems.
-     <br/>
-     Problems that require real-time, adaptive solutions to ever changing environments.
+     it does have the potential to be a better fit for solving problems
+     in changing environments, that require self-learning and adapting agents.
      <br/>
      Our mission is to create a community that is interested to further this field,
      with the ideal of being able to apply what we learn to real-world problems.
@@ -58,43 +54,32 @@ defmodule SwaiWeb.OurMissionLive.Index do
     </div>
     <div class="lt-section-text">
     <span>
-    Swarm Wars is more than just a game;
-    it is a sophisticated research tool, designed to explore the complexities and potentials
-    of decentralized AI systems.
-    By studying the emergent behaviors and capabilities of these systems,
-    we hope to unlock new insights that can be applied to real-world challenges,
-    ranging from optimizing logistics or trade, over health and environmental related topics, to enhancing autonomous systems.
-    <br />
-    The choice for the Erlang Ecosystem as our technological foundation reflects our commitment
-    to building robust, distribution-friendly and cost-efficient solutions that
-    align with our vision for a more decentralized, resource-friendly and sustainable AI landscape.
+    Though Swarm Wars is presented as a game, it is more than just that;
+    by introducing competitive and entertaining elements,
+    we aim to make the subject matter more accessible and engaging to a broader audience.
+    <br/>
+    Under the hood, it is rather a sophisticated research tool, designed to explore the complexities and potentials
+    of decentralized AI systems and by studying their emergent behaviors and capabilities,
+    we grow insights that can be applied to real-world challenges.
+    <br/>
+    The applicability of genetic algorithms is vast, ranging from optimizing logistics or trade,
+    over health and environmental related topics, to enhancing autonomous systems.
     </span>
     </div>
 
 
+
     <div class="lt-section-header">
-        Crowdfunding the Future
+        We Need You!
     </div>
     <div class="lt-section-text">
     <span>
-    We build on the principle that AI should not be the exclusive domain of big tech.
-    <br />
-    We believe that its potential should be accessible to everyone,
-    fostering a community of visionaries, innovators, researchers and enthusiasts.
-    This democratization is essential to ensure that its benefits are widely distributed
-    and that its development is guided by a broad spectrum of perspectives and values.
+    We believe that AI should not be the exclusive domain of big tech:
+    a democratization that is essential to ensure that expertise is widely distributed and decentralized,
+    so that development is guided by a broad spectrum of perspectives and values.
     <br/>
-    This is why we are turning to crowdfunding: it embodies the very principles of decentralization and community involvement that underpin our vision.
-    In addition, leveraging the gaming aspect as an additional source of income.
-    <br/>
-    By relying on the collective support of individuals who share our passion,
-    we can stay independent and true to our mission to build a community-driven platform
-    that is accountable to its users only.
-    <br />
-    Your support will enable us to develop and enhance Swarm Wars,
-    ensuring that it becomes and remains a cutting-edge tool for research, education and problem-solving.
-    <br/>
-    Thank you for your support.
+    <a class="text-blue-300 hover:underline" href="https://www.buymeacoffee.com/beamologist">Your support</a> will allow us to build
+    an independent and entertaining, though serious tool for research, education and problem-solving.
     </span>
     </div>
 
@@ -104,14 +89,31 @@ defmodule SwaiWeb.OurMissionLive.Index do
      <div class="lt-section-text">
      <span>
      We draw inspiration from the pioneering work
-     by <a class="hover:underline" href="https://mitpressbookstore.mit.edu/book/9780262581110">John Henry Holland</a> and from modern advancements as described
-     by <a class="hover:underline" href="https://link.springer.com/book/10.1007/978-1-4614-4463-3">Gene Sher</a>
-     and <a class="hover:underline" href="https://pragprog.com/titles/smgaelixir/genetic-algorithms-in-elixir/">Sean Moriarity</a>.
+     by <a class="text-blue-300 hover:underline" href="https://mitpressbookstore.mit.edu/book/9780262581110">John Henry Holland</a> and from modern advancements as described
+     by <a class="text-blue-300 hover:underline" href="https://link.springer.com/book/10.1007/978-1-4614-4463-3">Gene Sher</a>
+     and <a class="text-blue-300 hover:underline" href="https://pragprog.com/titles/smgaelixir/genetic-algorithms-in-elixir/">Sean Moriarity</a>.
      <br />
      These are some of the trailblazers that have paved the way for us to explore the potential of genetic algorithms.
      Not mentioning these people would be a disservice to the field and to the community.
      </span>
      </div>
+
+
+     <div class="lt-section-header">
+       Why the BEAM?
+    </div>
+    <div class="lt-section-text">
+    <span>
+    Our choice for the <a class="text-blue-300 hover:underline" href="https://en.wikipedia.org/wiki/BEAM_(Erlang_virtual_machine)">'BEAM'</a> is no coincidence.
+    <br />
+    This platform remains unrivalled for building scalable, fault-tolerant distributed systems with requirements for high availability.
+    <br />
+    In addition, the ecosystem not just offers a number of libraries and tools that are well-suited for building decentralized AI systems,
+    it is also very cost-efficient and capable of running on a wide range of hardware, making it resource-friendly and sustainable as well.
+    </span>
+    </div>
+
+
 
 
 

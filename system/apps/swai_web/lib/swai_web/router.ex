@@ -65,6 +65,7 @@ defmodule SwaiWeb.Router do
       live("/marketplace", MarketplaceLive.Index, :index)
       live("/terms_of_service", TermsOfServiceLive.Index, :show)
       live("/privacy_policy", PrivacyPolicyLive.Index, :show)
+      live("/about", OurMissionLive.Index, :show)
       live("/mission", OurMissionLive.Index, :show)
     end
   end

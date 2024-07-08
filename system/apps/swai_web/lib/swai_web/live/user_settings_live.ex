@@ -41,9 +41,9 @@ defmodule SwaiWeb.UserSettingsLive do
           phx-submit="update_username"
           phx-change="validate_username"
         >
-          <.input field={@username_form[:alias]} type="string" label="User Name" required />
+          <.input field={@username_form[:user_alias]} type="string" label="User Name" required />
           <.input
-            field={@username_form[:alias]}
+            field={@username_form[:user_alias]}
             name="current_username"
             id="current_alias_for_email"
             type="text"

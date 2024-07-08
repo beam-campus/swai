@@ -139,7 +139,7 @@ defmodule SwaiWeb.UserRegistrationLive do
             required
           />
           <.input
-            field={@form[:alias]}
+            field={@form[:user_alias]}
             type="text"
             label="Alias* (will be visible)"
             required

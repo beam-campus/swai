@@ -48,6 +48,15 @@ defmodule SwaiWeb.UserLoginLive do
                 required
                 class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-light"
               />
+
+              <:actions>
+                <.input field={@form[:remember_me]} type="checkbox" label="Keep me logged in" />
+                <.link href={~p"/users/reset_password"} class="text-sm font-semibold">
+                  Forgot your password?
+                </.link>
+              </:actions>
+
+
               <:actions>
                 <.button phx-disable-with="Signing in..." class="lt-submit-button w-full py-2 mt-4 bg-brand hover:bg-brand-dark text-white font-bold rounded-lg">
                   Sign in

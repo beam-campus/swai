@@ -8,7 +8,7 @@ defmodule Schema.User do
     :email,
     :password,
     :confirmed_at,
-    :alias,
+    :user_alias,
     :bio,
     :image_url,
     :budget,
@@ -18,7 +18,7 @@ defmodule Schema.User do
 
   @registration_fields [
     :email,
-    :alias,
+    :user_alias,
     :password,
     :password_confirmation
   ]
@@ -31,10 +31,10 @@ defmodule Schema.User do
     field(:password_confirmation, :string, virtual: true, redact: false)
     field(:hashed_password, :string, redact: true)
     field(:confirmed_at, :naive_datetime)
-    field(:alias, :string)
+    field(:user_alias, :string)
     field(:bio, :string)
     field(:image_url, :string)
-    field(:budget, :integer, default: 100)
+    field(:budget, :integer, default: 1000)
     field(:wants_notifications?, :boolean, default: true)
     field(:has_accepted_terms?, :boolean, default: true)
     timestamps()
@@ -82,7 +82,7 @@ defmodule Schema.User do
 
   def username_changeset(user, attrs, opts \\ []) do
     user
-    |> cast(attrs, [:alias])
+    |> cast(attrs, [:user_alias])
     |> validate_username(opts)
   end
 
@@ -202,9 +202,9 @@ defmodule Schema.User do
 
   defp validate_username(changeset, opts \\ []) do
     changeset
-    |> validate_required([:alias])
-    |> validate_length(:alias, min: 3, max: 30)
-    |> validate_format(:alias, ~r/^[a-zA-Z0-9_]+$/,
+    |> validate_required([:user_alias])
+    |> validate_length(:user_alias, min: 3, max: 30)
+    |> validate_format(:user_alias, ~r/^[a-zA-Z0-9_]+$/,
       message: "can only contain letters, numbers, and underscores"
     )
     |> maybe_validate_unique_username(opts)
@@ -239,8 +239,8 @@ defmodule Schema.User do
   defp maybe_validate_unique_username(changeset, opts) do
     if Keyword.get(opts, :unique_username, true) do
       changeset
-      |> unsafe_validate_unique(:alias, Swai.Repo)
-      |> unique_constraint(:alias)
+      |> unsafe_validate_unique(:user_alias, Swai.Repo)
+      |> unique_constraint(:user_alias)
     else
       changeset
     end

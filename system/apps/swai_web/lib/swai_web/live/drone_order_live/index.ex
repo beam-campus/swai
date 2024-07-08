@@ -28,7 +28,7 @@ defmodule SwaiWeb.DroneOrderLive.Index do
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:page_title, "Listing Drone orders")
+    |> assign(:page_title, "Drone orders")
     |> assign(:drone_order, nil)
   end
 
