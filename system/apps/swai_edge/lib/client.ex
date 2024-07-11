@@ -76,8 +76,8 @@ defmodule Edge.Client do
   @impl Slipstream
   def handle_info({:after_join, something}, socket) do
     Logger.debug("Edge.Client received: :after_join #{inspect(something)}")
-    # TODO : uncomment the line below
-    # Edge.Application.start_scape(socket.assigns.edge_init.id)
+    # TODO : uncomment the line below to start drones
+    Edge.Application.start_scape(socket.assigns.edge_init.id)
     {:noreply, socket}
   end
 

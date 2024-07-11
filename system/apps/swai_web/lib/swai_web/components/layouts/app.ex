@@ -1,5 +1,6 @@
 defmodule SwaiWeb.Layouts.App do
 
+
   @moduledoc """
   This layout is used for the main layout of the application.
   """

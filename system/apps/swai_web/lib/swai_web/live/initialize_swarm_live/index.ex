@@ -5,8 +5,6 @@ defmodule SwaiWeb.InitializeSwarmLive.Index do
 
   alias Swai.Biotopes, as: Biotopes
   alias Schema.SwarmLicense, as: SwarmLicense
-  alias Schema.RequestToSwarm, as: SwarmSpec
-  alias Swai.SwarmSpecs, as: SwarmSpecs
   alias Schema.Id, as: Id
 
   require Logger

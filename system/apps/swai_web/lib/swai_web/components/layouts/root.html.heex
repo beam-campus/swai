@@ -4,14 +4,16 @@
   <head>
 
       <!-- Google Tag Manager -->
-    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
-    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
-    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
-    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-    })(window,document,'script','dataLayer','GTM-W2T9NFJ2');</script>
+    <script>
+      (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+      new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+      j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+      'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+      })(window,document,'script','dataLayer','GTM-W2T9NFJ2');
+    </script>
     <!-- End Google Tag Manager -->
 
-        <!-- Google tag (gtag.js) -->
+    <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-PZJ71LQ4GN"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
@@ -22,41 +24,40 @@
     </script>
     <!-- end Google tag (gtag.js) -->
 
-<%!-- 
-    <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LJZCVQWCPW"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
 
-      gtag('config', 'G-LJZCVQWCPW');
-    </script>
-    <!-- end Google tag (gtag.js) --> --%>
   
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
     <.live_title suffix=" · AI Research">
       <%= assigns[:page_title] || "Swarm Wars" %>
-      
     </.live_title>
-    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
-    </script>
+
     <%!-- Buy me a coffee widget --%>
     <script 
-    data-name="BMC-Widget" 
-    data-cfasync="false" 
-    src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" 
-    data-id="beamologist" 
-    data-description="Buy me a coffee!"
-    data-message="Hello and thank you for visiting. " 
-    data-color="#FF5F5F" 
-    data-position="Right" 
-    data-x_margin="18" 
-    data-y_margin="18">
+      data-name="BMC-Widget" 
+      data-cfasync="false" 
+      src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" 
+      data-id="beamologist" 
+      data-description="Buy me a coffee!"
+      data-message="Hello and thank you for visiting. " 
+      data-color="#FF5F5F" 
+      data-position="Right" 
+      data-x_margin="18" 
+      data-y_margin="18">
     </script>
+
+
+    <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}> </script>
+
+
+
+
+
+
+
+
     <meta
       name="description"
       content="Swarm Warms is a platform for distributed AI research and development."
@@ -91,9 +92,6 @@
       AI, Machine Learning, fact, swai, DisComCo"
     />
   </head>
-
-
-
 
 
 

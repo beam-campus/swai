@@ -1,7 +1,7 @@
 defmodule SwaiWeb.MarketplaceLive.InitSwarmUserCard do
   use SwaiWeb, :live_component
 
-  alias SwaiWeb.MarketplaceLive.InitSwarmModal
+  alias SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm
   alias Schema.User, as: User
 
   @impl true

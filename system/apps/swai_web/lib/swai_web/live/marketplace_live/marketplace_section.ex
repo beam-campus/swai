@@ -25,6 +25,9 @@ defmodule SwaiWeb.MarketplaceLive.ModelsSection do
             id={"section-card-#{biotope.id}"}
             module={SwaiWeb.MarketplaceLive.ModelCard}
             biotope={biotope}
+            live_action={@live_action}
+            current_user={@current_user}
+            edges={@edges}
           />
         <% end %>
       </div>

@@ -21,6 +21,8 @@ import "phoenix_html"
 import { Socket } from "phoenix"
 import { LiveSocket } from "phoenix_live_view"
 import topbar from "../vendor/topbar"
+// import "primer-live/primer-live.css";
+// import { Prompt } from "primer-live";
 
 // assets/js/app.js
 import "alpinejs"
@@ -67,6 +69,7 @@ const cubehelix = (s, r, h) => d => {
 };
 
 let hooks = {
+  // Prompt: window.Prompt,
   cell_state_changed: {
     mounted() {
       this.handleEvent("cell_state_changed", ({ cell_states }) => {
@@ -163,6 +166,7 @@ let hooks = {
 };
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+
 let liveSocket = new LiveSocket("/live", Socket, {
   hooks: hooks,
   longPollFallbackMs: 2500,
