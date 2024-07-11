@@ -72,7 +72,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
 
     current_biotope =
       socket.assigns.active_models
-      |> Enum.find(fn it -> it.id == params["biotope-id"] end)
+      |> Enum.find(fn it -> it.id == params["biotope_id"] end)
 
     current_user = socket.assigns.current_user
 
@@ -83,6 +83,8 @@ defmodule SwaiWeb.MarketplaceLive.Index do
       biotope: current_biotope
     )
   end
+
+
 
   @impl true
   def render(assigns) do
@@ -104,17 +106,17 @@ defmodule SwaiWeb.MarketplaceLive.Index do
       </section>
       <section class="py-3">
         <.live_component
-            id="inactive-models-section"
-            current_user={@current_user}
-            live_action={@live_action}
-            module={SwaiWeb.MarketplaceLive.ModelsSection}
-            edges={@edges}
-            biotopes={@inactive_models}
-            now={@now}
-            section_title="Coming soon..."
-            section_description="Do you want to see these models to become available for your research or entertainment?
-            Then do consider supporting our efforts by buying us a coffee or by becoming part of a community that
-            is dedicated to this different form of AI!"
+          id="inactive-models-section"
+          current_user={@current_user}
+          live_action={@live_action}
+          module={SwaiWeb.MarketplaceLive.ModelsSection}
+          edges={@edges}
+          biotopes={@inactive_models}
+          now={@now}
+          section_title="Coming soon..."
+          section_description="Do you want to see these models to become available for your research or entertainment?
+          Then do consider supporting our efforts by buying us a coffee or by becoming part of a community that
+          is dedicated to this different form of AI!"
         />
       </section>
     </div>

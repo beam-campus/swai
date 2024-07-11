@@ -126,7 +126,7 @@ defmodule SwaiWeb.Router do
 
       live("/drone_orders/:id", DroneOrderLive.Show, :show)
       live("/drone_orders/:id/show/edit", DroneOrderLive.Show, :edit)
-      live("/marketplace/start_swarm", MarketplaceLive.Index, :start_swarm)
+      live("/marketplace/start-swarm/:biotope_id", MarketplaceLive.Index, :start_swarm)
     end
   end
 

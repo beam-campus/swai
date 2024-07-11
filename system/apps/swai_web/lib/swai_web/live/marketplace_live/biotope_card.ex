@@ -2,6 +2,7 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
   use SwaiWeb, :live_component
 
   alias TrainSwarmProc.Initialize.Cmd, as: RequestLicense
+  require Logger
 
   @impl true
   def update(assigns, socket) do
@@ -37,7 +38,9 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
           <div>
 
             <button class="btn-view">View</button>
-            <.button phx-click="start-swarm" phx-value-biotope-id={@biotope.id}>Swarm!</.button>
+            <.link patch={~p"/marketplace/start-swarm/#{@biotope.id}"}>
+            <.button>Swarm!</.button>
+            </.link>
             <button class="btn-dashboard">Dashboard</button>
 
             </div>
@@ -62,11 +65,7 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
   end
 
 
-  @impl true
-  def handle_event("start-swarm", %{"biotope-id" => biotope_id}, socket) do
-    Logger.alert("Requesting license to swarm for biotope #{biotope_id}")
-    {:noreply, socket}
-  end
+
 
   defp active_class(true), do: "active-biotope"
   defp active_class(false), do: "inactive-biotope"

@@ -71,6 +71,7 @@ defmodule SwaiWeb.MixProject do
       {:tesla, "~> 1.4"},
       {:cors_plug, "~> 3.0"},
       {:heroicons_liveview, "~> 0.5.0"},
+      {:hpax, "~> 0.1.1", override: true},
       {:swai, in_umbrella: true},
       {:apis, in_umbrella: true}
     ]
