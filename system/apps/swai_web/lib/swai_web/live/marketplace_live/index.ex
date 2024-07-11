@@ -84,6 +84,8 @@ defmodule SwaiWeb.MarketplaceLive.Index do
     )
   end
 
+  @impl true
+
 
 
   @impl true
@@ -130,7 +132,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
       <.live_component
         module={SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm}
         id={"request-license-modal-dialog"}
-        title={"Request a License to Swarm"}
+        title={"Request a License to Swarm for: #{@biotope.name}"}
         action={@live_action}
         biotope={@biotope}
         current_user={@current_user}

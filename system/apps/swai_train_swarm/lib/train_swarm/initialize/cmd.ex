@@ -45,10 +45,13 @@ defmodule TrainSwarmProc.Initialize.Cmd do
   @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
     field(:swarm_size, :integer, default: 10)
-    field(:nbr_of_generations, :integer, default: 10)
-    field(:drone_depth, :integer, default: 10)
+    field(:nbr_of_generations, :integer, default: 20)
+    field(:drone_depth, :integer, default: 5)
+    field(:generation_epoch_in_minutes, :integer, default: 10)
+    field(:select_best_count, :integer, default: 3)
     field(:user_id)
     field(:biotope_id)
+    field(:budget_required, :integer, default: 0, virtual: true)
   end
 
   def changeset(%RequestLicense{} = struct, params) do
