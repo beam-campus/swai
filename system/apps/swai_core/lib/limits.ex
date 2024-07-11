@@ -20,19 +20,19 @@ defmodule Swai.Limits do
   alias Swai.Limits, as: Limits
 
   @moduledoc """
-  Agrex.Limits is the module that contains the limits for the Life Subsystem
+  Swai.Limits is the module that contains the limits for the Life Subsystem
   """
 
   @defaults [
     ticks_per_year: 20,
     min_area: 30_000,
     min_people: 10_000_000,
-    min_lives: 100,
-    max_lives: 1_000,
+    min_lives: 3,
+    max_lives: 10,
     min_age: 1,
     max_age: 25,
     max_countries: 1,
-    max_farms: 5_000,
+    max_farms: 5,
     min_weight: 50,
     max_weight: 750,
     max_robots: 3,

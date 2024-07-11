@@ -15,8 +15,8 @@ defmodule SwaiWeb.MarketplaceLive.Index do
     case connected?(socket) do
       true ->
         biotopes = Biotopes.list_biotopes()
-        active_models = Enum.filter(biotopes, & &1.is_active?)
-        inactive_models = Enum.reject(biotopes, & &1.is_active?)
+        active_models = biotopes |> Enum.filter(& &1.is_active?)
+        inactive_models = biotopes |> Enum.reject(& &1.is_active?)
 
         {
           :ok,
@@ -28,7 +28,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
             now: DateTime.utc_now(),
             page_title: "Marketplace",
             show_init_swarm_modal: false,
-            current_biotope: nil,
+            biotope: nil,
             live_action: :index
           )
         }
@@ -43,41 +43,15 @@ defmodule SwaiWeb.MarketplaceLive.Index do
            now: DateTime.utc_now(),
            page_title: "Marketplace",
            show_init_swarm_modal: false,
-           current_biotope: nil,
+           biotope: nil,
            live_action: :index
          )}
     end
   end
 
-  # @impl true
-  # def handle_event("request-license-to-swarm", params, socket) do
-  #   Logger.alert("Requesting license to swarm for biotope #{inspect(params)}")
-
-  #   current_biotope =
-  #     socket.assigns.active_models
-  #     |> Enum.find(fn it -> it.id == params["biotope-id"] end)
-
-  #   current_user = socket.assigns.current_user
-
-  #   Logger.alert(
-  #     "Creating Request_license for biotope #{current_biotope.id} for user #{current_user.id}"
-  #   )
-
-  #   request_license =
-  #     RequestLicense.changeset_from_user_and_biotope(current_user, current_biotope)
-
-  #   {:noreply,
-  #    socket
-  #    |> assign(
-  #      show_init_swarm_modal: true,
-  #      request_license:
-  #        RequestLicense.changeset_from_user_and_biotope(current_user, current_biotope),
-  #      current_biotope: current_biotope
-  #    )}
-  # end
-
   @impl true
   def handle_params(params, _url, socket) do
+    Logger.alert("Handling params #{inspect(params)}")
     {
       :noreply,
       socket
@@ -89,10 +63,12 @@ defmodule SwaiWeb.MarketplaceLive.Index do
     socket
     |> assign(:page_title, "Listing Born 2 dieds")
     |> assign(:request_license, nil)
-    |> assign(:current_biotope, nil)
+    |> assign(:biotope, nil)
   end
 
   defp apply_action(socket, :start_swarm, params) do
+    Logger.alert("Handling params for :start_swarm #{inspect(params)}")
+
 
     current_biotope =
       socket.assigns.active_models
@@ -104,37 +80,9 @@ defmodule SwaiWeb.MarketplaceLive.Index do
     |> assign(
       page_title: "Request a License to Swarm",
       # request_license: %RequestLicense{},
-      current_biotope: current_biotope
+      biotope: current_biotope
     )
   end
-
-  # @impl true
-  # def handle_params(params, _url, socket) do
-  #   Logger.alert("Handling params #{inspect(params)}")
-
-  #   case Map.get(params, "biotope-id") do
-  #     nil ->
-  #       {:noreply, socket |> assign(show_init_swarm_modal: false)}
-
-  #     biotope_id ->
-  #       current_biotope =
-  #         socket.assigns.active_models
-  #         |> Enum.find(fn it -> it.id == biotope_id end)
-
-  #       current_user = socket.assigns.current_user
-
-  #       request_license =
-  #         RequestLicense.changeset_from_user_and_biotope(current_user, current_biotope)
-
-  #       {:noreply,
-  #        socket
-  #        |> assign(
-  #          show_init_swarm_modal: false,
-  #          current_biotope: current_biotope,
-  #          request_license: request_license
-  #        )}
-  #   end
-  # end
 
   @impl true
   def render(assigns) do
@@ -171,25 +119,26 @@ defmodule SwaiWeb.MarketplaceLive.Index do
       </section>
     </div>
 
-        <%!-- <.modal
-          :if={@live_action in [:start_swarm, :request_license, :new]}
-          id="request-license-modal"
-          show
-          on_cancel={JS.patch(~p"/marketplace")}
-          >
-          <.live_component
-            module={SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm}
-            id={"request-license-modal" <> @current_user.id}
-            title={"Request a License to Swarm"}
-            action={@live_action}
-            selected_biotope={@current_biotope}
-            active_edges={@edges}
-            current_user={@current_user}
-            patch={~p"/marketplace"}
-            request_license={@request_license}
-          />
-        </.modal>
-    --%>
+    <.modal
+      :if={@live_action in [:start_swarm, :request_license, :new]}
+      id="request-license-modal-dialog"
+      show
+      on_cancel={JS.patch(~p"/marketplace")}
+      >
+      <.live_component
+        module={SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm}
+        id={"request-license-modal-dialog"}
+        title={"Request a License to Swarm"}
+        action={@live_action}
+        biotope={@biotope}
+        current_user={@current_user}
+        patch={~p"/marketplace"}
+        edges={@edges}
+        request_license={%RequestLicense{}}
+    />
+    </.modal>
+
+
     """
   end
 end

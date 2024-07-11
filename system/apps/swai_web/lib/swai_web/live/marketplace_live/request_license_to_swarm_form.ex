@@ -13,7 +13,7 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
       TrainSwarmProc.change_license_request(
         %RequestLicense{},
         assigns.current_user,
-        assigns.selected_biotope
+        assigns.biotope
       )
 
     {:ok,
@@ -28,10 +28,10 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
     <div>
     <.header>
         <%= @title %>
-        <:subtitle>Use this form to manage animal records in your database.</:subtitle>
+        <:subtitle>Use this form to request a license to evolve a swarm in the '<%= @biotope.name %>' ecosystem.</:subtitle>
     </.header>
 
-      <h1>Request a License to Swarm for <%= @selected_biotope.name %></h1>
+      <h1>Request a License to Swarm for </h1>
           <.form phx-submit="request_license" class="modal-content">
             <input type="hidden" name="current_user" value={@current_user.id} />
             <div class="form-group">
@@ -41,7 +41,14 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
                 name="active_edge"
                 class="form-control"
                 value={@request_license.swarm_size}
-                id="drone_size_input" />
+                id="swarm_size_input" />
+              <.label for="active_edge">Number of Generations</.label>
+              <.input
+                type="number"
+                name="active_edge"
+                class="form-control"
+                value={@request_license.nbr_of_generations}
+                id="generations_input" />
 
             </div>
             <.button type="submit" class="btn btn-primary">Request License</.button>

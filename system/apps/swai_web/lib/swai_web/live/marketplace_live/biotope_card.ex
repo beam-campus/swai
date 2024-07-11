@@ -1,4 +1,4 @@
-defmodule SwaiWeb.MarketplaceLive.ModelCard do
+defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
   use SwaiWeb, :live_component
 
   alias TrainSwarmProc.Initialize.Cmd, as: RequestLicense
@@ -37,56 +37,35 @@ defmodule SwaiWeb.MarketplaceLive.ModelCard do
           <div>
 
             <button class="btn-view">View</button>
-            <%!-- <.link patch={~p"/marketplace/request_license"} phx-click="request-license-to-swarm" phx-value-biotope-id={@biotope.id}> --%>
-
-              <.link patch={~p"/marketplace/start_swarm"}>
-                <button>Swarm!</button>
-              </.link>
-
-            <%!--
-            Train a Swarm
-            </.link> --%>
+            <.button phx-click="start-swarm" phx-value-biotope-id={@biotope.id}>Swarm!</.button>
             <button class="btn-dashboard">Dashboard</button>
-
-            <.modal
-              :if={@live_action in [:start_swarm, :request_license, :new]}
-              id="request-license-modal-dialog"
-              show
-              on_cancel={JS.patch(~p"/marketplace")}
-              >
-              <.live_component
-                module={SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm}
-                id={"request-license-modal-card-" <> @biotope.id}
-                title={"Request a License to Swarm"}
-                action={@live_action}
-                selected_biotope={@biotope}
-                current_user={@current_user}
-                patch={~p"/marketplace"}
-                edges={@edges}
-                request_license={%RequestLicense{}}
-              />
-            </.modal>
-
 
             </div>
 
 
         <% else %>
 
+        <div>
+
 
             <.button class="btn-view">View</.button>
             <.button class="btn-sponsor">Sponsor this Model</.button>
 
+        </div>
 
         <% end %>
         </div>
       </div>
 
     </div>
-
-
-
     """
+  end
+
+
+  @impl true
+  def handle_event("start-swarm", %{"biotope-id" => biotope_id}, socket) do
+    Logger.alert("Requesting license to swarm for biotope #{biotope_id}")
+    {:noreply, socket}
   end
 
   defp active_class(true), do: "active-biotope"

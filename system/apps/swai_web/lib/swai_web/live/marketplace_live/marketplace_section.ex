@@ -23,11 +23,10 @@ defmodule SwaiWeb.MarketplaceLive.ModelsSection do
         <%= for biotope <- @biotopes do %>
           <.live_component
             id={"section-card-#{biotope.id}"}
-            module={SwaiWeb.MarketplaceLive.ModelCard}
+            module={SwaiWeb.MarketplaceLive.BiotopeCard}
             biotope={biotope}
             live_action={@live_action}
             current_user={@current_user}
-            edges={@edges}
           />
         <% end %>
       </div>
