@@ -62,7 +62,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Listing Born 2 dieds")
-    |> assign(:request_license, nil)
+    |> assign(:license_request, nil)
     |> assign(:biotope, nil)
   end
 
@@ -138,7 +138,10 @@ defmodule SwaiWeb.MarketplaceLive.Index do
         current_user={@current_user}
         patch={~p"/marketplace"}
         edges={@edges}
-        request_license={%RequestLicense{}}
+        license_request={%RequestLicense{
+          user_id: @current_user.id,
+          biotope_id: @biotope.id,
+        }}
     />
     </.modal>
 

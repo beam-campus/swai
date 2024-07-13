@@ -94,6 +94,13 @@ defmodule SwaiWeb.UserRegistrationLive do
     end
   end
 
+  @impl true
+  def handle_event("validate", %{"user" => user_params}, socket) do
+    changeset = Accounts.change_user_registration(%User{}, user_params)
+    {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
+  end
+
+
   defp changeset_errors_to_string(changeset) do
     Enum.map(changeset.errors, fn {_field, {message, _}} ->
       "#{message}"
@@ -101,11 +108,6 @@ defmodule SwaiWeb.UserRegistrationLive do
     |> Enum.join(", \n")
   end
 
-  @impl true
-  def handle_event("validate", %{"user" => user_params}, socket) do
-    changeset = Accounts.change_user_registration(%User{}, user_params)
-    {:noreply, assign_form(socket, Map.put(changeset, :action, :validate))}
-  end
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     form = to_form(changeset, as: "user")
@@ -132,7 +134,6 @@ defmodule SwaiWeb.UserRegistrationLive do
           method="post"
         >
           <.input
-            phx-change="validate"
             field={@form[:email]}
             type="email"
             label="Email*"

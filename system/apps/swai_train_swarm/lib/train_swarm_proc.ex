@@ -15,9 +15,9 @@ defmodule TrainSwarmProc do
 
   """
 
-  def change_license_request(%LicenseRequest{} = root, user, biotope) do
+  def change_license_request(%LicenseRequest{} = root, %{} = map) do
     root
-    |> LicenseRequest.changeset_from_user_and_biotope(user, biotope)
+    |> LicenseRequest.changeset(map)
   end
 
 

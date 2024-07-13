@@ -10,19 +10,69 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
 
   @impl true
   def update(assigns, socket) do
-    license_request_changes =
-      TrainSwarmProc.change_license_request(
-        %RequestLicense{},
-        assigns.current_user,
-        assigns.biotope
-      )
+    map = %{
+      "user_id" => assigns.current_user.id,
+      "biotope_id" => assigns.biotope.id
+    }
 
-    {:ok,
-     socket
-     |> assign(assigns)
-     |> assign(:form, to_form(license_request_changes))}
+    lr_changes =
+      %RequestLicense{}
+      |> TrainSwarmProc.change_license_request(map)
+
+    {
+      :ok,
+      socket
+      |> assign(assigns)
+      |> assign(trigger_submit: false)
+      |> assign(check_errors: true)
+      |> assign_form(lr_changes)
+    }
   end
 
+  defp assign_form(socket, %Ecto.Changeset{} = changeset) do
+    form = to_form(changeset, as: "license_request")
+    Logger.alert("ASSIGNING FORM #{inspect(form)}")
+    if changeset.valid? do
+      socket
+      |> assign(form: form, check_errors: false)
+    else
+      socket
+      |> assign(form: form)
+    end
+  end
+
+  ############## SUBMISSIONS ####################
+  @impl true
+  def handle_event("submit_lr", params, socket) do
+    Logger.alert("RequestLicenseToSwarmForm.handle_event #{inspect(params)}")
+
+    {:noreply, socket}
+  end
+
+  ################## VALIDATION ##################
+  @impl true
+  def handle_event("validate_lr", %{"license_request" => license_request_params}, socket) do
+    Logger.alert("VALIDATING #{inspect(license_request_params)}")
+
+    changeset =
+      socket.assigns.license_request
+      |> TrainSwarmProc.change_license_request(license_request_params)
+      |> Map.put(:action, :validate)
+
+    {
+      :noreply,
+      socket
+      |> assign_form(changeset)
+    }
+  end
+
+  ################## CLOSING ##################
+  @impl true
+  def handle_event("close_modal", _params, socket) do
+    {:noreply, socket |> assign(:show_init_swarm_modal, false)}
+  end
+
+  ################## RENDERING ##################
   @impl true
   def render(assigns) do
     ~H"""
@@ -31,72 +81,108 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
           <%= @title %>
           <:subtitle>
           A 'License to Swarm' represents a reservation for a slot to evolve your swarm.
-          It is automatically activated when your budget (<strong><%= @current_user.budget %>👾</strong>) allows it. The license you want costs <strong><%= @request_license.budget_required %></strong>👾.
+          It is automatically activated when your budget (<strong><%= @current_user.budget %>👾</strong>) allows it. <br/>
+          The cost of a license for this configuration is <strong><%= @form[:cost_in_tokens].value %>👾</strong>.
           </:subtitle>
       </.header>
-      <.form phx-submit="request_license" class="modal-content">
-        <input type="hidden" name="current_user" value={@current_user.id} />
+      <.simple_form
+        for={@form}
+        class="modal-content"
+        id="license_request_form"
+        phx-target={@myself}
+        phx-submit="submit_lr"
+        phx-change="validate_lr"
+        phx-trigger-action={@trigger_submit}
+        method="post"
+      >
+        <%!-- <input
+          type="hidden"
+          field={@form[:user_id]}
+        />
+        <input
+            type="hidden"
+            field={@form[:biotope_id]}
+        /> --%>
         <div class="form-group">
 
-          <.label for="active_edge">Swarm Size (drones per swarm) </.label>
           <.input
-            type="number"
-            name="active_edge"
             class="form-control"
-            value={@request_license.swarm_size}
-            id="swarm_size_input" />
+            label="Budget required for this License"
+            type="number"
+            field={@form[:cost_in_tokens]}
+            pattern="\\d*"
+            step="1"
+            readonly
+          />
 
-          <.label for="active_edge">Neural Depth (number of layers in a drone's neural network)</.label>
           <.input
-            type="number"
-            name="active_edge"
             class="form-control"
-            value={@request_license.drone_depth}
-            id="generations_input" />
+            label="Swarm Size (drones per swarm)"
+            type="number"
+            pattern="\\d*"
+            step="1"
+            field={@form[:swarm_size]}
+            phx-change="validate_lr"
+            required
+           />
 
-          <.label for="active_edge">Number of Generations</.label>
+
           <.input
-            type="number"
-            name="active_edge"
             class="form-control"
-            value={@request_license.nbr_of_generations}
-            id="generations_input" />
+            label="Neural Depth (number of layers in a drone's neural network)"
+            type="number"
+            pattern="\\d*"
+            step="1"
+            field={@form[:drone_depth]}
+            phx-change="validate_lr"
+            required
+          />
 
 
-
-          <.label for="active_edge">Generation Epoch (min)</.label>
           <.input
-            type="number"
-            name="active_edge"
             class="form-control"
-            value={@request_license.generation_epoch_in_minutes}
-            id="generation_epoch_input" />
+            label="Number of Generations"
+            type="number"
+            pattern="\\d*"
+            step="1"
+            field={@form[:nbr_of_generations]}
+            phx-change="validate_lr"
+            required
+          />
 
-          <.label for="active_edge">Pick Best</.label>
+
           <.input
-            type="number"
-            name="active_edge"
             class="form-control"
-            value={@request_license.select_best_count}
-            id="select_best_input" />
+            label="Generation Epoch (lifetime of a generation in minutes)"
+            type="number"
+            pattern="\\d*"
+            step="1"
+            field={@form[:generation_epoch_in_minutes]}
+            phx-change="validate_lr"
+            required
+          />
+
+          <.input
+            class="form-control"
+            label="Pick Best (Number of Drones to select as parents for the next generation)"
+            type="number"
+            pattern="\\d*"
+            step="1"
+            field={@form[:select_best_count]}
+            phx-change="validate_lr"
+            required
+          />
+
 
         </div>
         <div class="mt-3">
-        <.button type="submit"  class="btn btn-primary">Submit your License Request</.button>
+        <.button
+          phx-disable-with="Requesting License..."
+        >Submit your License Request</.button>
         </div>
-      </.form>
+      </.simple_form>
       <button class="modal-close is-large" aria-label="close" phx-click="close_modal"></button>
     </div>
     """
-  end
-
-  def handle_event("submit_swarm_init", params, socket) do
-    Logger.alert("RequestLicenseToSwarmForm.handle_event #{inspect(params)}")
-
-    {:noreply, socket}
-  end
-
-  def handle_event("close_modal", _params, socket) do
-    {:noreply, socket |> assign(:show_init_swarm_modal, false)}
   end
 end
