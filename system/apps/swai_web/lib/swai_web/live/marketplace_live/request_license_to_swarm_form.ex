@@ -95,16 +95,8 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
         phx-trigger-action={@trigger_submit}
         method="post"
       >
-        <%!-- <input
-          type="hidden"
-          field={@form[:user_id]}
-        />
-        <input
-            type="hidden"
-            field={@form[:biotope_id]}
-        /> --%>
-        <div class="form-group">
 
+      <div class="form-group">
           <.input
             class="form-control"
             label="Budget required for this License"
@@ -114,7 +106,63 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
             step="1"
             readonly
           />
+          <.input
+            class="form-control"
+            label="Swarm Size (drones per swarm)"
+            type="number"
+            pattern="\\d*"
+            step="1"
+            field={@form[:swarm_size]}
+            required
+           />
+          <.input
+            class="form-control"
+            label="Neural Depth (number of layers in a drone's neural network)"
+            type="number"
+            pattern="\\d*"
+            step="1"
+            field={@form[:drone_depth]}
+            required
+          />
+          <.input
+            class="form-control"
+            label="Number of Generations"
+            type="number"
+            pattern="\\d*"
+            step="1"
+            field={@form[:nbr_of_generations]}
+            required
+          />
+          <.input
+            class="form-control"
+            label="Generation Epoch (lifetime of a generation in minutes)"
+            type="number"
+            pattern="\\d*"
+            step="1"
+            field={@form[:generation_epoch_in_minutes]}
+            required
+          />
+          <.input
+            class="form-control"
+            label="Pick Best (Number of Drones to select as parents for the next generation)"
+            type="number"
+            pattern="\\d*"
+            step="1"
+            field={@form[:select_best_count]}
+            required
+          />
+        </div>
 
+        <%!-- <div class="form-group">
+          <.input
+            class="form-control"
+            label="Budget required for this License"
+            type="number"
+            field={@form[:cost_in_tokens]}
+            pattern="\\d*"
+            step="1"
+            readonly
+          />
           <.input
             class="form-control"
             label="Swarm Size (drones per swarm)"
@@ -125,8 +173,6 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
             phx-change="validate_lr"
             required
            />
-
-
           <.input
             class="form-control"
             label="Neural Depth (number of layers in a drone's neural network)"
@@ -137,8 +183,6 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
             phx-change="validate_lr"
             required
           />
-
-
           <.input
             class="form-control"
             label="Number of Generations"
@@ -149,8 +193,6 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
             phx-change="validate_lr"
             required
           />
-
-
           <.input
             class="form-control"
             label="Generation Epoch (lifetime of a generation in minutes)"
@@ -161,7 +203,6 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
             phx-change="validate_lr"
             required
           />
-
           <.input
             class="form-control"
             label="Pick Best (Number of Drones to select as parents for the next generation)"
@@ -172,9 +213,8 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
             phx-change="validate_lr"
             required
           />
+        </div> --%>
 
-
-        </div>
         <div class="mt-3">
         <.button
           phx-disable-with="Requesting License..."

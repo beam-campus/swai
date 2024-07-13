@@ -50,6 +50,7 @@ defmodule SwaiCore.MixProject do
       {:mix_test_watch, "~> 1.1", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.27", only: [:dev], runtime: false},
       {:mnemonic_slugs, "~> 0.0.3"},
+      {:decoratex, "~> 1.2"}
     ]
   end
 end

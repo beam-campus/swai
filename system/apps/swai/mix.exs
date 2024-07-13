@@ -49,7 +49,7 @@ defmodule Swai.MixProject do
       {:ets, "~> 0.9.0"},
       {:cachex, "~> 3.6"},
       {:unique_names_generator, "~> 0.2.0"},
-      {:swai_core, in_umbrella: true}
+      {:swai_train_swarm, in_umbrella: true}
     ]
   end
 

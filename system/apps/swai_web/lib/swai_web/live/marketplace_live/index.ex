@@ -138,10 +138,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
         current_user={@current_user}
         patch={~p"/marketplace"}
         edges={@edges}
-        license_request={%RequestLicense{
-          user_id: @current_user.id,
-          biotope_id: @biotope.id,
-        }}
+        license_request={RequestLicense.new(@current_user.id, @biotope.id)}
     />
     </.modal>
 
