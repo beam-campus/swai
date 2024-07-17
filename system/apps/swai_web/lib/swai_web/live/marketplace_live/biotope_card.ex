@@ -1,7 +1,7 @@
 defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
   use SwaiWeb, :live_component
 
-  alias TrainSwarmProc.Initialize.Cmd, as: RequestLicense
+  alias TrainSwarmProc.Initialize.Payload, as: RequestLicense
   require Logger
 
   @impl true

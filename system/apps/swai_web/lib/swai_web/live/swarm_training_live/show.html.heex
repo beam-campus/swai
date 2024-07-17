@@ -1,0 +1,35 @@
+<.header>
+  Swarm training <%= @swarm_training.id %>
+  <:subtitle>This is a swarm_training record from your database.</:subtitle>
+  <:actions>
+    <.link patch={~p"/swarm_trainings/#{@swarm_training}/show/edit"} phx-click={JS.push_focus()}>
+      <.button>Edit swarm_training</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.list>
+  <:item title="Swarm size"><%= @swarm_training.swarm_size %></:item>
+  <:item title="Nbr of generations"><%= @swarm_training.nbr_of_generations %></:item>
+  <:item title="Drone depth"><%= @swarm_training.drone_depth %></:item>
+  <:item title="Generation epoch in minutes"><%= @swarm_training.generation_epoch_in_minutes %></:item>
+  <:item title="Select best count"><%= @swarm_training.select_best_count %></:item>
+  <:item title="Cost in tokens"><%= @swarm_training.cost_in_tokens %></:item>
+  <:item title="Tokens used"><%= @swarm_training.tokens_used %></:item>
+  <:item title="Status"><%= @swarm_training.status %></:item>
+  <:item title="Total run time in seconds"><%= @swarm_training.total_run_time_in_seconds %></:item>
+  <:item title="Budget in tokens"><%= @swarm_training.budget_in_tokens %></:item>
+</.list>
+
+<.back navigate={~p"/swarm_trainings"}>Back to swarm_trainings</.back>
+
+<.modal :if={@live_action == :edit} id="swarm_training-modal" show on_cancel={JS.patch(~p"/swarm_trainings/#{@swarm_training}")}>
+  <.live_component
+    module={SwaiWeb.SwarmTrainingLive.FormComponent}
+    id={@swarm_training.id}
+    title={@page_title}
+    action={@live_action}
+    swarm_training={@swarm_training}
+    patch={~p"/swarm_trainings/#{@swarm_training}"}
+  />
+</.modal>

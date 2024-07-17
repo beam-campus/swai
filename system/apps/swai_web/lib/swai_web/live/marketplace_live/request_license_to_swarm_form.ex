@@ -1,7 +1,7 @@
 defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
   use SwaiWeb, :live_component
 
-  alias TrainSwarmProc.Initialize.Cmd, as: RequestLicense
+  alias TrainSwarmProc.Initialize.Payload, as: RequestLicense
   alias Edge.Init, as: EdgeInit
   alias TrainSwarmProc, as: TrainSwarmProc
   alias Schema.Biotope, as: Biotope
@@ -32,6 +32,7 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     form = to_form(changeset, as: "license_request")
     Logger.alert("ASSIGNING FORM #{inspect(form)}")
+
     if changeset.valid? do
       socket
       |> assign(form: form, check_errors: false)
@@ -43,8 +44,22 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
 
   ############## SUBMISSIONS ####################
   @impl true
-  def handle_event("submit_lr", params, socket) do
-    Logger.alert("RequestLicenseToSwarmForm.handle_event #{inspect(params)}")
+  def handle_event("submit_lr", %{"license_request" => source} = license_params, socket) do
+    enriched_params =
+      source
+      |>Map.put("user_id", socket.assigns.current_user.id)
+      |>Map.put("biotope_id", socket.assigns.biotope.id)
+
+
+    Logger.alert("Submitting Enriched License Request #{inspect(enriched_params)}")
+
+    case TrainSwarmProc.initialize(enriched_params) do
+      :ok ->
+        {:noreply, socket |> assign(:show_init_swarm_modal, false)}
+
+      _ ->
+        {:noreply, socket}
+    end
 
     {:noreply, socket}
   end
@@ -95,8 +110,6 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
         phx-trigger-action={@trigger_submit}
         method="post"
       >
-
-      <div class="form-group">
           <.input
             class="form-control"
             label="Budget required for this License"
@@ -151,69 +164,8 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
             field={@form[:select_best_count]}
             required
           />
-        </div>
 
-        <%!-- <div class="form-group">
-          <.input
-            class="form-control"
-            label="Budget required for this License"
-            type="number"
-            field={@form[:cost_in_tokens]}
-            pattern="\\d*"
-            step="1"
-            readonly
-          />
-          <.input
-            class="form-control"
-            label="Swarm Size (drones per swarm)"
-            type="number"
-            pattern="\\d*"
-            step="1"
-            field={@form[:swarm_size]}
-            phx-change="validate_lr"
-            required
-           />
-          <.input
-            class="form-control"
-            label="Neural Depth (number of layers in a drone's neural network)"
-            type="number"
-            pattern="\\d*"
-            step="1"
-            field={@form[:drone_depth]}
-            phx-change="validate_lr"
-            required
-          />
-          <.input
-            class="form-control"
-            label="Number of Generations"
-            type="number"
-            pattern="\\d*"
-            step="1"
-            field={@form[:nbr_of_generations]}
-            phx-change="validate_lr"
-            required
-          />
-          <.input
-            class="form-control"
-            label="Generation Epoch (lifetime of a generation in minutes)"
-            type="number"
-            pattern="\\d*"
-            step="1"
-            field={@form[:generation_epoch_in_minutes]}
-            phx-change="validate_lr"
-            required
-          />
-          <.input
-            class="form-control"
-            label="Pick Best (Number of Drones to select as parents for the next generation)"
-            type="number"
-            pattern="\\d*"
-            step="1"
-            field={@form[:select_best_count]}
-            phx-change="validate_lr"
-            required
-          />
-        </div> --%>
+
 
         <div class="mt-3">
         <.button

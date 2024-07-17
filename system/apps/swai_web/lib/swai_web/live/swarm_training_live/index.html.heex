@@ -1,0 +1,50 @@
+<.header>
+  Listing Swarm trainings
+  <:actions>
+    <.link patch={~p"/swarm_trainings/new"}>
+      <.button>New Swarm training</.button>
+    </.link>
+  </:actions>
+</.header>
+
+<.table
+  id="swarm_trainings"
+  rows={@streams.swarm_trainings}
+  row_click={fn {_id, swarm_training} -> JS.navigate(~p"/swarm_trainings/#{swarm_training}") end}
+>
+  <:col :let={{_id, swarm_training}} label="Swarm size"><%= swarm_training.swarm_size %></:col>
+  <:col :let={{_id, swarm_training}} label="Nbr of generations"><%= swarm_training.nbr_of_generations %></:col>
+  <:col :let={{_id, swarm_training}} label="Drone depth"><%= swarm_training.drone_depth %></:col>
+  <:col :let={{_id, swarm_training}} label="Generation epoch in minutes"><%= swarm_training.generation_epoch_in_minutes %></:col>
+  <:col :let={{_id, swarm_training}} label="Select best count"><%= swarm_training.select_best_count %></:col>
+  <:col :let={{_id, swarm_training}} label="Cost in tokens"><%= swarm_training.cost_in_tokens %></:col>
+  <:col :let={{_id, swarm_training}} label="Tokens used"><%= swarm_training.tokens_used %></:col>
+  <:col :let={{_id, swarm_training}} label="Status"><%= swarm_training.status %></:col>
+  <:col :let={{_id, swarm_training}} label="Total run time in seconds"><%= swarm_training.total_run_time_in_seconds %></:col>
+  <:col :let={{_id, swarm_training}} label="Budget in tokens"><%= swarm_training.budget_in_tokens %></:col>
+  <:action :let={{_id, swarm_training}}>
+    <div class="sr-only">
+      <.link navigate={~p"/swarm_trainings/#{swarm_training}"}>Show</.link>
+    </div>
+    <.link patch={~p"/swarm_trainings/#{swarm_training}/edit"}>Edit</.link>
+  </:action>
+  <:action :let={{id, swarm_training}}>
+    <.link
+      phx-click={JS.push("delete", value: %{id: swarm_training.id}) |> hide("##{id}")}
+      data-confirm="Are you sure?"
+    >
+      Delete
+    </.link>
+  </:action>
+</.table>
+
+<.modal :if={@live_action in [:new, :edit]} id="swarm_training-modal" show on_cancel={JS.patch(~p"/swarm_trainings")}>
+  <.live_component
+    module={SwaiWeb.SwarmTrainingLive.FormComponent}
+    id={@swarm_training.id || :new}
+    title={@page_title}
+    action={@live_action}
+    swarm_training={@swarm_training}
+    patch={~p"/swarm_trainings"}
+  />
+</.modal>

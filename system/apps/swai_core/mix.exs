@@ -40,8 +40,8 @@ defmodule SwaiCore.MixProject do
     [
       {:phoenix_pubsub, "~> 2.1.3"},
       {:ecto, "~> 3.11.2"},
-      {:uuid, "~> 1.1.8"},
-      {:jason, "~> 1.4.1"},
+      {:elixir_uuid, "~> 1.2", override: true},
+      {:jason, "~> 1.4.3"},
       {:req, "~> 0.4.14"},
       {:hackney, "~> 1.20.1"},
       {:dialyze, "~> 0.2.0", only: [:dev]},

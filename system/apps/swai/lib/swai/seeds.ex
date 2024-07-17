@@ -109,6 +109,32 @@ defmodule Swai.Seeds do
         :ok
     end
 
+
+    case Repo.get_by(Biotope, name: "Delivery Rush") do
+      nil ->
+        Repo.insert!(%Biotope{
+          name: "Delivery Rush",
+          description:
+            "This ecosystem is inspired by the infamous 'Traveling Salesman Problem'.
+            The objective is to deliver packages to customers in the most efficient way possible.
+            The environment is a city with various locations and the challenges are to optimize the delivery routes.
+            The ecosystem is fed by real time traffic data and the drones must deliver packages as quickly as possible.",
+          image_url: "/images/delivery_rush.jpg",
+          theme: "Logistics",
+          tags: "delivery, routes, commerce",
+          difficulty: 4,
+          objective: "Deliver packages to customers in the most efficient way possible.",
+          environment: "A city with various locations and varying traffic.",
+          challenges: "A complex and varying city environment with traffic congestion and time constraints.",
+          is_active?: false,
+          biotope_type: "Swarm vs Environment",
+          is_realistic?: true
+        })
+
+      _ ->
+        :ok
+    end
+
     case Repo.get_by(Biotope, name: "Weather Prediction") do
       nil ->
         Repo.insert!(%Biotope{
@@ -131,6 +157,7 @@ defmodule Swai.Seeds do
       _ ->
         :ok
     end
+
     case Repo.get_by(Biotope, name: "The Fitness Challenge") do
       nil ->
         Repo.insert!(%Biotope{

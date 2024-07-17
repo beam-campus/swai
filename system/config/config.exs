@@ -16,6 +16,25 @@
 # General application configuration
 import Config
 
+
+config :swai_train_swarm, TrainSwarmProc.CommandedApp,
+  event_store: [
+    adapter: Commanded.EventStore.Adapters.Extreme,
+    serializer: Commanded.Serialization.JsonSerializer,
+    stream_prefix: "train_swarm",
+    extreme: [
+      db_type: :node,
+      host: "localhost",
+      port: 1113,
+      username: "admin",
+      password: "changeit",
+      reconnect_delay: 2_000,
+      max_attempts: :infinity
+    ]
+  ],
+  pubsub: :local,
+  registry: :local
+
 config :github_proxy,
   github_token: System.get_env("GITHUB_PAT_SWARM_WARS_SCAPE")
 

@@ -34,7 +34,7 @@ defmodule Schema.Id do
   end
 
   def new(prefix) when is_binary(prefix) do
-    new(prefix, UUID.uuid4(:default))
+    new(prefix, UUID.uuid4())
   end
 
   def new(args) when is_map(args) do

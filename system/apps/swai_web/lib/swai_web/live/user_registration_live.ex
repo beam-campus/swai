@@ -122,8 +122,11 @@ defmodule SwaiWeb.UserRegistrationLive do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="max-w-sm mx-auto py-10 text-white">
-      <div class="m-3 bg-white p-2 rounded">
+    <div class="flex flex-col items-center bg-gray-100 m-10 py-10 px-5 bg-white bg-opacity-50 rounded-lg shadow-xl" id="user_login">
+    <div class="max-w-md px-8 py-6 bg-white rounded-lg shadow-lg" id="login_form">
+        <.header>
+          Register a new user account
+        </.header>
         <.simple_form
           for={@form}
           id="registration_form"
@@ -167,19 +170,16 @@ defmodule SwaiWeb.UserRegistrationLive do
             </.button>
 
           </:actions>
-          <%!-- <.error :if={@check_errors}>
-            Oops, something went wrong! Please check the errors below.
-          </.error> --%>
-
 
         </.simple_form>
-      </div>
-    <div class="justify-center">
-      Already registered?
-          <.link navigate={~p"/users/log_in"} class="font-semibold text-brand hover:underline">
-            Sign in
-          </.link>
-          to your account now.
+
+        <div class="justify-center">
+          Already registered?
+              <.link navigate={~p"/users/log_in"} class="font-semibold text-brand hover:underline">
+                Sign in
+              </.link>
+              to your account now.
+        </div>
     </div>
     </div>
     """

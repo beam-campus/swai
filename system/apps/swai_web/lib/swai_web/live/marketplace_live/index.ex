@@ -7,7 +7,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
 
   alias Edges.Service, as: Edges
   alias Swai.Biotopes, as: Biotopes
-  alias TrainSwarmProc.Initialize.Cmd, as: RequestLicense
+  alias TrainSwarmProc.Initialize.Payload, as: RequestLicense
   require Logger
 
   @impl true
@@ -61,7 +61,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
 
   defp apply_action(socket, :index, _params) do
     socket
-    |> assign(:page_title, "Listing Born 2 dieds")
+    |> assign(:page_title, "Marketplace")
     |> assign(:license_request, nil)
     |> assign(:biotope, nil)
   end
