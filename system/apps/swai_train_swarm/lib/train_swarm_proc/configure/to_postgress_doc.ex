@@ -10,6 +10,7 @@ defmodule TrainSwarmProc.Configure.ToPostgresDoc do
 
     require Logger
 
+    @impl true
     def handle(%Configured{
       agg_id: agg_id,
       payload: payload

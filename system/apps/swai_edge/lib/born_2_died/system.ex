@@ -59,7 +59,7 @@ defmodule Born2Died.System do
     children =
       [
         {Born2Died.AiWorker, identity},
-        {Born2Died.MotionActuator, identity},
+        # {Born2Died.MotionActuator, identity},
         # {Born2Died.HealthActuator, identity},
         # {Born2Died.BreedingActuator, identity},
         {Born2Died.VisionSensor, identity}
