@@ -35,6 +35,9 @@ config :swai_web, SwaiWeb.Endpoint,
   server: true,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
+
+
+
 # Configures Swoosh API Client
 config :swoosh, :api_client, Swai.Finch
 
@@ -43,6 +46,26 @@ config :swoosh, local: false
 
 # Do not print debug messages in production
 config :logger, level: :info
+
+
+config :swai_train_swarm, TrainSwarmProc.CommandedApp,
+  event_store: [
+    adapter: Commanded.EventStore.Adapters.Extreme,
+    serializer: Commanded.Serialization.JsonSerializer,
+    stream_prefix: "train_swarm",
+    extreme: [
+      db_type: :node,
+      host: "eventstore",
+      port: 1113,
+      username: "admin",
+      password: "changeit",
+      reconnect_delay: 2_000,
+      max_attempts: :infinity
+    ]
+  ],
+  pubsub: :local,
+  registry: :local
+
 
 # Runtime production configuration, including reading
 # of environment variables, is done on config/runtime.exs.
