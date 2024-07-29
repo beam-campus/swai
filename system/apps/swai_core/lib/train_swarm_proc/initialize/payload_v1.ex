@@ -13,14 +13,17 @@ defmodule TrainSwarmProc.Initialize.Payload.V1 do
     :user_id,
     :biotope_id,
     :biotope_name,
-    :scape_id
+    :scape_id,
+    :swarm_name
   ]
 
   @flat_fields [
     :swarm_id,
     :user_id,
     :biotope_id,
-    :biotope_name
+    :biotope_name,
+    :scape_id,
+    :swarm_name
   ]
 
   @required_fields [
@@ -28,7 +31,8 @@ defmodule TrainSwarmProc.Initialize.Payload.V1 do
     :user_id,
     :biotope_id,
     :biotope_name,
-    :scape_id
+    :scape_id,
+    :swarm_name
   ]
 
   require Logger
@@ -45,6 +49,7 @@ defmodule TrainSwarmProc.Initialize.Payload.V1 do
     field(:biotope_id, :binary_id)
     field(:biotope_name, :string)
     field(:scape_id, :string)
+    field(:swarm_name, :string, default: MnemonicSlugs.generate_slug(3))
   end
 
   def changeset(%TrainingInit{} = struct, params) do

@@ -72,7 +72,8 @@ defmodule TrainSwarmProc.Initialize.Evaluator do
         user_id: cmd_payload.user_id,
         biotope_id: cmd_payload.biotope_id,
         biotope_name: cmd_payload.biotope_name,
-        scape_id: cmd_payload.scape_id
+        scape_id: cmd_payload.scape_id,
+        swarm_name: cmd_payload.swarm_name
       }
     }
 
@@ -92,7 +93,7 @@ defmodule TrainSwarmProc.Initialize.Evaluator do
         drone_depth: cmd_payload.drone_depth,
         generation_epoch_in_minutes: cmd_payload.generation_epoch_in_minutes,
         select_best_count: cmd_payload.select_best_count,
-        cost_in_tokens: cmd_payload.cost_in_tokens
+        cost_in_tokens: cmd_payload.cost_in_tokens,
       }
     }
 

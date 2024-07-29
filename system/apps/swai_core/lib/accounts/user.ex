@@ -34,7 +34,7 @@ defmodule Schema.User do
     field(:user_alias, :string)
     field(:bio, :string)
     field(:image_url, :string)
-    field(:budget, :integer, default: 1000)
+    field(:budget, :integer, default: 12000)
     field(:wants_notifications?, :boolean, default: true)
     field(:has_accepted_terms?, :boolean, default: true)
     timestamps()
@@ -78,7 +78,6 @@ defmodule Schema.User do
     |> validate_password_confirmation(opts)
     |> validate_username(opts)
   end
-
 
   def username_changeset(user, attrs, opts \\ []) do
     user
@@ -127,6 +126,7 @@ defmodule Schema.User do
     now =
       NaiveDateTime.utc_now()
       |> NaiveDateTime.truncate(:second)
+
     change(user, confirmed_at: now)
   end
 
@@ -160,9 +160,11 @@ defmodule Schema.User do
   defp validate_password_confirmation(changeset, opts) do
     changeset
     |> maybe_clear_password_confirmation(opts)
+
     # Logger.alert("Changeset: #{inspect(changeset)}")
     password = get_change(changeset, :password)
     password_confirmation = get_change(changeset, :password_confirmation)
+
     # Logger.alert(      "password: #{inspect(password)}, password_confirmation: #{inspect(password_confirmation)}")
 
     if password == password_confirmation do

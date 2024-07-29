@@ -16,7 +16,7 @@ defmodule SwaiWeb.Layouts.OldFooter do
           <p class="text-sm text-white font-brand font-regular">
             with ❤️ from <a href="https://discomco.pl" class="font-regular hover:underline">DisComCo</a>
           </p>
-          <div class="px-4 space-x-3 text-xs text-ltOrange font-brand">
+          <div class="px-4 space-x-3 text-xs text-ltOrange-light font-brand">
             <a href={~p"/mission"} class="hover:underline">
               Our Mission
             </a>
@@ -30,35 +30,6 @@ defmodule SwaiWeb.Layouts.OldFooter do
         </div>
       </div>
     </footer>
-    """
-  end
-  def render2(assigns) do
-    ~H"""
-    <%!-- <div class="flex-shrink-0"> --%>
-    <footer class="w-full pl-10">
-      <%!-- <div class="w-full pl-10"> --%>
-        <div class="border-t-[1px] border-gray-700 h-full">
-          <div class="flex items-center pb-10 mt-2 space-x-2">
-            <img src="/images/discomco-logo.png" alt="DisComCo Logo image-only" class="h-7 w-7" />
-            <p class="text-sm text-white font-brand font-regular">
-              with ❤️ from <a href="https://discomco.pl" class="font-regular hover:underline">DisComCo</a>
-            </p>
-            <div class="px-4 space-x-3 text-xs text-swBrand font-brand">
-              <a href={~p"/mission"} class="hover:underline">
-                Our Mission
-              </a>
-              <a href={~p"/terms_of_service"} class="hover:underline">
-                Terms
-              </a>
-              <a href={~p"/"} class="hover:underline">
-                Privacy
-              </a>
-            </div>
-          </div>
-        </div>
-      <%!-- </div> --%>
-    </footer>
-    <%!-- </div> --%>
     """
   end
 

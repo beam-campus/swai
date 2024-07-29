@@ -105,7 +105,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
             swarm_trainings={@swarm_trainings}
             now={@now}
             section_title="My Swarm Trainings"
-            section_description=""
+            section_description="This is a list of all the swarm trainings you have created."
         />
       </section>
     </div>

@@ -103,35 +103,6 @@ defmodule SwaiWeb.OurMissionLive.Index do
     it is also very cost-efficient and capable of running on a wide range of hardware, making it resource-friendly and sustainable as well.
     </span>
     </div>
-
-
-
-
-
-
-
-
-    <%!-- <div class="lt-section-header">
-        Guilty as charged
-    </div>
-    <div class="flex px-20" >
-    <div class="w-100">
-        <img src="/images/raf1.jpg" alt="Beamologist" class="border rounded-full w-50 h-50 border-white" />
-    </div>
-    <div class="lt-section-text">
-        Beamologist, a software engineer with decades of experience in
-        developing corporate web- and edge/IoT applications using .NET,
-        mostly in logistics- and manufacturing related industries.
-        <br />
-        Come 2020, he was looking for answers to solve needs in the fields of event-driven architectures,
-        decentralized systems and genetic algorithms. This is when he discovered the BEAM ecosystem.
-        Ever since, he realized that other platforms would probably
-        not be able to offer a similar coverage and quality,
-        or even bring the same amount of professional satisfaction.
-        This is when he decided to dedicate his time to contribute to initiatives that further the ecosystem.
-    </div>
-    </div> --%>
-    <%!-- </div>     --%>
     </div>
     """
   end

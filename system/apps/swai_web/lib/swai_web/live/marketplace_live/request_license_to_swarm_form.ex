@@ -141,50 +141,33 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
         phx-trigger-action={@trigger_submit}
         method="post"
       >
+         <.input
+            class="form-control"
+            label="Swarm Name"
+            type="text"
+            field={@form[:swarm_name]}
+            required
+          />
+
           <.input
             class="form-control"
-            label="Swarm Size (drones per swarm)"
+            label="Swarm Size"
             type="number"
             pattern="\\d*"
             step="1"
             field={@form[:swarm_size]}
             required
+            readonly
            />
           <.input
             class="form-control"
-            label="Neural Depth (number of layers in a drone's neural network)"
-            type="number"
-            pattern="\\d*"
-            step="1"
-            field={@form[:drone_depth]}
-            required
-          />
-          <.input
-            class="form-control"
-            label="Number of Generations"
-            type="number"
-            pattern="\\d*"
-            step="1"
-            field={@form[:nbr_of_generations]}
-            required
-          />
-          <.input
-            class="form-control"
-            label="Generation Epoch (lifetime of a generation in minutes)"
+            label="Swarming Time in Minutes"
             type="number"
             pattern="\\d*"
             step="1"
             field={@form[:generation_epoch_in_minutes]}
             required
-          />
-          <.input
-            class="form-control"
-            label="Pick Best (Number of Drones to select as parents for the next generation)"
-            type="number"
-            pattern="\\d*"
-            step="1"
-            field={@form[:select_best_count]}
-            required
+            readonly
           />
         <div class="mt-3">
         <.button

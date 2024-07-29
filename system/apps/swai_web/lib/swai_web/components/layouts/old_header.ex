@@ -20,7 +20,7 @@ defmodule SwaiWeb.Layouts.OldHeader do
             <div class="font-brand text-xs text-white pl-5" id="bar-disclaimer">
               <span>
               DISCLAIMER: This site is still WiP!<br/>
-              If you want to support our work, please consider <a href="https://www.buymeacoffee.com/beamologist" class="text-ltOrange hover:underline">buying us a coffee</a>
+              If you want to support our work, please consider <a href="https://www.buymeacoffee.com/beamologist" class="text-ltOrange-light hover:underline">buying us a coffee</a>
               </span>
             </div>
         </div>

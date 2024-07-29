@@ -1,12 +1,12 @@
 ################# Variables ################
-ARG ELIXIR_VERSION=1.16.2
-ARG OTP_VERSION=26.2.3
-ARG DEBIAN_VERSION=bullseye-20240130-slim
+ARG ELIXIR_VERSION=1.17.2
+ARG OTP_VERSION=27.0.1
+ARG DEBIAN_VERSION=bullseye-20240722-slim
 
 ARG BUILDER_IMAGE="hexpm/elixir:${ELIXIR_VERSION}-erlang-${OTP_VERSION}-debian-${DEBIAN_VERSION}"
 ARG RUNNER_IMAGE="debian:${DEBIAN_VERSION}"
 
-FROM ${BUILDER_IMAGE} as builder
+FROM ${BUILDER_IMAGE} AS builder
 
 ARG CORE_APP=swai_core
 ARG SVC_APP=swai
@@ -118,7 +118,7 @@ COPY apps/${WEB_APP}/rel/overlays/bin/start ./bin/start
 USER nobody
 
 ENV HOME=/system
-# ENV DATABASE_PATH=/system/agrex_db
+
 ENV MIX_ENV="prod"
 ENV SWAI_SECRET_KEY_BASE="VSPmDkSEzRV15zRVBe5gPhOanomTMTvrjgNeKQTzcSd5N+YnUTNRT9C0xTrZzMK0"
 

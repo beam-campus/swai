@@ -3,7 +3,6 @@ defmodule Schema.SwarmTraining do
   import Ecto.Changeset
 
   defmodule Status do
-
     require Flags
 
     def unknown, do: 0
@@ -64,19 +63,21 @@ defmodule Schema.SwarmTraining do
     :tokens_used,
     :total_run_time_in_seconds,
     :budget_in_tokens,
-    :scape_id
+    :scape_id,
+    :swarm_name
   ]
 
   @id_fields [
     :id,
     :user_id,
     :biotope_id,
-    :biotope_name
+    :biotope_name,
+    :swarm_id,
+    :swarm_name
   ]
 
   @config_fields [
     :status,
-    :swarm_id,
     :scape_id,
     :swarm_size,
     :nbr_of_generations,
@@ -104,10 +105,13 @@ defmodule Schema.SwarmTraining do
     field(:scape_id, :string)
 
     field(:swarm_id, :binary_id, default: UUID.uuid4())
-    field(:swarm_size, :integer, default: 10)
+    field(:swarm_name, :string, default: MnemonicSlugs.generate_slug(3))
+
+    field(:swarm_size, :integer, default: 100)
     field(:nbr_of_generations, :integer, default: 100)
     field(:drone_depth, :integer, default: 5)
-    field(:generation_epoch_in_minutes, :integer, default: 1)
+    ## SWARMING TIME
+    field(:generation_epoch_in_minutes, :integer, default: 30)
     field(:select_best_count, :integer, default: 3)
     field(:cost_in_tokens, :integer, default: 0)
 
@@ -127,17 +131,12 @@ defmodule Schema.SwarmTraining do
 
     new_cost =
       new_training.swarm_size *
-        new_training.nbr_of_generations *
-        new_training.drone_depth *
         new_training.generation_epoch_in_minutes
-
-    # Logger.alert("Calculated cost: #{new_cost}")
 
     new_changeset =
       changeset
       |> put_change(:cost_in_tokens, new_cost)
 
-    # Logger.alert("Changeset with Calculated cost: #{inspect(new_changeset)}")
     new_changeset
   end
 
@@ -169,6 +168,19 @@ defmodule Schema.SwarmTraining do
       |> calculate_cost_in_tokens()
       |> validate_number(:cost_in_tokens, greater_than: -1)
       |> calculate_status_string()
+      |> validate_swarm_name()
+
+      defp validate_swarm_name(changeset, opts \\ []) do
+        changeset
+        |> validate_required([:swarm_name])
+        |> validate_length(:swarm_name, min: 3, max: 30)
+        |> validate_format(:swarm_name, ~r/^[a-zA-Z0-9_]+$/,
+          message: "can only contain letters, numbers, and underscores"
+        )
+        |> validate_format(:swarm_name, ~r/^\S+$/,
+          message: "cannot be blank"
+        )
+      end
 
   def from_map(%SwarmTraining{} = seed, %{} = map) do
     case changeset(seed, map) do

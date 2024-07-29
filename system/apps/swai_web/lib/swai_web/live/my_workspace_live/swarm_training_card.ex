@@ -17,10 +17,11 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmTrainingCard do
 
   defp card_header(assigns) do
     ~H"""
-    <div class="card-header flex justify-between items-center mb-2">
-      <h2 class="text-xl font-semibold"><%= @swarm_training.biotope_name %></h2>
-      <p><strong>Swarm ID:</strong> <%= @swarm_training.swarm_id %></p>
-      <span class={"badge #{status_class(@swarm_training.status)}"}><%= Schema.SwarmTraining.Status.to_string(@swarm_training.status) %></span>
+    <div class="section-card-header flex items-center">
+      <p class="text-xl font-regular text-swBrand-dark"><%= @swarm_training.biotope_name %></p>
+      <p class="ml-10 font-regular text-swBrand-light"> <%= @swarm_training.swarm_name %></p>
+      <p class="ml-10 font-regular text-swBrand-light"> <%= @swarm_training.swarm_id %></p>
+      <span class={"ml-auto border rounded p-1 font-regular text-xs badge #{status_class(@swarm_training.status)}"}><%= Schema.SwarmTraining.Status.to_string(@swarm_training.status) %></span>
     </div>
     """
   end
@@ -29,24 +30,24 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmTrainingCard do
 
   defp card_body(assigns) do
     ~H"""
-    <div class="card-body">
-      <div class="section mb-4">
-        <h3 class="text-lg font-semibold mb-2">Configuration</h3>
-        <div class="flex flex-row">
-        <p><strong>Size:</strong> <%= @swarm_training.swarm_size %> particles</p>
-        <p><strong># Iterations:</strong> <%= @swarm_training.nbr_of_generations %></p>
-        <p><strong>Depth:</strong> <%= @swarm_training.drone_depth %> levels</p>
-        <p><strong>Epoch:</strong> <%= @swarm_training.generation_epoch_in_minutes %> minutes</p>
-        <p><strong>Take best:</strong> <%= @swarm_training.select_best_count %></p>
-        <p><strong>Cost:</strong> <%= @swarm_training.cost_in_tokens %> tokens</p>
+    <div class="section-card-body">
+      <div class="section">
+        <div class="flex flex-row justify-between">
+            <p><strong>Size:</strong> <%= @swarm_training.swarm_size %> particles</p>
+            <p><strong>Swarming time:</strong> <%= @swarm_training.generation_epoch_in_minutes %> minutes</p>
+            <p><strong>Cost:</strong> <%= @swarm_training.cost_in_tokens %> tokens</p>
         </div>
       </div>
-      <div class="section">
-        <h3 class="text-lg font-semibold mb-2">Execution</h3>
-        <p><strong>Run Time :</strong> <%= @swarm_training.total_run_time_in_seconds %> sec</p>
-        <p><strong>Tokens Used:</strong> <%= @swarm_training.tokens_used %></p>
-        <p><strong>Budget in Tokens:</strong> <%= @swarm_training.budget_in_tokens %></p>
-      </div>
+    </div>
+    """
+  end
+
+  attr(:swarm_training, SwarmTraining)
+
+  defp card_footer(assigns) do
+    ~H"""
+    <div class="section-card-footer flex flex-row">
+      <.button class="btn-observe">Observe the Swarm</.button>
     </div>
     """
   end
@@ -54,36 +55,10 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmTrainingCard do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="card bg-white shadow-md rounded-lg p-4 mb-4">
+    <div class="section-card bg-white shadow-md rounded-lg p-4 mb-4">
       <.card_header swarm_training={@swarm_training}  />
-
-      <%!-- <div class="card-header flex justify-between items-center mb-2">
-        <h2 class="text-xl font-semibold"><%= @swarm_training.biotope_name %></h2>
-        <p><strong>Swarm ID:</strong> <%= @swarm_training.swarm_id %></p>
-        <span class={"badge #{status_class(@swarm_training.status)}"}><%= @swarm_training.status %></span>
-      </div> --%>
-
-      <div class="card-body">
-        <div class="section mb-4">
-          <h3 class="text-lg font-semibold mb-2">Configuration</h3>
-
-          <div class="flex flex-row">
-
-          <p><strong>Size:</strong> <%= @swarm_training.swarm_size %> particles</p>
-          <p><strong># Iterations:</strong> <%= @swarm_training.nbr_of_generations %></p>
-          <p><strong>Depth:</strong> <%= @swarm_training.drone_depth %> levels</p>
-          <p><strong>Epoch:</strong> <%= @swarm_training.generation_epoch_in_minutes %> minutes</p>
-          <p><strong>Take best:</strong> <%= @swarm_training.select_best_count %></p>
-          <p><strong>Cost:</strong> <%= @swarm_training.cost_in_tokens %> tokens</p>
-          </div>
-        </div>
-        <div class="section">
-          <h3 class="text-lg font-semibold mb-2">Execution</h3>
-          <p><strong>Run Time :</strong> <%= @swarm_training.total_run_time_in_seconds %> sec</p>
-          <p><strong>Tokens Used:</strong> <%= @swarm_training.tokens_used %></p>
-          <p><strong>Budget in Tokens:</strong> <%= @swarm_training.budget_in_tokens %></p>
-        </div>
-      </div>
+      <.card_body swarm_training={@swarm_training} />
+      <.card_footer swarm_training={@swarm_training} />
     </div>
     """
   end
@@ -113,4 +88,7 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmTrainingCard do
       _ -> "Unknown"
     end
   end
+
+  defp active_class(true), do: "active-biotope"
+  defp active_class(false), do: "inactive-biotope"
 end

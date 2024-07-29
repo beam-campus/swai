@@ -8,6 +8,7 @@ defmodule TrainSwarmProc.Configure.Payload.V1 do
   # alias Edge.Init, as: EdgeInit
   alias TrainSwarmProc.Configure.Payload.V1,
     as: TrainingConfig
+    alias MnemonicSlugs
 
   @all_fields [
     :swarm_size,
@@ -16,6 +17,8 @@ defmodule TrainSwarmProc.Configure.Payload.V1 do
     :generation_epoch_in_minutes,
     :select_best_count,
     :cost_in_tokens,
+    :edge_id,
+    :swarm_name
   ]
 
   @flat_fields [
@@ -24,7 +27,9 @@ defmodule TrainSwarmProc.Configure.Payload.V1 do
     :drone_depth,
     :generation_epoch_in_minutes,
     :select_best_count,
-    :cost_in_tokens
+    :cost_in_tokens,
+    :edge_id,
+    :swarm_name
   ]
 
   require Logger
@@ -42,6 +47,8 @@ defmodule TrainSwarmProc.Configure.Payload.V1 do
     field(:generation_epoch_in_minutes, :integer, default: 1)
     field(:select_best_count, :integer, default: 2)
     field(:cost_in_tokens, :integer, default: 0)
+    field(:edge_id, :binary_id)
+    field(:swarm_name, :string, default: MnemonicSlugs.generate_slug(3))
   end
 
 

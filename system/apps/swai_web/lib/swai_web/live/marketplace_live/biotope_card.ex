@@ -22,29 +22,29 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
       </div>
       <div class="section-card-body">
         <div>
-          <p class="text-xl font-semibold uppercase">
+          <div class="flex flex-row text-swBrand-dark">
+          <p>  <%= @biotope.name %> [<%= @biotope.biotope_type %>] </p>
+          <p class="font-regular uppercase text-swBrand-light ml-auto" id="biotope_theme">
             <%= @biotope.theme %>
           </p>
-          <a href="#{Routes.biotope_path(@socket, :show, @biotope)}"
-          class="block mt-2 text-xl font-semibold text-lt-section-header">
-            <%= @biotope.name %> (<%= @biotope.biotope_type %>)
-          </a>
-          <p class="mt-3 text-base text-swBrand-light">
+          </div>
+          <p class="mt-3 font-xs text-base">
             <%= @biotope.description %>
           </p>
-          <p class="mt-1 text-base text-swBrand-dark">
+          <p class="mt-1 text-base">
             <%= @biotope.objective %>
           </p>
+
         </div>
         <div class="button-row mt-4 flex justify-between">
         <%= if @biotope.is_active? do %>
           <div>
 
-            <button class="btn-view">View</button>
+            <%!-- <button class="btn-view">View</button> --%>
             <.link patch={~p"/marketplace/start-swarm/#{@biotope.id}"}>
             <.button>Swarm!</.button>
             </.link>
-            <button class="btn-dashboard">Dashboard</button>
+            <%!-- <button class="btn-dashboard">Dashboard</button> --%>
 
             </div>
 
@@ -52,11 +52,7 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
         <% else %>
 
         <div>
-
-
-            <.button class="btn-view">View</.button>
-            <.button class="btn-sponsor">Sponsor this Model</.button>
-
+          <.button class="btn-sponsor">Sponsor this Model</.button>
         </div>
 
         <% end %>

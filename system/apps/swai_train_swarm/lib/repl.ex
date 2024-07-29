@@ -13,6 +13,6 @@ defmodule TrainSwarmProc.Repl do
     payload = InitializePayload.new("some_user_id", "some_biotope_id", "some_biotope_name")
     cmd = %Initialize{agg_id: UUID.uuid4(), payload: payload}
     res = TrainSwarmApp.dispatch(cmd)
-    Logger.alert("Dispatched Initialize Command #{inspect(res)}")
+    # Logger.alert("Dispatched Initialize Command #{inspect(res)}")
   end
 end

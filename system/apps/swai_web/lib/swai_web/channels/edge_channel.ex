@@ -8,9 +8,8 @@ defmodule SwaiWeb.EdgeChannel do
   require Phoenix.PubSub
 
   alias SwaiWeb.Dispatch.EdgePresence
-
   alias SwaiWeb.Dispatch.EdgeHandler,
-    as: EdgeHandler
+  as: EdgeHandler
 
   alias SwaiWeb.Dispatch.ScapeHandler
   alias SwaiWeb.Dispatch.RegionHandler
@@ -59,6 +58,7 @@ defmodule SwaiWeb.EdgeChannel do
 
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
 
+
   ################ CALLBACKS ################
   @impl true
   def join("edge:lobby", edge_init, socket) do
@@ -84,7 +84,9 @@ defmodule SwaiWeb.EdgeChannel do
 
     broadcast(socket, @presence_changed_v1, EdgePresence.list(socket))
 
-    {:noreply, socket}
+    {:noreply,
+     socket
+     }
   end
 
   @impl true
@@ -146,13 +148,13 @@ defmodule SwaiWeb.EdgeChannel do
 
   @impl true
   def handle_in(@initializing_scape_v1, payload, socket) do
-    Logger.alert("EdgeChannel.handle_in: #{@initializing_scape_v1} #{inspect(payload)}")
+    # Logger.alert("EdgeChannel.handle_in: #{@initializing_scape_v1} #{inspect(payload)}")
     ScapeHandler.pub_initializing_scape_v1(payload, socket)
   end
 
   @impl true
   def handle_in(@scape_initialized_v1, payload, socket) do
-    Logger.alert("EdgeChannel.handle_in: #{@scape_initialized_v1} #{inspect(payload)}")
+    # Logger.alert("EdgeChannel.handle_in: #{@scape_initialized_v1} #{inspect(payload)}")
     ScapeHandler.pub_scape_initialized_v1(payload, socket)
   end
 

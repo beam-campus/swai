@@ -202,7 +202,7 @@ defmodule SwaiWeb.CoreComponents do
   def simple_form(assigns) do
     ~H"""
     <.form :let={f} for={@for} as={@as} {@rest}>
-      <div class="mt-2 space-y-2 bg-green-100 p-2 rounded-lg">
+      <div class="mt-2 space-y-2 bg-orange-100 p-2 rounded-lg">
         <%= render_slot(@inner_block, f) %>
         <div :for={action <- @actions} class="flex items-center justify-between gap-6 mt-2">
           <%= render_slot(action, f) %>

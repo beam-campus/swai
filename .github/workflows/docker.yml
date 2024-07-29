@@ -87,4 +87,4 @@ jobs:
           context: ./system
           file: ./system/swai_edge_delivery_rush.Dockerfile
           push: true
-          tags: beamcampus/swai_edge_delivery_rush:latest          
+          tags: beamcampus/swai_edge_delivery_rush:latest

@@ -11,9 +11,6 @@
 		},
 		{
 			"path": "../compose-dev-stack"
-		},
-		{
-			"path": "../extreme"
 		}
 	],
 	"settings": {

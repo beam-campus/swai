@@ -31,7 +31,7 @@ defmodule Schema.SwarmLicense do
     :valid_until,
     :license_type,
     :max_generations,
-    :max_population
+    :max_population,
   ]
 
   @primary_key false
@@ -56,7 +56,7 @@ defmodule Schema.SwarmLicense do
   end
 
   def from_map(%{} = map) do
-    Logger.alert("map: #{inspect(map)}")
+    # Logger.alert("map: #{inspect(map)}")
     struct = %Schema.SwarmLicense{}
 
     case changeset(struct, map) do
