@@ -88,7 +88,6 @@ defmodule Swai.Accounts do
 
   """
   def register_user(attrs) do
-    Logger.alert("Registering User attrs: #{inspect(attrs)}")
 
     %User{}
     |> User.registration_changeset(attrs)

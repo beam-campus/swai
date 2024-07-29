@@ -1,8 +1,6 @@
 defmodule SwaiWeb.UserBox do
   use SwaiWeb, :live_component
 
-  alias Swai.Accounts, as: Accounts
-  alias Schema.User, as: User
 
   @impl true
   def update(assigns, socket) do
@@ -36,21 +34,5 @@ defmodule SwaiWeb.UserBox do
   end
 
 
-  def render2(assigns) do
-    ~H"""
-    <div class="flex flex-row items-center" id="user_box">
-      <.live_component
-        module={SwaiWeb.BudgetBox}
-        id="budget_box"
-        current_user={@current_user}
-      />
-      <.live_component
-        module={SwaiWeb.UserMenu}
-        id="user_menu"
-        current_user={@current_user}
-      />
-    </div>
-    """
-  end
 
 end

@@ -53,12 +53,12 @@ defmodule Edges.Service do
         {:get_edge_stats, edge_id}
       )
 
-  def get_by_id(id),
-    do:
-      GenServer.call(
-        __MODULE__,
-        {:get_by_id, id}
-      )
+  # def get_by_id(id),
+  #   do:
+  #     GenServer.call(
+  #       __MODULE__,
+  #       {:get_by_id, id}
+  #     )
 
   ############## CALLBACKS #########
   @impl GenServer
@@ -116,28 +116,35 @@ defmodule Edges.Service do
         edge.ip_address == query.ip_address
       end)
 
+  def get_by_id(%EdgeInit{} = query),
+    do:
+      :edges_cache
+      |> Cachex.stream!()
+      |> Enum.find(fn {:entry, _, _, _, %EdgeInit{} = edge} ->
+        edge.id == query.id
+      end)
+
   ################### handle_info ###################
   @impl GenServer
   def handle_info({@edge_attached_v1, edge_init}, state) do
-    existing = get_by_ip(edge_init)
-
+    existing = get_by_id(edge_init)
 
     case existing do
       nil ->
-        Logger.alert("Edge attached: #{inspect(edge_init)}")
+        # Logger.alert("Edge attached: #{inspect(edge_init)}")
 
         new_edge = %EdgeInit{
           edge_init
           | stats: %EdgeStats{
-            nbr_of_agents: 1
-          }
+              nbr_of_agents: 1
+            }
         }
 
         :edges_cache
         |> Cachex.put!(edge_init.id, new_edge)
 
       {:entry, _, _, _, old} ->
-        Logger.alert("Edge already attached: #{inspect(edge_init)} ...existing: #{inspect(old)}")
+        # Logger.alert("Edge already attached: #{inspect(edge_init)} ...existing: #{inspect(old)}")
 
         %{stats: %EdgeStats{} = old_stats} = old
 
@@ -154,22 +161,23 @@ defmodule Edges.Service do
         :edges_cache
         |> Cachex.update!(new_edge.id, new_edge)
     end
+
     notify_edges_updated({@edge_attached_v1, edge_init})
     {:noreply, state}
   end
 
   @impl GenServer
   def handle_info({@edge_detached_v1, %EdgeInit{} = edge_init}, state) do
-    Logger.alert("Edge detached: #{inspect(edge_init)}")
-    existing = get_by_ip(edge_init)
+    # Logger.alert("Edge detached: #{inspect(edge_init)}")
+    existing = get_by_id(edge_init)
 
     case existing do
       nil ->
-        Logger.alert("Edge not found: #{inspect(edge_init)}")
+        # Logger.alert("Edge not found: #{inspect(edge_init)}")
         {:noreply, state}
 
       {:entry, _, _, _, old_edge} ->
-        Logger.alert("Edge found: #{inspect(old_edge)}")
+        # Logger.alert("Edge found: #{inspect(old_edge)}")
         %{stats: %EdgeStats{} = old_stats} = old_edge
 
         new_stats = %EdgeStats{
@@ -200,8 +208,8 @@ defmodule Edges.Service do
   ############ INTERNALS ########
   defp notify_edges_updated(cause),
     do:
-      PubSub.broadcast!(
-        Swai.PubSub,
+      Swai.PubSub
+      |> PubSub.broadcast!(
         @edges_cache_updated_v1,
         cause
       )

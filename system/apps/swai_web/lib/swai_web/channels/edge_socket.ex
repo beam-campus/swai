@@ -3,7 +3,6 @@ defmodule SwaiWeb.EdgeSocket do
 
   require Logger
 
-
   # A Socket handler
   #
   # It's possible to control the websocket connection and
@@ -13,9 +12,9 @@ defmodule SwaiWeb.EdgeSocket do
   # Uncomment the following line to define a "room:*" topic
   # pointing to the `Web.EdgeChannel`:
   #
-  channel "edge:*", SwaiWeb.EdgeChannel
-  channel "life:*", SwaiWeb.LifeChannel
-  channel "my:*", SwaiWeb.MyChannel
+  channel("edge:*", SwaiWeb.EdgeChannel)
+  channel("life:*", SwaiWeb.LifeChannel)
+  channel("my:*", SwaiWeb.MyChannel)
   #
   # To create a channel file, use the mix task:
   #
@@ -23,9 +22,6 @@ defmodule SwaiWeb.EdgeSocket do
   #
   # See the [`Channels guide`](https://hexdocs.pm/phoenix/channels.html)
   # for further details.
-
-
-
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After
@@ -50,8 +46,6 @@ defmodule SwaiWeb.EdgeSocket do
     {:ok, socket}
   end
 
-
-
   # Socket id's are topics that allow you to identify all sockets for a given user:
   #
   #     def id(socket), do: "user_socket:#{socket.assigns.user_id}"
@@ -68,6 +62,4 @@ defmodule SwaiWeb.EdgeSocket do
     "edge_socket"
     # do: "edge_socket:#{socket.assigns.edge_id}"
   end
-
-
 end

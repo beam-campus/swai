@@ -17,6 +17,34 @@ defmodule Swai.Seeds do
 
     case Repo.get_by(Biotope, name: "Traders of Macao") do
       nil ->
+
+
+        case Repo.get_by(Biotope, name: "The Milk Factory") do
+          nil ->
+            Repo.insert!(%Biotope{
+              name: "The Milk Factory",
+              description: "The Milk Factory is a simulation of a dairy farm.
+        The ecosystem is fed by weather data and the cows can be milked and reproduce.
+        Each virtual farm generates a stream of milking data that can be used for downstream applications.",
+              image_url: "/images/dairy_wars1.jpg",
+              theme: "agriculture",
+              tags: "dairy, cows, milk, farm, agriculture",
+              difficulty: 2,
+              objective: "The objective is to produce as much milk as possible, while keeping a healthy herd.",
+              environment: "The environment is a dairy farm.",
+              challenges: "The challenges are to keep the cows healthy and productive.",
+              is_active?: false,
+              biotope_type: "NEAT",
+              is_realistic?: true,
+              scape_id: "b1e27778-6fa6-4ca5-b642-72a531c6a00d"
+            })
+
+          _ ->
+            :ok
+        end
+
+
+
         Repo.insert!(%Biotope{
           name: "Traders of Macao",
           description:
@@ -30,37 +58,15 @@ defmodule Swai.Seeds do
           objective: "The objective is to make a profit.",
           environment: "The environment is a stock market.",
           challenges: "The challenges are to predict the market and make the right trades.",
-          is_active?: true,
-          biotope_type: "Swarm vs Environment",
-          is_realistic?: true
-        })
-
-      _ ->
-        :ok
-    end
-
-    case Repo.get_by(Biotope, name: "The Milk Factory") do
-      nil ->
-        Repo.insert!(%Biotope{
-          name: "The Milk Factory",
-          description: "The Milk Factory is a simulation of a dairy farm.
-    The ecosystem is fed by weather data and the cows can be milked and reproduce.",
-          image_url: "/images/dairy_wars1.jpg",
-          theme: "agriculture",
-          tags: "dairy, cows, milk, farm, agriculture",
-          difficulty: 2,
-          objective: "The objective is to run a successful dairy farm.",
-          environment: "The environment is a dairy farm.",
-          challenges: "The challenges are to keep the cows healthy and productive.",
           is_active?: false,
-          biotope_type: "Swarm vs Environment",
-          is_realistic?: false
+          biotope_type: "NEAT",
+          is_realistic?: true,
+          scape_id: "dea846a5-a559-4494-8f95-5f8e4e14ea20"
         })
 
       _ ->
         :ok
     end
-
 
     case Repo.get_by(Biotope, name: "Performance Art Competition") do
       nil ->
@@ -78,8 +84,9 @@ defmodule Swai.Seeds do
           challenges: "Designing intricate routines, coordinating swarm movements, and timing performances perfectly.
           Audience reactions and judges' scores determine the winner.",
           is_active?: false,
-          biotope_type: "Swarm vs Environment",
-          is_realistic?: false
+          biotope_type: "Ant Colony Optimization",
+          is_realistic?: false,
+          scape_id: "f4153cee-b972-4ba7-839a-b15e25d7bc02"
         })
 
       _ ->
@@ -101,8 +108,9 @@ defmodule Swai.Seeds do
           environment: "A polluted landscape with various types of pollutants.",
           challenges: "The challenges are to clean up the pollution.",
           is_active?: false,
-          biotope_type: "Swarm vs Environment",
-          is_realistic?: false
+          biotope_type: "Bacterial Foraging Optimization",
+          is_realistic?: false,
+          scape_id: "85ca41c1-0876-49ec-b7ed-4d7ec34dd3e4"
         })
 
       _ ->
@@ -126,9 +134,10 @@ defmodule Swai.Seeds do
           objective: "Deliver packages to customers in the most efficient way possible.",
           environment: "A city with various locations and varying traffic.",
           challenges: "A complex and varying city environment with traffic congestion and time constraints.",
-          is_active?: false,
-          biotope_type: "Swarm vs Environment",
-          is_realistic?: true
+          is_active?: true,
+          biotope_type: "Ant Colony Optimization",
+          is_realistic?: true,
+          scape_id: "5693504a-89d6-4af3-bb70-2c2914913dc9"
         })
 
       _ ->
@@ -150,8 +159,9 @@ defmodule Swai.Seeds do
           environment: "The a virtual weather system with dynamic weather changes.",
           challenges: "The challenges are to predict the weather accurately.",
           is_active?: false,
-          biotope_type: "Swarm vs Environment",
-          is_realistic?: true
+          biotope_type: "NEAT",
+          is_realistic?: true,
+          scape_id: "756803bc-5e35-411a-8eac-9b7d4d499b38"
         })
 
       _ ->
@@ -173,8 +183,9 @@ defmodule Swai.Seeds do
           environment: "The environment is a normal life.",
           challenges: "The challenges are to keep a healthy diet and exercise regularly.",
           is_active?: false,
-          biotope_type: "Swarm vs Environment",
-          is_realistic?: true
+          biotope_type: "NEAT",
+          is_realistic?: true,
+          scape_id: "9fe76472-833f-4e2e-a884-0501454ea721"
         })
 
       _ ->
@@ -198,8 +209,9 @@ defmodule Swai.Seeds do
           environment: "The environment is the Serengeti.",
           challenges: "The challenges are to find food and water and avoid predators.",
           is_active?: false,
-          biotope_type: "Swarm vs Environment",
-          is_realistic?: false
+          biotope_type: "NEAT",
+          is_realistic?: false,
+          scape_id: "8f809a29-994c-4279-9fe8-8952042c2f81"
         })
 
       _ ->

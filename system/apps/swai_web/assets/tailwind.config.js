@@ -30,9 +30,14 @@ module.exports = {
     },
     extend: {
       colors: {
+        swBrand: {
+          dark: "#00A1FE",
+          DEFAULT: "#00CECA",
+          light: "#00FE70"
+        },
         ltDark: {
           dark: "#010101",
-          DEFAULT: "#3C3B3B",
+          DEFAULT: "#000000",
           light: "#828282"
         },
         ltTurquoise: {
@@ -64,7 +69,32 @@ module.exports = {
           dark: "#536B78",
           DEFAULT: "#7C98B3",
           light: "#ACCBE1"
-        }
+        },
+        ltGold: {
+          dark: "##4f4c15",
+          DEFAULT: "#FFD700",
+          light: "##ebe694"
+        },
+        ltGreen: {
+          dark: "#063820",
+          DEFAULT: "#008000",
+          light: "#65ebaa"
+        },
+        ltBlue: {
+          dark: "#0000FF",
+          DEFAULT: "#0000FF",
+          light: "#0000FF"
+        },
+        ltPurple: {
+          dark: "##4b1257",
+          DEFAULT: "#801f94",
+          light: "##d852f2"          
+        },
+        ltIndigo: {
+          dark: "##2b0a59",
+          DEFAULT: "##532594",
+          light: "##9552f2"
+        },
       },
       fontFamily: {
         brand: ["WorkSans", "sans-serif"],

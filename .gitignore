@@ -3,6 +3,7 @@
 .vscode/
 .elixir_ls/
 .history/
+.lexical/
 
 
 ## Elixir

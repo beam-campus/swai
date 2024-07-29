@@ -49,8 +49,7 @@ defmodule SwaiCore.MixProject do
       {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
       {:mix_test_watch, "~> 1.1", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.27", only: [:dev], runtime: false},
-      {:mnemonic_slugs, "~> 0.0.3"},
-      {:decoratex, "~> 1.2"}
+      {:mnemonic_slugs, "~> 0.0.3"}
     ]
   end
 end

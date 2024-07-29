@@ -1,56 +1,36 @@
 defmodule TrainSwarmProc do
   @moduledoc """
-  Documentation for `TrainSwarm`.
+  TrainSwarmProc is the context module for the TrainSwarm aggregate/process.
   """
 
   @prefix "train-swarm"
 
-  alias TrainSwarmProc.Initialize.Payload,
-    as: LicenseRequest
-
-  alias TrainSwarmProc.CommandedApp,
-    as: TrainSwarmApp
-
-  alias TrainSwarmProc.Initialize.Cmd,
-    as: Initialize
-
-  alias Schema.Id, as: Id
+  alias Schema.SwarmTraining, as: SwarmTraining
+  alias TrainSwarmProc.CommandedApp, as: TrainSwarmApp
+  alias TrainSwarmProc.Initialize.Cmd.V1, as: Initialize
 
   require Logger
 
-  @doc """
-  Hello world.
+  @agg_id "agg_id"
+  @user_id "user_id"
 
-  ## Examples
-
-      iex> TrainSwarm.hello()
-      :world
-
-  """
-
-  def change_license_request(%LicenseRequest{} = root, %{} = map) do
+  def change_swarm_training(%SwarmTraining{} = root, %{} = map) do
     root
-    |> LicenseRequest.changeset(map)
+    |> SwarmTraining.changeset(map)
   end
 
-  def initialize(%{} = license_request_params) do
-    Logger.alert("Initializing License Request #{inspect(license_request_params)}")
+  def initialize(
+    %{@agg_id => agg_id, @user_id => user_id} = license_request_params) do
+    seed = %SwarmTraining{id: agg_id}
 
-    case LicenseRequest.from_map(license_request_params) do
+    case SwarmTraining.from_map(seed, license_request_params) do
       {:ok, payload} ->
-
-        agg_id = UUID.uuid4()
-
         cmd = %Initialize{
           agg_id: agg_id,
           payload: payload
         }
 
-        res = TrainSwarmApp.dispatch(cmd)
-
-        Logger.alert("Dispatched Initialize Command #{inspect(res)}")
-
-        res
+        TrainSwarmApp.dispatch(cmd, metadata: %{@user_id => user_id} )
 
       {:error, changeset} ->
         Logger.error("Invalid license request params #{inspect(changeset)}")

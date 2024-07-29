@@ -7,7 +7,10 @@ defmodule SwaiWeb.MarketplaceLive.Index do
 
   alias Edges.Service, as: Edges
   alias Swai.Biotopes, as: Biotopes
-  alias TrainSwarmProc.Initialize.Payload, as: RequestLicense
+
+  alias Schema.SwarmTraining,
+    as: SwarmTraining
+
   require Logger
 
   @impl true
@@ -51,7 +54,6 @@ defmodule SwaiWeb.MarketplaceLive.Index do
 
   @impl true
   def handle_params(params, _url, socket) do
-    Logger.alert("Handling params #{inspect(params)}")
     {
       :noreply,
       socket
@@ -62,14 +64,12 @@ defmodule SwaiWeb.MarketplaceLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Marketplace")
-    |> assign(:license_request, nil)
+    |> assign(:swarm_training, nil)
     |> assign(:biotope, nil)
   end
 
   defp apply_action(socket, :start_swarm, params) do
-    Logger.alert("Handling params for :start_swarm #{inspect(params)}")
-
-
+    # Logger.alert("Applying Act :start_swarm #{inspect(params)}")
     current_biotope =
       socket.assigns.active_models
       |> Enum.find(fn it -> it.id == params["biotope_id"] end)
@@ -79,20 +79,29 @@ defmodule SwaiWeb.MarketplaceLive.Index do
     socket
     |> assign(
       page_title: "Request a License to Swarm",
-      # request_license: %RequestLicense{},
+      swarm_training: %SwarmTraining{},
       biotope: current_biotope
     )
   end
 
   @impl true
-
-
+  def handle_info(
+        {SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm,
+         {:swarm_training_submitted, license_request}},
+        socket
+      ) do
+    {:noreply,
+     socket
+     |> assign(:live_action, :overview)
+     |> redirect(to: ~p"/my_workspace")
+     |> put_flash(:info, "License Request Submitted")}
+  end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div id="marketplace-view" class="flex flex-col my-5">
-      <section class="py-3">
+    <div id="marketplace-view" class="flex flex-col">
+      <section class="mt-11">
         <.live_component
             id="active-models-section"
             current_user={@current_user}
@@ -106,7 +115,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
             Please do keep in mind that right now, only one swarm can be trained on the free plan."
         />
       </section>
-      <section class="py-3">
+      <section class="mt-20">
         <.live_component
           id="inactive-models-section"
           current_user={@current_user}
@@ -136,13 +145,11 @@ defmodule SwaiWeb.MarketplaceLive.Index do
         action={@live_action}
         biotope={@biotope}
         current_user={@current_user}
-        patch={~p"/marketplace"}
+        patch={~p"/swarm_trainings"}
         edges={@edges}
-        license_request={RequestLicense.new(@current_user.id, @biotope.id)}
+        swarm_training={@swarm_training}
     />
     </.modal>
-
-
     """
   end
 end

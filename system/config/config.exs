@@ -112,6 +112,7 @@ config :logger, :console,
   format: "$time[$level]\e[33;44m$metadata\e[0m>> $message\n",
   metadata: [:request_id, :initial_call, :mfa]
 
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 

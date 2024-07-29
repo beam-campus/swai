@@ -46,8 +46,7 @@ defmodule Born2Died.BreedingActuator do
   ############### handle unknown messages ######
   @impl GenServer
   def handle_cast(unknown, %Identity{} = me) do
-    Logger.alert("mating.worker #{inspect(self())}
-      \t unknown message = #{inspect(unknown)}")
+    # Logger.alert("mating.worker #{inspect(self())}      \t unknown message = #{inspect(unknown)}")
     {:noreply, me}
   end
 

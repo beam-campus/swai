@@ -1,7 +1,7 @@
 defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
   use SwaiWeb, :live_component
 
-  alias TrainSwarmProc.Initialize.Payload, as: RequestLicense
+  alias TrainSwarmProc.Initialize.Payload.V1, as: RequestLicense
   require Logger
 
   @impl true
@@ -17,20 +17,23 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
     ~H"""
     <div class={"section-card " <> active_class(@biotope.is_active?)}>
       <div class="section-card-header">
-        <img class="h-24 w-full object-cover opacity-80 rounded radius-5"
+        <img class="h-24 w-full object-cover opacity-80 rounded radius-10"
         src={"#{@biotope.image_url}"} alt={"#{@biotope.id}"}>
       </div>
       <div class="section-card-body">
         <div>
-          <p class="text-sm font-medium uppercase">
+          <p class="text-xl font-semibold uppercase">
             <%= @biotope.theme %>
           </p>
           <a href="#{Routes.biotope_path(@socket, :show, @biotope)}"
           class="block mt-2 text-xl font-semibold text-lt-section-header">
-            <%= @biotope.name %>
+            <%= @biotope.name %> (<%= @biotope.biotope_type %>)
           </a>
-          <p class="mt-3 text-base text-white">
+          <p class="mt-3 text-base text-swBrand-light">
             <%= @biotope.description %>
+          </p>
+          <p class="mt-1 text-base text-swBrand-dark">
+            <%= @biotope.objective %>
           </p>
         </div>
         <div class="button-row mt-4 flex justify-between">

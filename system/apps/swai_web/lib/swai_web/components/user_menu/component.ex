@@ -28,121 +28,136 @@ defmodule SwaiWeb.UserMenu do
     )
   end
 
+  # src="/images/user-image.svg"
+
   @impl true
   def render(assigns) do
     ~H"""
     <div>
-    <%= if @current_user do %>
-    <button
-      class="img-down-arrow-user"
-      type="button"
-      id="user_menu_button"
-      phx-click={SwaiWeb.UserMenu.toggle_dropdown_menu()}
-    >
-          <img
-            src={"https://api.dicebear.com/8.x/bottts/svg?seed=#{@current_user.id}"}
-            alt="Profile Image"
-            class="w-8 h-8 round-image-padding-user"
-          />
-        </button>
-      <% else %>
-        <button
-          class="img-down-arrow"
-          type="button"
-          id="user_menu_button"
-          phx-click={SwaiWeb.UserMenu.toggle_dropdown_menu()}
-        >
-          <img
-            src="/images/user-image.svg"
-            alt="Profile Image"
-            class="w-8 h-8 round-image-padding"
-          />
-        </button>
-      <% end %>
-     <div
-        id="dropdown_menu"
-        phx-click-away={SwaiWeb.UserMenu.toggle_dropdown_menu()}
-        class="absolute right-0 w-48 py-2 m-2 border border-white rounded-lg shadow-xl dropdown-menu-arrow bg-ltDark"
-        hidden="true"
+      <%= if @current_user do %>
+      <button
+        class="img-down-arrow-user"
+        type="button"
+        id="user_menu_button"
+        phx-click={SwaiWeb.UserMenu.toggle_dropdown_menu()}
       >
-        <.link
-          href="/mission"
-          class="border-b border-white border-opacity-50 menu-item"
-          role="menuitem"
-          tabindex="-1"
-          method="get"
-          id="user-menu-item-about"
-        >
-          Our Mission
-        </.link>
-
-        <%= if @current_user do %>
-          <.link
-            href={~p"/users/settings"}
-            class="border-b border-white border-opacity-50 menu-item"
-            role="menuitem"
-            tabindex="-1"
-            method="get"
-            id="user-menu-item-profile"
-          >
-            Singed in as <%= @current_user.email %>
-          </.link>
-          <.link
-            href="/marketplace"
-            class="border-b border-white border-opacity-50 menu-item"
-            role="menuitem"
-            tabindex="-1"
-            method="get"
-            id="user-menu-training-grounds"
-          >
-            Marketplace
-          </.link>
-
-          <.link
-            href={~p"/users/log_out"}
-            class="menu-item"
-            role="menuitem"
-            tabindex="-1"
-            method="delete"
-            id="user-menu-item-5"
-          >
-            Sign out
-          </.link>
+            <img
+              src={"https://api.dicebear.com/8.x/bottts/svg?seed=#{@current_user.email}"}
+              alt="Profile Image"
+              class="w-15 h-12 round-image-padding-user"
+            />
+          </button>
         <% else %>
-         <.link
-            href="/marketplace"
-            class="menu-item"
-            role="menuitem"
-            tabindex="-1"
-            method="get"
-            id="user-menu-training-grounds"
+          <button
+            class="img-down-arrow"
+            type="button"
+            id="user_menu_button"
+            phx-click={SwaiWeb.UserMenu.toggle_dropdown_menu()}
           >
-            Marketplace
-          </.link>
-
+            <img
+              src={"https://api.dicebear.com/8.x/bottts/svg?seed=guest00000000000000"}
+              alt="Profile Image"
+              class="w-15 h-12 round-image-padding"
+            />
+          </button>
+        <% end %>
+      <div
+          id="dropdown_menu"
+          phx-click-away={SwaiWeb.UserMenu.toggle_dropdown_menu()}
+          class="absolute right-0 w-48 py-2 m-2 border border-white rounded-lg shadow-xl dropdown-menu-arrow bg-ltDark"
+          hidden="true"
+        >
           <.link
-            href={~p"/users/log_in"}
+            href="/mission"
             class="border-b border-white border-opacity-50 menu-item"
             role="menuitem"
             tabindex="-1"
             method="get"
-            id="user-menu-item-100"
+            id="user-menu-item-about"
           >
-            Sign in
+            Our Mission
           </.link>
 
+          <%= if @current_user do %>
+            <.link
+              href={~p"/users/settings"}
+              class="border-b border-white border-opacity-50 menu-item"
+              role="menuitem"
+              tabindex="-1"
+              method="get"
+              id="user-menu-item-profile"
+            >
+              Singed in as <%= @current_user.email %>
+            </.link>
+
+            <.link
+              href="/my_workspace"
+              class="border-b border-white border-opacity-50 menu-item"
+              role="menuitem"
+              tabindex="-1"
+              method="get"
+              id="user-menu-workspace"
+            >
+              Workspace
+            </.link>
+
+
+            <.link
+              href="/marketplace"
+              class="border-b border-white border-opacity-50 menu-item"
+              role="menuitem"
+              tabindex="-1"
+              method="get"
+              id="user-menu-training-grounds"
+            >
+              Marketplace
+            </.link>
+
+            <.link
+              href={~p"/users/log_out"}
+              class="menu-item"
+              role="menuitem"
+              tabindex="-1"
+              method="delete"
+              id="user-menu-item-5"
+            >
+              Sign out
+            </.link>
+          <% else %>
           <.link
-            href={~p"/users/register"}
-            class="menu-item"
-            role="menuitem"
-            tabindex="-1"
-            method="get"
-            id="user-menu-item-101"
-          >
-            Register
-          </.link>
-        <% end %>
-      </div>
+              href="/marketplace"
+              class="menu-item"
+              role="menuitem"
+              tabindex="-1"
+              method="get"
+              id="user-menu-training-grounds"
+            >
+              Marketplace
+            </.link>
+
+            <.link
+              href={~p"/users/log_in"}
+              class="border-b border-white border-opacity-50 menu-item"
+              role="menuitem"
+              tabindex="-1"
+              method="get"
+              id="user-menu-item-100"
+            >
+              Sign in
+            </.link>
+
+            <.link
+              href={~p"/users/register"}
+              class="menu-item"
+              role="menuitem"
+              tabindex="-1"
+              method="get"
+              id="user-menu-item-101"
+            >
+              Register
+            </.link>
+          <% end %>
+        </div>
       </div>
     """
   end

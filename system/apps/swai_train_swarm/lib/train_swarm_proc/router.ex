@@ -1,31 +1,22 @@
 defmodule TrainSwarmProc.Router do
   use Commanded.Commands.Router
 
-  alias TrainSwarmProc.Initialize.Cmd,
-    as: Initialize
-
-
-
-  alias TrainSwarmProc.Initialize.Handler,
-    as: InitializeHandler
-
   alias TrainSwarmProc.Aggregate,
     as: Aggregate
 
-  alias TrainSwarmProc.Configure.Cmd,  as: Configure
+  alias TrainSwarmProc.Initialize.Cmd.V1,
+    as: Initialize
+
+  alias TrainSwarmProc.Initialize.Evaluator,
+    as: InitializeHandler
 
 
-  alias TrainSwarmProc.Configure.Handler,
-    as: ConfigureHandler
+  alias TrainSwarmProc.Configure.Cmd.V1,
+  as: Configure
 
-  alias TrainSwarmProc.Initialize.Payload,
-    as: Payload
+  alias TrainSwarmProc.Configure.Evaluator,
+  as: ConfigureHandler
 
-
-  # identity(Aggregate,
-  #   by: :root_id,
-  #   prefix: "release_right_poc"
-  # )
 
   dispatch(Initialize,
     to: InitializeHandler,

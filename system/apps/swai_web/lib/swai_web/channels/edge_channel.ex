@@ -8,8 +8,9 @@ defmodule SwaiWeb.EdgeChannel do
   require Phoenix.PubSub
 
   alias SwaiWeb.Dispatch.EdgePresence
+
   alias SwaiWeb.Dispatch.EdgeHandler,
-  as: EdgeHandler
+    as: EdgeHandler
 
   alias SwaiWeb.Dispatch.ScapeHandler
   alias SwaiWeb.Dispatch.RegionHandler
@@ -58,7 +59,6 @@ defmodule SwaiWeb.EdgeChannel do
 
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
 
-
   ################ CALLBACKS ################
   @impl true
   def join("edge:lobby", edge_init, socket) do
@@ -84,9 +84,7 @@ defmodule SwaiWeb.EdgeChannel do
 
     broadcast(socket, @presence_changed_v1, EdgePresence.list(socket))
 
-    {:noreply,
-     socket
-     }
+    {:noreply, socket}
   end
 
   @impl true

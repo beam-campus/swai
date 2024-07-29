@@ -27,7 +27,8 @@ defmodule SwaiWeb.MixProject do
         :logger,
         :runtime_tools,
         :observer,
-        :os_mon
+        :os_mon,
+        :swai_train_swarm
       ]
     ]
   end
@@ -44,7 +45,7 @@ defmodule SwaiWeb.MixProject do
       {:phoenix, "~> 1.7.12"},
       {:phoenix_ecto, "~> 4.5.1"},
       {:ecto_sql, "~> 3.11.1"},
-      {:postgrex, ">= 0.17.5"},
+      # {:postgrex, ">= 0.17.5"},
       {:floki, ">= 0.36.1"},
       {:phoenix_html, "~> 4.1.1"},
       {:phoenix_live_reload, "~> 1.5.3", only: :dev},
@@ -59,21 +60,24 @@ defmodule SwaiWeb.MixProject do
       {:contex, "~> 0.5.0"},
       {:jason, "~> 1.4.1"},
       {:bandit, "~> 1.4.2"},
-      {:heroicons,
-       github: "tailwindlabs/heroicons",
-       tag: "v2.1.3",
-       sparse: "optimized",
-       app: false,
-       compile: false,
-       depth: 1},
+      {
+        :heroicons,
+        github: "tailwindlabs/heroicons",
+        tag: "v2.1.3",
+        sparse: "optimized",
+        app: false,
+        compile: false,
+        depth: 1
+      },
+      {:apis, in_umbrella: true},
+      {:swai_core, in_umbrella: true},
+      {:swai, in_umbrella: true},
       {:swai_train_swarm, in_umbrella: true},
       {:httpoison, "~> 1.8"},
       {:tesla, "~> 1.4"},
       {:cors_plug, "~> 3.0"},
       {:heroicons_liveview, "~> 0.5.0"},
-      {:hpax, "~> 0.1.1", override: true},
-      {:swai, in_umbrella: true},
-      {:apis, in_umbrella: true}
+      {:hpax, "~> 1.0.0", override: true},
     ]
   end
 

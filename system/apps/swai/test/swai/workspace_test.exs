@@ -4,7 +4,7 @@ defmodule Swai.WorkspaceTest do
   alias Swai.Workspace
 
   describe "swarm_trainings" do
-    alias Swai.Workspace.SwarmTraining
+    alias Schema.SwarmTraining
 
     import Swai.WorkspaceFixtures
 

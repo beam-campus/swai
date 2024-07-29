@@ -1,136 +1,77 @@
 defmodule TrainSwarmProc.Aggregate do
   @moduledoc """
-  This module defines the aggregate for the release right POC.
+  This module defines the aggregate for the Train Swarm Process.
   """
+  use Ecto.Schema
 
-defstruct [:agg_id, :state]
-
-  alias Flags, as: Flags
-  alias Commanded.Aggregate.Multi, as: Multi
 
   alias TrainSwarmProc.Aggregate, as: Aggregate
-  alias TrainSwarmProc.Schema.States, as: States
   alias TrainSwarmProc.Schema.Root, as: Root
+  alias Schema.SwarmTraining, as: SwarmTraining
+  alias Schema.SwarmTraining.Status, as: Status
+  alias TrainSwarmProc.Initialize.Evt.V1, as: Initialized
+  alias TrainSwarmProc.Initialize.Payload.V1, as: InitPayload
+  alias TrainSwarmProc.Configure.Evt.V1, as: Configured
+  alias TrainSwarmProc.Configure.Payload.V1, as: ConfigPayload
 
-  alias TrainSwarmProc.Initialize.Cmd, as: Initialize
-  alias TrainSwarmProc.Initialize.Evt, as: Initialized
-  alias TrainSwarmProc.Initialize.Payload, as: InitializePayload
+  require Jason.Encoder
 
-  alias TrainSwarmProc.Configure.Cmd, as: Configure
-  alias TrainSwarmProc.Configure.Evt, as: Configured
-  alias TrainSwarmProc.Initialize.Payload, as: ConfigurePayload
+  @proc_unknown Status.unknown()
+  @proc_initialized Status.initialized()
+  @proc_configured Status.configured()
 
-  @proc_unknown States.unknown()
-  @proc_initialized States.initialized()
-  @proc_configured States.configured()
+  @all_fields [
+    :agg_id,
+    :status,
+    :state
+  ]
 
-  ##### INTERNALS #####
-
-  defp raise_initialize_events(
-         %Aggregate{} = aggregate,
-         %Initialize{} = cmd
-       ) do
-    aggregate
-    |> Multi.new()
-    |> Multi.execute(&raise_initialized(&1, cmd))
-    |> Multi.execute(&raise_configured(&1, cmd))
-  end
-
-  defp raise_initialized(
-         _aggregate,
-         %Initialize{} = cmd
-       ) do
-    {:ok,
-     %Initialized{
-       agg_id: cmd.agg_id,
-       payload: cmd.payload
-     }}
-  end
-
-  defp raise_configured(
-         _aggregate,
-         %Initialize{} = cmd
-       ) do
-    {:ok,
-     %Configured{
-       agg_id: cmd.agg_id,
-       payload: cmd.payload
-     }}
-  end
-
-  defp raise_configured(
-         _aggregate,
-         %Configure{} = cmd
-       ) do
-    {
-      :ok,
-      %Configured{
-        agg_id: cmd.agg_id,
-        payload: cmd.payload
-      }
-    }
-  end
-
-  ############### API ###############
-  def execute(
-        %Aggregate{agg_id: nil, state: nil} = aggregate,
-        %Initialize{} = cmd
-      ) do
-    raise_initialize_events(aggregate, cmd)
-  end
-
-  def execute(%Aggregate{state: %Root{} = state} = aggregate, %Initialize{} = cmd) do
-    cond do
-      Flags.has?(state.status, States.unknown()) ->
-        raise_initialize_events(aggregate, cmd)
-
-      Flags.has?(state.status, States.initialized()) ->
-        {:error, :already_initialized}
-
-      true ->
-        {:error, :already_initialized}
-    end
-  end
-
-  def execute(
-        %Aggregate{state: %Root{} = state} = aggregate,
-        %Configure{} = cmd
-      ) do
-    cond do
-      Flags.has?(state.status, States.initialized()) ->
-        raise_configured(aggregate, cmd)
-
-      Flags.has?(state.status, States.configured()) ->
-        {:error, :already_configured}
-
-      true ->
-        {:error, :not_initialized}
-    end
+  @primary_key false
+  @derive {Jason.Encoder, only: @all_fields}
+  embedded_schema do
+    field(:agg_id, :binary_id)
+    field(:status, :integer, default: @proc_unknown)
+    embeds_one(:state, Root)
   end
 
   def apply(
-        %Aggregate{state: nil} = _aggregate,
-        %Initialized{} = evt
+        %Aggregate{state: nil} = _agg,
+        %Initialized{payload: %InitPayload{} = payload} = evt
       ),
       do: %Aggregate{
         agg_id: evt.agg_id,
+        status: @proc_initialized,
         state: %Root{
-          id: evt.agg_id,
-          status: @proc_initialized
+          swarm_training: %SwarmTraining{
+            status: @proc_initialized,
+            swarm_id: payload.swarm_id,
+            user_id: payload.user_id,
+            biotope_id: payload.biotope_id,
+            biotope_name: payload.biotope_name
+          }
         }
       }
 
   def apply(
-        %Aggregate{state: %Root{} = state} = aggregate,
-        %Configured{} = evt
+        %Aggregate{state: %Root{} = state} = agg,
+        %Configured{payload: %ConfigPayload{} = payload} = evt
       ) do
     %Aggregate{
-      aggregate
-      | state: %Root{
+      agg
+      | status: @proc_configured,
+        state: %Root{
           state
-          | status: Flags.set(state.status, @proc_configured),
-            license_request: evt.payload
-        }
+          | swarm_training: %SwarmTraining{
+              state.swarm_training
+              | status: @proc_configured,
+                swarm_size: payload.swarm_size,
+                nbr_of_generations: payload.nbr_of_generations,
+                drone_depth: payload.drone_depth,
+                generation_epoch_in_minutes: payload.generation_epoch_in_minutes,
+                select_best_count: payload.select_best_count,
+                cost_in_tokens: payload.cost_in_tokens
+            }
+          }
     }
   end
 end

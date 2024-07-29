@@ -3,102 +3,78 @@ defmodule Swai.Workspace do
   The Workspace context.
   """
 
+  require Logger
+
   import Ecto.Query, warn: false
   alias Swai.Repo
+  alias Schema.SwarmTraining, as: SwarmTraining
 
-  alias Swai.Workspace.SwarmTraining
+  def exists_swarm_training?(id) do
+    query = from(s in SwarmTraining, where: s.id == ^id)
+    Repo.exists?(query)
+  end
 
-  @doc """
-  Returns the list of swarm_trainings.
-
-  ## Examples
-
-      iex> list_swarm_trainings()
-      [%SwarmTraining{}, ...]
-
-  """
   def list_swarm_trainings do
     Repo.all(SwarmTraining)
   end
 
-  @doc """
-  Gets a single swarm_training.
-
-  Raises `Ecto.NoResultsError` if the Swarm training does not exist.
-
-  ## Examples
-
-      iex> get_swarm_training!(123)
-      %SwarmTraining{}
-
-      iex> get_swarm_training!(456)
-      ** (Ecto.NoResultsError)
-
-  """
   def get_swarm_training!(id), do: Repo.get!(SwarmTraining, id)
 
-  @doc """
-  Creates a swarm_training.
-
-  ## Examples
-
-      iex> create_swarm_training(%{field: value})
-      {:ok, %SwarmTraining{}}
-
-      iex> create_swarm_training(%{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def create_swarm_training(attrs \\ %{}) do
-    %SwarmTraining{}
-    |> SwarmTraining.changeset(attrs)
-    |> Repo.insert()
+    if not exists_swarm_training?(attrs.id) do
+      case %SwarmTraining{}
+           |> SwarmTraining.changeset(attrs) do
+        %{valid?: true} = changeset ->
+          res =
+            changeset
+            |> Repo.insert()
+
+
+          res
+
+        changeset ->
+          Logger.error("Invalid changeset: #{inspect(changeset)}")
+          changeset
+      end
+    else
+      Logger.error("SwarmTraining already exists with id #{attrs.id}")
+      {:error, "SwarmTraining already exists with id #{attrs.id}"}
+    end
   end
 
-  @doc """
-  Updates a swarm_training.
-
-  ## Examples
-
-      iex> update_swarm_training(swarm_training, %{field: new_value})
-      {:ok, %SwarmTraining{}}
-
-      iex> update_swarm_training(swarm_training, %{field: bad_value})
-      {:error, %Ecto.Changeset{}}
-
-  """
   def update_swarm_training(%SwarmTraining{} = swarm_training, attrs) do
     swarm_training
     |> SwarmTraining.changeset(attrs)
     |> Repo.update()
   end
 
-  @doc """
-  Deletes a swarm_training.
-
-  ## Examples
-
-      iex> delete_swarm_training(swarm_training)
-      {:ok, %SwarmTraining{}}
-
-      iex> delete_swarm_training(swarm_training)
-      {:error, %Ecto.Changeset{}}
-
-  """
   def delete_swarm_training(%SwarmTraining{} = swarm_training) do
     Repo.delete(swarm_training)
   end
 
-  @doc """
-  Returns an `%Ecto.Changeset{}` for tracking swarm_training changes.
-
-  ## Examples
-
-      iex> change_swarm_training(swarm_training)
-      %Ecto.Changeset{data: %SwarmTraining{}}
-
-  """
   def change_swarm_training(%SwarmTraining{} = swarm_training, attrs \\ %{}) do
     SwarmTraining.changeset(swarm_training, attrs)
+  end
+
+  def get_swarm_trainings_by_user_id(user_id) do
+    Repo.all(
+      from(
+        s in SwarmTraining,
+        where: s.user_id == ^user_id,
+        order_by: [desc: s.updated_at, desc: s.status]
+      )
+    )
+  end
+
+  def get_swarm_trainings_by_biotope(biotope_id) do
+    Repo.all(
+      from(s in SwarmTraining, where: s.biotope_id == ^biotope_id, order_by: [desc: s.updated_at])
+    )
+  end
+
+  def get_swarm_trainings_by_edge(edge_id) do
+    Repo.all(
+      from(s in SwarmTraining, where: s.edge_id == ^edge_id, order_by: [desc: s.updated_at])
+    )
   end
 end

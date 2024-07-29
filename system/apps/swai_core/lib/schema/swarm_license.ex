@@ -31,7 +31,7 @@ defmodule Schema.SwarmLicense do
     :valid_until,
     :license_type,
     :max_generations,
-    :max_population,
+    :max_population
   ]
 
   @primary_key false

@@ -18,8 +18,8 @@ defmodule TrainSwarm.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
-      mod: {TrainSwarm.Application, []}
+      extra_applications: [:logger, :swai],
+      mod: {Swai.TrainSwarm.Application, []}
     ]
   end
 
@@ -30,7 +30,7 @@ defmodule TrainSwarm.MixProject do
       {:elixir_uuid, "~> 1.2", override: true},
       {:commanded, "~> 1.4"},
       {:commanded_extreme_adapter, "~> 1.1"},
-      {:swai_core, in_umbrella: true}
+      {:swai, in_umbrella: true}
     ]
   end
 end

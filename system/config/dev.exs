@@ -2,6 +2,26 @@ import Config
 
 
 
+# Configure your database
+# config :swai, Swai.Repo,
+#   database: Path.expand("../swai_dev.db", __DIR__),
+#   pool_size: 5,
+#   stacktrace: true,
+#   show_sensitive_data_on_connection_error: true
+
+# Configure your database
+config :swai, Swai.Repo,
+  username: "swai_dev",
+  password: "swai_dev",
+  hostname: "localhost",
+  database: "swai_dev",
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true,
+  pool_size: 10,
+  log: false
+
+
+
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
@@ -18,22 +38,12 @@ config :phoenix_live_view,
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
 
-# # Configure your database
-# config :swai, Swai.Repo,
-#   database: Path.expand("../swai_dev.db", __DIR__),
-#   pool_size: 5,
-#   stacktrace: true,
-#   show_sensitive_data_on_connection_error: true
+config :swai_train_swarm,
+  log: false
 
-# Configure your database
-config :swai, Swai.Repo,
-  username: "swai_dev",
-  password: "swai_dev",
-  hostname: "localhost",
-  database: "swai_dev",
-  stacktrace: true,
-  show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+config :commanded,
+  log_level: :none
+
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -93,7 +103,8 @@ config :swai_web, dev_routes: true
 # Do not include metadata nor timestamps in development logs
 
 # Disable logging for phoenix
-config :phoenix, :log_level, :fatal
+config :phoenix,
+  log: false
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
@@ -107,4 +118,3 @@ config :swoosh, :api_client, false
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
 config :phoenix, :stacktrace_depth, 20
-

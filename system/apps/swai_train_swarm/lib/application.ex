@@ -1,16 +1,23 @@
-defmodule TrainSwarm.Application do
+defmodule Swai.TrainSwarm.Application do
   # See https://hexdocs.pm/elixir/Application.html
   # for more information on OTP Applications
-  @moduledoc false
-
   use Application, otp_app: :swai_train_swarm
 
-  @impl true
+  @moduledoc false
+  @impl Application
   def start(_type, _args) do
     children = [
-      # Starts a worker by calling: TrainSwarm.Worker.start_link(arg)
-      {TrainSwarmProc.CommandedApp, name: TrainSwarmProc.CommandedApp}
+      TrainSwarmProc.CommandedApp,
+      TrainSwarmProc.ToPostgresDoc.V1,
+      TrainSwarmProc.ToPubSub.V1,
     ]
-    Supervisor.start_link(children, [strategy: :one_for_one, name: TrainSwarm.Supervisor])
+    Supervisor.start_link(children,
+      strategy: :one_for_one,
+      name: __MODULE__
+    )
+  end
+
+  def stop() do
+    Supervisor.stop(__MODULE__)
   end
 end

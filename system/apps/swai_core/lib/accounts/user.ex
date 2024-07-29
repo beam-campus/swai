@@ -160,15 +160,10 @@ defmodule Schema.User do
   defp validate_password_confirmation(changeset, opts) do
     changeset
     |> maybe_clear_password_confirmation(opts)
-
-    Logger.alert("Changeset: #{inspect(changeset)}")
-
+    # Logger.alert("Changeset: #{inspect(changeset)}")
     password = get_change(changeset, :password)
     password_confirmation = get_change(changeset, :password_confirmation)
-
-    Logger.alert(
-      "password: #{inspect(password)}, password_confirmation: #{inspect(password_confirmation)}"
-    )
+    # Logger.alert(      "password: #{inspect(password)}, password_confirmation: #{inspect(password_confirmation)}")
 
     if password == password_confirmation do
       changeset

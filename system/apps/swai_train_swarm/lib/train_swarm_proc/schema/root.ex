@@ -3,29 +3,20 @@ defmodule TrainSwarmProc.Schema.Root do
   Documentation for `Root`.
   """
   use Ecto.Schema
-
-
-  alias TrainSwarmProc.Initialize.Payload, as: LicenseRequest
-  alias TrainSwarmProc.Schema.Root, as: Root
   import Ecto.Changeset
 
+  alias TrainSwarmProc.Schema.Root,
+    as: Root
+
+  alias Schema.SwarmTraining, as: SwarmTraining
+
   @all_fields [
-    :id,
-    :status,
-    :license_request
+    :swarm_training
   ]
 
   @primary_key false
   @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
-    field(:id, :string)
-    field(:status, :integer)
-    embeds_one(:license_request, LicenseRequest)
+    embeds_one(:swarm_training, SwarmTraining)
   end
-
-
-
-
-
-
 end

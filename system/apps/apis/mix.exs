@@ -44,7 +44,6 @@ defmodule Apis.MixProject do
       {:ex_doc, "~> 0.34.0", only: [:dev], runtime: false},
       {:dialyze, "~> 0.2.0", only: [:dev]},
       {:dialyxir, "~> 1.4.3", only: [:dev], runtime: false},
-
       {:elixir_uuid, "~> 1.2"},
       {:jason, "~> 1.4.1"},
       {:req, "~> 0.4.14"},

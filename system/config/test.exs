@@ -25,10 +25,17 @@ config :bcrypt_elixir, :log_rounds, 1
 # The MIX_TEST_PARTITION environment variable can be used
 # to provide built-in test partitioning in CI environment.
 # Run `mix help test` for more information.
+# Configure your database
 config :swai, Swai.Repo,
-  database: Path.expand("../swai_test.db", __DIR__),
-  pool_size: 5,
-  pool: Ecto.Adapters.SQL.Sandbox
+  username: "swai_dev",
+  password: "swai_dev",
+  hostname: "localhost",
+  database: "swai_test",
+  stacktrace: true,
+  show_sensitive_data_on_connection_error: true,
+  pool: Ecto.Adapters.SQL.Sandbox,
+  pool_size: 10,
+  log: false
 
 # We don't run a server during test. If one is required,
 # you can enable the server option below.

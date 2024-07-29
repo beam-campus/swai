@@ -1,7 +1,6 @@
 defmodule Swai.SwarmSpecs do
 
-  alias Schema.Biotope, as: Biotope
-
+  
   alias Schema.RequestToSwarm, as: SwarmSpec
 
 

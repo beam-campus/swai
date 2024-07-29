@@ -213,10 +213,9 @@ defmodule Edge.Init do
 
   def from_environment(ip_info) when is_map(ip_info) do
     {:ok, chost} = :inet.gethostname()
-    edge_id = "#{to_string(chost)}-" <> Edge.random_id()
-
     api_key = System.get_env(EnvVars.swai_edge_api_key()) || "no-api-key"
     scape_id = System.get_env(EnvVars.swai_edge_scape_id()) || "dairy-logs"
+    edge_id = "#{to_string(chost)}-" <> api_key
 
     %EdgeInit{
       id: edge_id,

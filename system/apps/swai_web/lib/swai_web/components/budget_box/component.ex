@@ -18,7 +18,7 @@ defmodule SwaiWeb.BudgetBox do
         <%!-- <%= if @user.budget <= 0 do %> --%>
         <.link
           href={"/populate/#{@current_user.id}"}
-          class="bg-red-500 hover:bg-red-800 text-white font-regular py-1 px-3 text-xs rounded-lg transition duration-300 ease-in-out"
+          class="bg-swBrand-dark hover:bg-swBrand text-white font-regular py-1 px-3 text-xs rounded-lg transition duration-300 ease-in-out"
           role="button"
           method="get"
           id="button_order_drones"

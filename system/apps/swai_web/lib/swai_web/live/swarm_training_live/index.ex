@@ -2,7 +2,7 @@ defmodule SwaiWeb.SwarmTrainingLive.Index do
   use SwaiWeb, :live_view
 
   alias Swai.Workspace
-  alias Swai.Workspace.SwarmTraining
+  alias Schema.SwarmTraining
 
   @impl true
   def mount(_params, _session, socket) do

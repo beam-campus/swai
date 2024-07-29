@@ -17,7 +17,6 @@ defmodule Swai.Application do
       Swai.Repo,
       {DNSCluster, query: Application.get_env(:swai, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Swai.PubSub},
-      # Start the Finch HTTP client for sending emails
       {Finch, name: Swai.Finch},
       Swai.CachesSystem
     ]

@@ -33,24 +33,31 @@ defmodule SwaiWeb.OurMissionLive.Index do
     >
 
      <div class="lt-section-header">
-       One AI, or another...
+     One AI, or another...
      </div>
      <div class="lt-section-text">
      <span>
-     Welcome to Swarm Wars, a platform for decentralized, evolutionary AI.
+     Welcome to Swarm Wars, a platform for decentralized, evolutionary computing.
      <br/>
-     Though genetic AI doesn't enjoy the same media exposure as the generative kind,
-     it does have the potential to be a better fit for solving problems
-     in changing environments, that require self-learning and adapting agents.
+     In recent years, the world has seen a surge in AI applications, with the majority
+     being based on generative AI. This approach is great for solving problems where
+     the desired outcome is more or less deterministic and models can be trained on large datasets.
+     <br/>
+     This platform, however, is dedicated to evolutionary computing, also known as
+     neuroevolution, a different approach that is inspired by how nature itself works.
+      <br/>
+     In addition, we try to take it a step further by introducing decentralization and autonomy,
+     using algorithms that are inspired by the behavior of social insect species,
+     birds, fish and even herding species, which to some extent even includes humans.
      <br/>
      Our mission is to create a community that is interested to further this field,
-     with the ideal of being able to apply what we learn to real-world problems.
+     with the ideal of being able to apply what we learn to practical problems.
      </span>
      </div>
 
 
      <div class="lt-section-header">
-        More than a Game
+     More than a Game
     </div>
     <div class="lt-section-text">
     <span>
@@ -84,22 +91,6 @@ defmodule SwaiWeb.OurMissionLive.Index do
     </div>
 
     <div class="lt-section-header">
-       Shoulders of Giants
-     </div>
-     <div class="lt-section-text">
-     <span>
-     We draw inspiration from the pioneering work
-     by <a class="text-blue-300 hover:underline" href="https://mitpressbookstore.mit.edu/book/9780262581110">John Henry Holland</a> and from modern advancements as described
-     by <a class="text-blue-300 hover:underline" href="https://link.springer.com/book/10.1007/978-1-4614-4463-3">Gene Sher</a>
-     and <a class="text-blue-300 hover:underline" href="https://pragprog.com/titles/smgaelixir/genetic-algorithms-in-elixir/">Sean Moriarity</a>.
-     <br />
-     These are some of the trailblazers that have paved the way for us to explore the potential of genetic algorithms.
-     Not mentioning these people would be a disservice to the field and to the community.
-     </span>
-     </div>
-
-
-     <div class="lt-section-header">
        Why the BEAM?
     </div>
     <div class="lt-section-text">
@@ -112,6 +103,9 @@ defmodule SwaiWeb.OurMissionLive.Index do
     it is also very cost-efficient and capable of running on a wide range of hardware, making it resource-friendly and sustainable as well.
     </span>
     </div>
+
+
+
 
 
 

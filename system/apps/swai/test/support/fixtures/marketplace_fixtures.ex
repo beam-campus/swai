@@ -23,21 +23,5 @@ defmodule Swai.MarketplaceFixtures do
     drone_order
   end
 
-  @doc """
-  Generate a drone_order.
-  """
-  def drone_order_fixture(attrs \\ %{}) do
-    {:ok, drone_order} =
-      attrs
-      |> Enum.into(%{
-        currency: "some currency",
-        description: "some description",
-        price_in_cents: 42,
-        quantity: 42,
-        status: 42
-      })
-      |> Swai.Marketplace.create_drone_order()
 
-    drone_order
-  end
 end

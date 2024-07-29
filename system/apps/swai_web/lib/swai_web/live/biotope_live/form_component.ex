@@ -4,35 +4,6 @@ defmodule SwaiWeb.BiotopeLive.FormComponent do
   alias Swai.Biotopes
 
   @impl true
-  def render(assigns) do
-    ~H"""
-    <div>
-      <.header>
-        <%= @title %>
-        <:subtitle>Use this form to manage biotope records in your database.</:subtitle>
-      </.header>
-
-      <.simple_form
-        for={@form}
-        id="biotope-form"
-        phx-target={@myself}
-        phx-change="validate"
-        phx-submit="save"
-      >
-        <.input field={@form[:name]} type="text" label="Name" />
-        <.input field={@form[:description]} type="text" label="Description" />
-        <.input field={@form[:image_url]} type="text" label="Image url" />
-        <.input field={@form[:theme]} type="text" label="Theme" />
-        <.input field={@form[:tags]} type="text" label="Tags" />
-        <:actions>
-          <.button phx-disable-with="Saving...">Save Biotope</.button>
-        </:actions>
-      </.simple_form>
-    </div>
-    """
-  end
-
-  @impl true
   def update(%{biotope: biotope} = assigns, socket) do
     {:ok,
      socket
@@ -83,4 +54,37 @@ defmodule SwaiWeb.BiotopeLive.FormComponent do
   end
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
+
+  @impl true
+  def render(assigns) do
+    ~H"""
+    <div>
+      <.header>
+        <%= @title %>
+        <:subtitle>Use this form to manage biotope records in your database.</:subtitle>
+      </.header>
+
+      <.simple_form
+        for={@form}
+        id="biotope-form"
+        phx-target={@myself}
+        phx-change="validate"
+        phx-submit="save"
+      >
+        <.input field={@form[:name]} type="text" label="Name" />
+        <.input field={@form[:description]} type="text" label="Description" />
+        <.input field={@form[:image_url]} type="text" label="Image url" />
+        <.input field={@form[:theme]} type="text" label="Theme" />
+        <.input field={@form[:tags]} type="text" label="Tags" />
+        <:actions>
+          <.button phx-disable-with="Saving...">Save Biotope</.button>
+        </:actions>
+      </.simple_form>
+    </div>
+    """
+  end
+
+
+
+
 end

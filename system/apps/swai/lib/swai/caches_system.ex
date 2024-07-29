@@ -18,6 +18,7 @@ defmodule Swai.CachesSystem do
     :lives_cache |> Cachex.start()
     :nature_cache |> Cachex.start()
     :workspaces_cache |> Cachex.start()
+    :swarm_trainings_cache |> Cachex.start()
   end
 
   ################## CALLBACKS ############
@@ -32,7 +33,8 @@ defmodule Swai.CachesSystem do
       Farms.Service,
       Lives.Service,
       Nature.Service,
-      Workspaces.Service
+      Workspaces.Service,
+      SwarmTrainings.Service
     ]
 
     Supervisor.start_link(

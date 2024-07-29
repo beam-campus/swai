@@ -41,7 +41,7 @@ defmodule Swai.MixProject do
       {:phoenix_pubsub, "~> 2.1"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
-      # {:ecto_sqlite3, ">= 0.0.0"},
+      {:ecto_sqlite3, ">= 0.0.0"},
       {:jason, "~> 1.2"},
       {:swoosh, "~> 1.5"},
       {:gen_smtp, "~> 1.1"},
@@ -49,7 +49,7 @@ defmodule Swai.MixProject do
       {:ets, "~> 0.9.0"},
       {:cachex, "~> 3.6"},
       {:unique_names_generator, "~> 0.2.0"},
-      {:swai_train_swarm, in_umbrella: true}
+      {:swai_core, in_umbrella: true}
     ]
   end
 

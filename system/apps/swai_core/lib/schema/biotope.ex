@@ -18,7 +18,8 @@ defmodule Schema.Biotope do
     :difficulty,
     :is_active?,
     :biotope_type,
-    :is_realistic?
+    :is_realistic?,
+    :scape_id
   ]
 
   @required_fields [
@@ -33,7 +34,8 @@ defmodule Schema.Biotope do
     :difficulty,
     :is_active?,
     :biotope_type,
-    :is_realistic?
+    :is_realistic?,
+    :scape_id
   ]
 
   @primary_key {:id, :binary_id, autogenerate: true}
@@ -50,6 +52,7 @@ defmodule Schema.Biotope do
     field(:difficulty, :integer)
     field(:biotope_type, :string, default: "Swarm vs Environment")
     field(:is_realistic?, :boolean, default: false)
+    field(:scape_id, :string)
     timestamps(type: :utc_datetime_usec)
   end
 

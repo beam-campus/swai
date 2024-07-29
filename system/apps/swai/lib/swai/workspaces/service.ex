@@ -29,6 +29,8 @@ defmodule Workspaces.Service do
     ws
   end
 
+  
+
   ################## CALLBACKS ###############
   @impl true
   def init(_args) do
@@ -51,7 +53,8 @@ defmodule Workspaces.Service do
 
   ################# handle_call #################
   @impl true
-  def handle_call({:get_workspace, user_id}, _from, state) do
+  def handle_call({:get_workspace, _user_id}, _from, state) do
+    {:reply, :ok, state}
   end
 
   ################# PLUMBING #################

@@ -84,4 +84,7 @@ defmodule Colors do
 
   def workspace_theme(pid),
     do: "#{yellow_on_black()}#{inspect(pid)}#{reset()}"
+
+    def swarm_theme(pid),
+    do: "#{yellow_on_black_blinking()}#{inspect(pid)}#{reset()}"
 end

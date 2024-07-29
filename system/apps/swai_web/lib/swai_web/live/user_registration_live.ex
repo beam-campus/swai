@@ -16,7 +16,7 @@ defmodule SwaiWeb.UserRegistrationLive do
     |> Accounts.with_random_alias()
 
 
-    Logger.alert("Changeset: #{inspect(changeset)}")
+    # Logger.alert("Changeset: #{inspect(changeset)}")
 
     case connected?(socket) do
       true ->
@@ -36,6 +36,7 @@ defmodule SwaiWeb.UserRegistrationLive do
         {:ok,
          socket
          |> assign(
+           page_title: "User Registration",
            trigger_submit: false,
            check_errors: false,
            edges: []
@@ -57,7 +58,7 @@ defmodule SwaiWeb.UserRegistrationLive do
   @impl true
   def handle_event("save", %{"user" => user_params}, socket) do
 
-    Logger.alert("Saving User params: #{inspect(user_params)}")
+    # Logger.alert("Saving User params: #{inspect(user_params)}")
 
     case Accounts.register_user(user_params) do
       {:ok, user} ->
@@ -71,7 +72,7 @@ defmodule SwaiWeb.UserRegistrationLive do
           Accounts.change_user_registration(user)
           |> Ecto.Changeset.delete_change(:password_confirmation)
 
-          Logger.alert("Changeset: #{inspect(changeset)}")
+          # Logger.alert("Changeset: #{inspect(changeset)}")
 
 
         {
