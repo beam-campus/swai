@@ -5,10 +5,10 @@ defmodule Swai.WorkspaceFixtures do
   """
 
   @doc """
-  Generate a swarm_training.
+  Generate a swarm_license.
   """
-  def swarm_training_fixture(attrs \\ %{}) do
-    {:ok, swarm_training} =
+  def swarm_license_fixture(attrs \\ %{}) do
+    {:ok, swarm_license} =
       attrs
       |> Enum.into(%{
         budget_in_tokens: 42,
@@ -22,8 +22,8 @@ defmodule Swai.WorkspaceFixtures do
         tokens_used: 42,
         total_run_time_in_seconds: 42
       })
-      |> Swai.Workspace.create_swarm_training()
+      |> Swai.Workspace.create_swarm_license()
 
-    swarm_training
+    swarm_license
   end
 end

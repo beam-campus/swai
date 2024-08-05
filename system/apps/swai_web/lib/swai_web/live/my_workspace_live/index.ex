@@ -7,14 +7,14 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
   alias Edges.Service, as: Edges
   alias Phoenix.PubSub, as: PubSub
   alias TrainSwarmProc.Facts, as: Facts
-  alias SwarmTrainings.Service, as: SwarmTrainings
+  alias SwarmLicenses.Service, as: SwarmLicenses
 
-  alias TrainSwarmProc.Initialize.Payload.V1, as: InitPayload
-  alias TrainSwarmProc.Configure.Payload.V1, as: ConfigPayload
+  alias TrainSwarmProc.Initialize.PayloadV1, as: InitPayload
+  alias TrainSwarmProc.Configure.PayloadV1, as: ConfigPayload
 
-  alias Schema.SwarmTraining, as: SwarmTraining
+  alias Schema.SwarmLicense, as: SwarmLicense
 
-  @swarm_trainings_cache_updated_v1 Facts.cache_updated_v1()
+  @swarm_licenses_cache_updated_v1 Facts.cache_updated_v1()
   @user_id "user_id"
 
   require Logger
@@ -25,11 +25,11 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
 
     case connected?(socket) do
       true ->
-        # trainings = Workspace.get_swarm_trainings_by_user_id(current_user.id)
-        trainings = SwarmTrainings.get_all_for_user(current_user.id)
+        # trainings = Workspace.get_swarm_licenses_by_user_id(current_user.id)
+        trainings = SwarmLicenses.get_all_for_user(current_user.id)
 
         Swai.PubSub
-        |> PubSub.subscribe(@swarm_trainings_cache_updated_v1)
+        |> PubSub.subscribe(@swarm_licenses_cache_updated_v1)
 
         {
           :ok,
@@ -38,7 +38,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
             page_title: "My Workspace",
             edges: Edges.get_all(),
             now: DateTime.utc_now(),
-            swarm_trainings: trainings
+            swarm_licenses: trainings
           )
         }
 
@@ -49,7 +49,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
            page_title: "My Workspace",
            edges: [],
            now: DateTime.utc_now(),
-           swarm_trainings: []
+           swarm_licenses: []
          )}
     end
   end
@@ -73,15 +73,13 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
         {_, payload, %{@user_id => the_user} = meta},
         socket
       ) do
-    Logger.alert("Swarm Trainings Cache Updated - #{inspect(payload)} - #{inspect(meta)}")
+    Logger.debug("Swarm Trainings Cache Updated - #{inspect(payload)} - #{inspect(meta)}")
 
-    cond do
-      the_user == socket.assigns.current_user.id ->
-        trainings = SwarmTrainings.get_all_for_user(socket.assigns.current_user.id)
-        {:noreply, assign(socket, swarm_trainings: trainings)}
-
-      true ->
-        {:noreply, socket}
+    if the_user == socket.assigns.current_user.id do
+      trainings = SwarmLicense.get_all_for_user(socket.assigns.current_user.id)
+      {:noreply, assign(socket, swarm_licenses: trainings)}
+    else
+      {:noreply, socket}
     end
   end
 
@@ -94,18 +92,18 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <div id="workspace"  class="flex flex-col my-5">
-    <section class="py-3">
+    <div id="workspace" class="flex flex-col my-5">
+      <section class="py-3">
         <.live_component
-            id="active-swarms-section"
-            current_user={@current_user}
-            live_action={@live_action}
-            module={SwaiWeb.MyWorkspaceLive.SwarmTrainingsSection}
-            edges={@edges}
-            swarm_trainings={@swarm_trainings}
-            now={@now}
-            section_title="My Swarm Trainings"
-            section_description="This is a list of all the swarm trainings you have created."
+          id="active-swarms-section"
+          current_user={@current_user}
+          live_action={@live_action}
+          module={SwaiWeb.MyWorkspaceLive.SwarmLicensesSection}
+          edges={@edges}
+          swarm_licenses={@swarm_licenses}
+          now={@now}
+          section_title="My Swarm Licenses"
+          section_description="This is a list of all the Swarm Licenses you have created."
         />
       </section>
     </div>

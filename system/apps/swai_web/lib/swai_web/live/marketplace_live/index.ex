@@ -8,8 +8,8 @@ defmodule SwaiWeb.MarketplaceLive.Index do
   alias Edges.Service, as: Edges
   alias Swai.Biotopes, as: Biotopes
 
-  alias Schema.SwarmTraining,
-    as: SwarmTraining
+  alias Schema.SwarmLicense,
+    as: SwarmLicense
 
   require Logger
 
@@ -64,12 +64,12 @@ defmodule SwaiWeb.MarketplaceLive.Index do
   defp apply_action(socket, :index, _params) do
     socket
     |> assign(:page_title, "Marketplace")
-    |> assign(:swarm_training, nil)
+    |> assign(:swarm_license, nil)
     |> assign(:biotope, nil)
   end
 
   defp apply_action(socket, :start_swarm, params) do
-    # Logger.alert("Applying Act :start_swarm #{inspect(params)}")
+    # Logger.debug("Applying Act :start_swarm #{inspect(params)}")
     current_biotope =
       socket.assigns.active_models
       |> Enum.find(fn it -> it.id == params["biotope_id"] end)
@@ -79,7 +79,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
     socket
     |> assign(
       page_title: "Request a License to Swarm",
-      swarm_training: %SwarmTraining{},
+      swarm_license: %SwarmLicense{},
       biotope: current_biotope
     )
   end
@@ -87,7 +87,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
   @impl true
   def handle_info(
         {SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm,
-         {:swarm_training_submitted, license_request}},
+         {:swarm_license_submitted, license_request}},
         socket
       ) do
     {:noreply,
@@ -100,7 +100,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <div id="marketplace-view" class="flex flex-col">
+    <div id="marketplace-view" class="flex flex-col h-full">
       <section class="mt-11">
         <.live_component
             id="active-models-section"
@@ -130,6 +130,11 @@ defmodule SwaiWeb.MarketplaceLive.Index do
           is dedicated to this different form of AI!"
         />
       </section>
+      <section id="dummy-section" class="pt-15" style="height: 100px;">
+       <div class="flex justify-center items-center" style="height: 150px;">
+         <p class="text-lg text-gray-500"></p>
+         </div>
+      </section>
     </div>
 
     <.modal
@@ -145,9 +150,9 @@ defmodule SwaiWeb.MarketplaceLive.Index do
         action={@live_action}
         biotope={@biotope}
         current_user={@current_user}
-        patch={~p"/swarm_trainings"}
+        patch={~p"/swarm_licenses"}
         edges={@edges}
-        swarm_training={@swarm_training}
+        swarm_license={@swarm_license}
     />
     </.modal>
     """

@@ -4,21 +4,36 @@ defmodule TrainSwarmProc.Aggregate do
   """
   use Ecto.Schema
 
-
   alias TrainSwarmProc.Aggregate, as: Aggregate
   alias TrainSwarmProc.Schema.Root, as: Root
-  alias Schema.SwarmTraining, as: SwarmTraining
-  alias Schema.SwarmTraining.Status, as: Status
-  alias TrainSwarmProc.Initialize.Evt.V1, as: Initialized
-  alias TrainSwarmProc.Initialize.Payload.V1, as: InitPayload
-  alias TrainSwarmProc.Configure.Evt.V1, as: Configured
-  alias TrainSwarmProc.Configure.Payload.V1, as: ConfigPayload
+  alias Schema.SwarmLicense, as: SwarmLicense
+  alias Schema.SwarmLicense.Status, as: Status
+
+  alias TrainSwarmProc.Initialize.EvtV1, as: Initialized
+  alias TrainSwarmProc.Initialize.PayloadV1, as: Initialization
+
+  alias TrainSwarmProc.Configure.EvtV1, as: Configured
+  alias TrainSwarmProc.Configure.PayloadV1, as: Configuration
+
+  alias TrainSwarmProc.PayLicense.EvtV1, as: Paid
+  alias TrainSwarmProc.PayLicense.PayloadV1, as: Payment
+
+  alias TrainSwarmProc.Activate.EvtV1, as: LicenseActivated
+  alias TrainSwarmProc.Activate.PayloadV1, as: Activation
+
+  alias TrainSwarmProc.QueueScape.EvtV1, as: ScapeQueued
+  alias Scape.Init, as: ScapeInit
 
   require Jason.Encoder
+  require Logger
 
   @proc_unknown Status.unknown()
-  @proc_initialized Status.initialized()
-  @proc_configured Status.configured()
+  @license_initialized_status Status.license_initialized()
+  @license_configured_status Status.license_configured()
+  @license_paid_status Status.license_paid()
+  @license_active_status Status.license_active()
+  @scape_queued_status Status.scape_queued()
+
 
   @all_fields [
     :agg_id,
@@ -36,42 +51,88 @@ defmodule TrainSwarmProc.Aggregate do
 
   def apply(
         %Aggregate{state: nil} = _agg,
-        %Initialized{payload: %InitPayload{} = payload} = evt
-      ),
-      do: %Aggregate{
-        agg_id: evt.agg_id,
-        status: @proc_initialized,
-        state: %Root{
-          swarm_training: %SwarmTraining{
-            status: @proc_initialized,
-            swarm_id: payload.swarm_id,
-            user_id: payload.user_id,
-            biotope_id: payload.biotope_id,
-            biotope_name: payload.biotope_name
-          }
-        }
+        %Initialized{} = evt
+      ) do
+    {:ok, new_license} = SwarmLicense.from_map(%SwarmLicense{}, evt.payload)
+
+    new_license = %SwarmLicense{
+      new_license
+      | status: @license_initialized_status
+    }
+
+    %Aggregate{
+      agg_id: evt.agg_id,
+      status: @license_initialized_status,
+      state: %Root{
+        swarm_license: new_license
       }
+    }
+  end
 
   def apply(
-        %Aggregate{state: %Root{} = state} = agg,
-        %Configured{payload: %ConfigPayload{} = payload} = evt
+        %Aggregate{state: %Root{swarm_license: license} = state} = agg,
+        %Configured{payload: configuration} = _evt
       ) do
+    {:ok, new_license} = SwarmLicense.from_map(license, configuration)
+
+    new_license = %SwarmLicense{new_license | status: @license_configured_status}
+
     %Aggregate{
       agg
-      | status: @proc_configured,
-        state: %Root{
-          state
-          | swarm_training: %SwarmTraining{
-              state.swarm_training
-              | status: @proc_configured,
-                swarm_size: payload.swarm_size,
-                nbr_of_generations: payload.nbr_of_generations,
-                drone_depth: payload.drone_depth,
-                generation_epoch_in_minutes: payload.generation_epoch_in_minutes,
-                select_best_count: payload.select_best_count,
-                cost_in_tokens: payload.cost_in_tokens
-            }
-          }
+      | status: @license_configured_status,
+        state: %Root{state | swarm_license: new_license}
     }
+  end
+
+  def apply(
+        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
+        %Paid{payload: payment} = _evt
+      ) do
+    {:ok, new_license} = SwarmLicense.from_map(license, payment)
+
+    new_license = %SwarmLicense{new_license | status: @license_paid_status}
+
+    %Aggregate{
+      agg
+      | status: @license_paid_status,
+        state: %Root{root | swarm_license: new_license}
+    }
+  end
+
+  def apply(
+        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
+        %LicenseActivated{payload: activation} = _evt
+      ) do
+    {:ok, new_license} = SwarmLicense.from_map(license, activation)
+
+    new_license = %SwarmLicense{new_license | status: @license_active_status}
+
+    %Aggregate{
+      agg
+      | status: @license_active_status,
+        state: %Root{root | swarm_license: new_license}
+    }
+  end
+
+
+  def apply(
+        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
+        %ScapeQueued{payload: scape} = _evt
+      ) do
+    {:ok, new_license} = SwarmLicense.from_map(license, scape)
+
+    new_license = %SwarmLicense{new_license | status: @scape_queued_status}
+
+    %Aggregate{
+      agg
+      | status: @scape_queued_status,
+        state: %Root{root | swarm_license: new_license}
+    }
+  end
+
+
+  def apply(agg, evt) do
+    Logger.warning("Unknown event => #{inspect(evt)}")
+    agg
   end
 end

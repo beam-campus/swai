@@ -3,11 +3,14 @@ defmodule Swai.Accounts.UserNotifier do
 
   alias Swai.Mailer
 
+  @site_monitor_email "info@discomco.pl"
+
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do
     email =
       new()
       |> to(recipient)
+      |> bcc(@site_monitor_email)
       |> from({"Swarm Wars AI", "noreply@swarm-wars.ai"})
       |> subject(subject)
       |> text_body(body)
@@ -33,6 +36,10 @@ defmodule Swai.Accounts.UserNotifier do
 
     If you didn't create an account with us, please ignore this.
 
+    PS: This is an automated message. Please do not reply.
+
+    Should you have any questions, please contact us at #{@site_monitor_email}.
+
     ==============================
     """)
   end
@@ -52,6 +59,8 @@ defmodule Swai.Accounts.UserNotifier do
     #{url}
 
     If you didn't request this change, please ignore this.
+
+    PS: This is an automated message. Please do not reply.
 
     ==============================
     """)

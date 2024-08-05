@@ -53,6 +53,15 @@ defmodule Edges.Service do
         {:get_edge_stats, edge_id}
       )
 
+  def get_by_biotope_id(biotope_id),
+    do:
+      :edges_cache
+      |> Cachex.stream!()
+      |> Stream.filter(fn {:entry, _, _, _, edge} -> edge.biotope_id == biotope_id end)
+      |> Enum.to_list()
+
+
+
   # def get_by_id(id),
   #   do:
   #     GenServer.call(
@@ -61,6 +70,13 @@ defmodule Edges.Service do
   #     )
 
   ############## CALLBACKS #########
+  @impl GenServer
+  def init(args \\ []) do
+    PubSub.subscribe(Swai.PubSub, @edge_attached_v1)
+    PubSub.subscribe(Swai.PubSub, @edge_detached_v1)
+    {:ok, args}
+  end
+
   @impl GenServer
   def handle_call(:count, _from, state),
     do:
@@ -131,7 +147,7 @@ defmodule Edges.Service do
 
     case existing do
       nil ->
-        # Logger.alert("Edge attached: #{inspect(edge_init)}")
+        # Logger.debug("Edge attached: #{inspect(edge_init)}")
 
         new_edge = %EdgeInit{
           edge_init
@@ -144,7 +160,7 @@ defmodule Edges.Service do
         |> Cachex.put!(edge_init.id, new_edge)
 
       {:entry, _, _, _, old} ->
-        # Logger.alert("Edge already attached: #{inspect(edge_init)} ...existing: #{inspect(old)}")
+        # Logger.debug("Edge already attached: #{inspect(edge_init)} ...existing: #{inspect(old)}")
 
         %{stats: %EdgeStats{} = old_stats} = old
 
@@ -168,41 +184,47 @@ defmodule Edges.Service do
 
   @impl GenServer
   def handle_info({@edge_detached_v1, %EdgeInit{} = edge_init}, state) do
-    # Logger.alert("Edge detached: #{inspect(edge_init)}")
+    ######################################################################
+    ## @edge_detached_v1 does not remove the edge entry from the cache
+    # it only decrements the number of agents on the edge.
+    ## If the number of agents on the edge is 0, the edge is removed from the cache.
+    ######################################################################
+    # Logger.debug("Edge detached: #{inspect(edge_init)}")
     existing = get_by_id(edge_init)
 
     case existing do
       nil ->
-        # Logger.alert("Edge not found: #{inspect(edge_init)}")
+        # Logger.debug("Edge not found: #{inspect(edge_init)}")
+
         {:noreply, state}
 
       {:entry, _, _, _, old_edge} ->
-        # Logger.alert("Edge found: #{inspect(old_edge)}")
+        # Logger.debug("Edge found: #{inspect(old_edge)}")
         %{stats: %EdgeStats{} = old_stats} = old_edge
 
-        new_stats = %EdgeStats{
-          old_stats
-          | nbr_of_agents: old_stats.nbr_of_agents - 1
-        }
+        cond do
+          old_stats.nbr_of_agents == 1 ->
+            :edges_cache
+            |> Cachex.del(old_edge.id)
 
-        new_edge = %EdgeInit{
-          old_edge
-          | stats: new_stats
-        }
+          true ->
+            new_stats = %EdgeStats{
+              old_stats
+              | nbr_of_agents: old_stats.nbr_of_agents - 1
+            }
 
-        :edges_cache
-        |> Cachex.update!(new_edge.id, new_edge)
+            new_edge = %EdgeInit{
+              old_edge
+              | stats: new_stats
+            }
+
+            :edges_cache
+            |> Cachex.update!(new_edge.id, new_edge)
+        end
     end
 
     notify_edges_updated({@edge_detached_v1, edge_init})
     {:noreply, state}
-  end
-
-  @impl GenServer
-  def init(args \\ []) do
-    PubSub.subscribe(Swai.PubSub, @edge_attached_v1)
-    PubSub.subscribe(Swai.PubSub, @edge_detached_v1)
-    {:ok, args}
   end
 
   ############ INTERNALS ########

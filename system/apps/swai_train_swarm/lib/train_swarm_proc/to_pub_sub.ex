@@ -1,26 +1,36 @@
-defmodule TrainSwarmProc.ToPubSub.V1 do
+defmodule TrainSwarmProc.ToPubSubV1 do
+  @moduledoc """
+  This module is responsible for handling the events that are emitted by the TrainSwarmProc
+  and broadcasting them to the Phoenix.PubSub
+  """
   use Commanded.Event.Handler,
-    name: "TrainSwarmProc.ToPubSub.V1",
+    name: "TrainSwarmProc.ToPubSubV1",
     application: TrainSwarmProc.CommandedApp,
     start_from: :origin
 
   alias Commanded.PubSub
 
-  alias TrainSwarmProc.Initialize.Evt.V1, as: InitializedV1
-    alias TrainSwarmProc.Configure.Evt.V1, as: ConfiguredV1
+  alias TrainSwarmProc.Initialize.EvtV1, as: InitializedV1
+  alias TrainSwarmProc.Configure.EvtV1, as: ConfiguredV1
+  alias TrainSwarmProc.PayLicense.EvtV1, as: LicensePaid
+  alias TrainSwarmProc.Activate.EvtV1, as: LicenseActivated
+  alias TrainSwarmProc.QueueScape.EvtV1, as: ScapeQueued
+
   alias TrainSwarmProc.Facts, as: Facts
   alias Phoenix.PubSub, as: PubSub
 
   require Logger
 
-
-  @initialized_v1 Facts.initialized()
-  @configured_v1 Facts.configured()
+  @initialized_v1 Facts.license_initialized()
+  @configured_v1 Facts.license_configured()
+  @license_paid Facts.license_paid()
+  @license_activated Facts.license_activated()
+  @scape_queued Facts.scape_queued()
 
   ###################### INITIALIZED #######################
   @impl true
   def handle(%InitializedV1{} = evt, metadata) do
-    Logger.alert("INITIALIZING SWARM TRAINING with event #{inspect(evt)}")
+    Logger.debug("INITIALIZING SWARM TRAINING with event #{inspect(evt)}")
 
     Swai.PubSub
     |> PubSub.broadcast(@initialized_v1, {@initialized_v1, evt, metadata})
@@ -31,7 +41,7 @@ defmodule TrainSwarmProc.ToPubSub.V1 do
   ####################### CONFIGURED #######################
   @impl true
   def handle(%ConfiguredV1{} = evt, metadata) do
-    Logger.alert("CONFIGURING SWARM TRAINING with event #{inspect(evt)}")
+    Logger.debug("CONFIGURING SWARM TRAINING with event #{inspect(evt)}")
 
     Swai.PubSub
     |> PubSub.broadcast!(@configured_v1, {@configured_v1, evt, metadata})
@@ -39,6 +49,40 @@ defmodule TrainSwarmProc.ToPubSub.V1 do
     :ok
   end
 
+  ########################### LICENSE PAID ############################
+  @impl true
+  def handle(%LicensePaid{} = evt, metadata) do
+    Logger.debug("LICENSE PAID with event #{inspect(evt)}")
+
+    Swai.PubSub
+    |> PubSub.broadcast!(@license_paid, {@license_paid, evt, metadata})
+
+    :ok
+  end
+
+  ############################## LICENSE ACTIVATED ##############################
+  @impl true
+  def handle(%LicenseActivated{} = evt, metadata) do
+    Logger.debug("LICENSE ACTIVATED with event #{inspect(evt)}")
+
+    Swai.PubSub
+    |> PubSub.broadcast!(@license_activated, {@license_activated, evt, metadata})
+
+    :ok
+  end
+
+  ############################ SCAPE QUEUED ############################
+  @impl true
+  def handle(%ScapeQueued{} = evt, metadata) do
+    Logger.debug("SCAPE QUEUED with event #{inspect(evt)}")
+
+    Swai.PubSub
+    |> PubSub.broadcast!(@scape_queued, {@scape_queued, evt, metadata})
+
+    :ok
+  end
+
+  ####################### UNHANDLED EVENTS #######################
   @impl true
   def handle(msg, _metadata) do
     Logger.warning("Unhandled event #{inspect(msg)}")

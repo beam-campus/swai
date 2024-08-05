@@ -9,7 +9,7 @@ defmodule TrainSwarmProc.CommandedApp do
 
   @impl true
   def init(config) do
-    # Logger.alert("TrainSwarmProc.CommandedApp: has started #{Colors.edge_theme(self())}")
+    # Logger.debug("TrainSwarmProc.CommandedApp: has started #{Colors.edge_theme(self())}")
     {:ok, config}
   end
 

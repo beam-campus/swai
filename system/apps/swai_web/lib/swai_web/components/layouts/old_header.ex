@@ -19,7 +19,7 @@ defmodule SwaiWeb.Layouts.OldHeader do
             <p class="text-swBrand-dark text-2xl font-brand pl-5"><%= assigns[:page_title] %> </p>
             <div class="font-brand text-xs text-white pl-5" id="bar-disclaimer">
               <span>
-              DISCLAIMER: This site is still WiP!<br/>
+              DISCLAIMER: This site is WiP! Estimated launch date: 01.09.2024.<br/>
               If you want to support our work, please consider <a href="https://www.buymeacoffee.com/beamologist" class="text-ltOrange-light hover:underline">buying us a coffee</a>
               </span>
             </div>

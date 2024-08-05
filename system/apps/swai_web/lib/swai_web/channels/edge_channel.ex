@@ -7,9 +7,8 @@ defmodule SwaiWeb.EdgeChannel do
   require Logger
   require Phoenix.PubSub
 
-  alias SwaiWeb.Dispatch.EdgePresence
-  alias SwaiWeb.Dispatch.EdgeHandler,
-  as: EdgeHandler
+  alias SwaiWeb.EdgePresence, as: EdgePresence
+  alias SwaiWeb.Dispatch.EdgeHandler, as: EdgeHandler
 
   alias SwaiWeb.Dispatch.ScapeHandler
   alias SwaiWeb.Dispatch.RegionHandler
@@ -18,10 +17,15 @@ defmodule SwaiWeb.EdgeChannel do
   alias SwaiWeb.Dispatch.ChannelWatcher
 
   alias Edge.Facts, as: EdgeFacts
+  alias Edge.Hopes, as: EdgeHopes
+
   alias Scape.Facts, as: ScapeFacts
   alias Region.Facts, as: RegionFacts
   alias MngFarm.Facts, as: FarmFacts
   alias Born2Died.Facts, as: LifeFacts
+
+  alias Edge.Init, as: EdgeInit
+  alias Scape.Init, as: ScapeInit
 
   @fact_born "fact:born"
   @fact_died "fact:died"
@@ -32,6 +36,7 @@ defmodule SwaiWeb.EdgeChannel do
   # @scape_attached_v1 Facts.scape_attached_v1()
 
   @edge_attached_v1 EdgeFacts.edge_attached_v1()
+  @start_scape_v1 EdgeHopes.start_scape_v1()
 
   @initializing_scape_v1 ScapeFacts.initializing_scape_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
@@ -52,20 +57,27 @@ defmodule SwaiWeb.EdgeChannel do
   @life_moved_v1 LifeFacts.life_moved_v1()
 
   # @edge_detached_v1 EdgeFacts.edge_detached_v1()
-  @edge_attached_v1 EdgeFacts.edge_attached_v1()
 
   # @attach_scape_v1 "attach_scape:v1"
 
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
+  @edge_lobby "edge:lobby"
 
+
+  def start_scape(%EdgeInit{} = edge_init, %ScapeInit{} = scape_init) do
+    Logger.info("EdgeChannel.start_scape: #{inspect(edge_init)} #{inspect(scape_init)}")
+
+    edge_init.socket
+    |> push(@start_scape_v1, scape_init)
+  end
 
   ################ CALLBACKS ################
   @impl true
-  def join("edge:lobby", edge_init, socket) do
-    send(self(), :after_join)
+  def join(@edge_lobby, edge_init, socket) do
+    send(self(), {:after_join, edge_init})
 
     ChannelWatcher.monitor(
-      "edge:lobby",
+      @edge_lobby,
       self(),
       {EdgeHandler, :pub_edge_detached, [%{"edge_init" => edge_init}]}
     )
@@ -74,19 +86,25 @@ defmodule SwaiWeb.EdgeChannel do
   end
 
   @impl true
-  def handle_info(:after_join, socket) do
+  def handle_info({:after_join, %{"id" => edge_id} = edge_init}, socket) do
     Logger.info(":after_join #{inspect(socket)}")
 
-    {:ok, _} =
-      EdgePresence.track(socket, "edge_1", %{
+    # {:ok, _} =
+    #   socket
+    #   |> EdgePresence.track("edge_1", %{
+    #     online_at: inspect(System.system_time(:second))
+    #   })
+
+        {:ok, _} =
+      socket
+      |> EdgePresence.track(edge_id, %{
         online_at: inspect(System.system_time(:second))
       })
 
-    broadcast(socket, @presence_changed_v1, EdgePresence.list(socket))
 
-    {:noreply,
-     socket
-     }
+    socket
+    |> broadcast(@presence_changed_v1, EdgePresence.list(socket))
+    {:noreply, socket}
   end
 
   @impl true
@@ -142,19 +160,19 @@ defmodule SwaiWeb.EdgeChannel do
   @impl true
   def handle_in(@edge_attached_v1, payload, socket) do
     Logger.info("#{@edge_attached_v1} #{inspect(payload)}")
-    EdgeHandler.pub_edge_attached(payload)
+    EdgeHandler.pub_edge_attached(payload, socket)
     {:reply, {:ok, payload}, socket}
   end
 
   @impl true
   def handle_in(@initializing_scape_v1, payload, socket) do
-    # Logger.alert("EdgeChannel.handle_in: #{@initializing_scape_v1} #{inspect(payload)}")
+    # Logger.debug("EdgeChannel.handle_in: #{@initializing_scape_v1} #{inspect(payload)}")
     ScapeHandler.pub_initializing_scape_v1(payload, socket)
   end
 
   @impl true
   def handle_in(@scape_initialized_v1, payload, socket) do
-    # Logger.alert("EdgeChannel.handle_in: #{@scape_initialized_v1} #{inspect(payload)}")
+    # Logger.debug("EdgeChannel.handle_in: #{@scape_initialized_v1} #{inspect(payload)}")
     ScapeHandler.pub_scape_initialized_v1(payload, socket)
   end
 

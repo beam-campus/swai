@@ -22,7 +22,7 @@ defmodule SwaiWeb.Release do
   def seed do
     {:ok, _} = Application.ensure_all_started(@app)
 
-    Swai.Seeds.seed_biotopes()
+    Swai.Seeds.run()
   end
 
   def rollback(repo, version) do

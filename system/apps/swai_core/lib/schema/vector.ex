@@ -34,20 +34,6 @@ defmodule Schema.Vector do
     field(:z, :integer)
   end
 
-  def from_map(map) do
-    case changeset(%Vector{}, map) do
-      %{valid?: true} = changeset ->
-        state =
-          changeset
-          |> Ecto.Changeset.apply_changes()
-
-        {:ok, state}
-
-      changeset ->
-        {:error, changeset}
-    end
-  end
-
   def new(x, y, z) do
     %Schema.Vector{
       x: x,
@@ -70,6 +56,10 @@ defmodule Schema.Vector do
       vector1.y - vector2.y,
       vector1.z - vector2.z
     )
+  end
+
+  def default_map_dimensions() do
+    %Vector{x: 200, y: 200, z: 0}
   end
 
   def as_tuple(%Vector{} = vector) do
@@ -149,9 +139,34 @@ defmodule Schema.Vector do
     new(x, y, z)
   end
 
-  def changeset(vector, attr) do
-    vector
+  def changeset(%Vector{} = seed, attr) when is_struct(attr) do
+    changeset(seed, Map.from_struct(attr))
+  end
+
+
+  def changeset(%Vector{} = seed , attr) when is_map(attr) do
+    seed
     |> cast(attr, @flat_fields)
     |> validate_required(@required_fields)
   end
+
+
+  def from_map(seed,map) when is_struct(seed) do
+    from_map(seed, Map.from_struct(map))
+  end
+
+  def from_map(seed, map) when is_map(map) do
+    case changeset(seed, map) do
+      %{valid?: true} = changeset ->
+        state =
+          changeset
+          |> Ecto.Changeset.apply_changes()
+
+        {:ok, state}
+
+      changeset ->
+        {:error, changeset}
+    end
+  end
+
 end

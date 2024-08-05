@@ -9,7 +9,7 @@ defmodule SwaiWeb.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.18.0-dev",
+      elixir: "~> 1.17",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -77,7 +77,7 @@ defmodule SwaiWeb.MixProject do
       {:tesla, "~> 1.4"},
       {:cors_plug, "~> 3.0"},
       {:heroicons_liveview, "~> 0.5.0"},
-      {:hpax, "~> 0.1.1", override: true},
+      {:hpax, "~> 0.1.1", override: true}
     ]
   end
 

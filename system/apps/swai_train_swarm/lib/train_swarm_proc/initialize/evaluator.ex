@@ -6,20 +6,17 @@ defmodule TrainSwarmProc.Initialize.Evaluator do
 
   import Flags
 
-
-  alias Commanded.Aggregate.Multi,    as: Multi
-  alias TrainSwarmProc.Aggregate,    as: Aggregate
-  alias TrainSwarmProc.Initialize.Cmd.V1,    as: Initialize
-  alias TrainSwarmProc.Initialize.Evt.V1,    as: Initialized
-  alias TrainSwarmProc.Initialize.Payload.V1,    as: InitPayload
-  alias TrainSwarmProc.Configure.Evt.V1,    as: Configured
-  alias TrainSwarmProc.Configure.Payload.V1,    as: ConfigPayload
-  alias Schema.SwarmTraining,    as: SwarmTraining
-  alias TrainSwarmProc.Schema.Root,    as: Root
-  alias Schema.SwarmTraining.Status,    as: Status
+  alias Commanded.Aggregate.Multi, as: Multi
+  alias TrainSwarmProc.Aggregate, as: Aggregate
+  alias TrainSwarmProc.Initialize.CmdV1, as: Initialize
+  alias TrainSwarmProc.Initialize.EvtV1, as: Initialized
+  alias TrainSwarmProc.Configure.EvtV1, as: Configured
+  alias Schema.SwarmLicense.Status, as: Status
 
   @proc_unknown Status.unknown()
-  @proc_initialized Status.initialized()
+  @proc_initialized Status.license_initialized()
+
+  require Logger
 
   #################### API ###################
   @impl true
@@ -32,20 +29,20 @@ defmodule TrainSwarmProc.Initialize.Evaluator do
 
   @impl true
   def handle(
-        %Aggregate{} = aggregate,
+        %Aggregate{status: status} = aggregate,
         %Initialize{} = cmd
       ) do
     cond do
-      aggregate.status
+      status
       |> has?(@proc_unknown) ->
         raise_initialize_events(aggregate, cmd)
 
-      aggregate.status
+      status
       |> has?(@proc_initialized) ->
         {:error, :already_initialized}
 
       true ->
-        {:error, :already_initialized}
+        {:error, :unknown_error}
     end
   end
 
@@ -61,42 +58,23 @@ defmodule TrainSwarmProc.Initialize.Evaluator do
     |> Multi.execute(&raise_configured(&1, cmd))
   end
 
-  defp raise_initialized(
-         _aggregate,
-         %Initialize{payload: %SwarmTraining{} = cmd_payload} = cmd
-       ) do
-    evt = %Initialized{
-      agg_id: cmd.agg_id,
-      payload: %InitPayload{
-        swarm_id: cmd_payload.swarm_id,
-        user_id: cmd_payload.user_id,
-        biotope_id: cmd_payload.biotope_id,
-        biotope_name: cmd_payload.biotope_name,
-        scape_id: cmd_payload.scape_id,
-        swarm_name: cmd_payload.swarm_name
-      }
-    }
+  defp raise_initialized(_, cmd) do
+    case Initialized.from_map(%Initialized{}, cmd) do
+      {:ok, evt} ->
+        evt
 
-    {:ok, evt}
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 
-  defp raise_configured(
-         _aggregate,
-         %Initialize{payload: %SwarmTraining{} = cmd_payload} = cmd
-       ) do
-    evt = %Configured{
-      agg_id: cmd.agg_id,
+  defp raise_configured(_, cmd) do
+    case Configured.from_map(%Configured{}, cmd) do
+      {:ok, evt} ->
+        evt
 
-      payload: %ConfigPayload{
-        swarm_size: cmd_payload.swarm_size,
-        nbr_of_generations: cmd_payload.nbr_of_generations,
-        drone_depth: cmd_payload.drone_depth,
-        generation_epoch_in_minutes: cmd_payload.generation_epoch_in_minutes,
-        select_best_count: cmd_payload.select_best_count,
-        cost_in_tokens: cmd_payload.cost_in_tokens,
-      }
-    }
-
-    {:ok, evt}
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 end

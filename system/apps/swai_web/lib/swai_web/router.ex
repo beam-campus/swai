@@ -128,12 +128,12 @@ defmodule SwaiWeb.Router do
       live("/drone_orders/:id/show/edit", DroneOrderLive.Show, :edit)
       live("/marketplace/start-swarm/:biotope_id", MarketplaceLive.Index, :start_swarm)
 
-      live("/swarm_trainings", SwarmTrainingLive.Index, :index)
-      # live("/swarm_trainings/new", SwarmTrainingLive.Index, :new)
-      # live("/swarm_trainings/:id/edit", SwarmTrainingLive.Index, :edit)
+      live("/swarm_licenses", SwarmLicenseLive.Index, :index)
+      # live("/swarm_licenses/new", SwarmLicenseLive.Index, :new)
+      # live("/swarm_licenses/:id/edit", SwarmLicenseLive.Index, :edit)
 
-      # live("/swarm_trainings/:id", SwarmTrainingLive.Show, :show)
-      # live("/swarm_trainings/:id/show/edit", SwarmTrainingLive.Show, :edit)
+      # live("/swarm_licenses/:id", SwarmLicenseLive.Show, :show)
+      # live("/swarm_licenses/:id/show/edit", SwarmLicenseLive.Show, :edit)
     end
   end
 

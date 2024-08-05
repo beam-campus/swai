@@ -1,4 +1,4 @@
-defmodule SwaiWeb.SwarmTrainingLive.Show do
+defmodule SwaiWeb.SwarmLicenseLive.Show do
   use SwaiWeb, :live_view
 
   alias Swai.Workspace
@@ -13,7 +13,7 @@ defmodule SwaiWeb.SwarmTrainingLive.Show do
     {:noreply,
      socket
      |> assign(:page_title, page_title(socket.assigns.live_action))
-     |> assign(:swarm_training, Workspace.get_swarm_training!(id))}
+     |> assign(:swarm_license, Workspace.get_swarm_license!(id))}
   end
 
   defp page_title(:show), do: "Show Swarm training"

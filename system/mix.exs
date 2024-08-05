@@ -1,6 +1,9 @@
 defmodule Swai.Umbrella.MixProject do
   use Mix.Project
 
+  @moduledoc """
+  This module defines the Mix project for the Swai Umbrella.
+  """
   def project do
     [
       apps_path: "apps",
@@ -25,7 +28,7 @@ defmodule Swai.Umbrella.MixProject do
           swai_web: :permanent
         ]
       ],
-      for_edge: [
+      for_node: [
         include_executables_for: [:unix],
         steps: [:assemble, :tar],
         applications: [
@@ -33,12 +36,11 @@ defmodule Swai.Umbrella.MixProject do
           logger: :permanent,
           observer: :permanent,
           os_mon: :permanent,
-          swai_edge: :permanent
+          swai_node: :permanent
         ]
       ]
     ]
   end
-
 
   # Dependencies can be Hex packages:
   #

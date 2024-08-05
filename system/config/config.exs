@@ -16,6 +16,8 @@
 # General application configuration
 import Config
 
+config :swai_aco,
+  scape_id: "5693504a-89d6-4af3-bb70-2c2914913dc9"
 
 config :swai_train_swarm, TrainSwarmProc.CommandedApp,
   event_store: [
@@ -40,11 +42,28 @@ config :github_proxy,
 
 config :swai_edge, Edge.Client,
   uri: "ws://localhost:4000/edge_socket/websocket",
-  reconnect_after_msec: [200, 500, 1_000, 2_000]
-
-# Configure the basic settings of the application
-config :swai_core,
-  edge_id: "edge_1"
+  reconnect_after_msec: [
+    202 * :rand.uniform(11),
+    505 * :rand.uniform(12),
+    1_010 * :rand.uniform(13),
+    2_020 * :rand.uniform(14)
+    # 6_060 * :rand.uniform(15),
+    # 10_101 * :rand.uniform(16),
+    # 20_202 * :rand.uniform(17),
+    # 30_303 * :rand.uniform(18),
+    # 60_606 * :rand.uniform(19),
+  ],
+  rejoin_after_msec: [
+    202 * :rand.uniform(11),
+    505 * :rand.uniform(12),
+    1_010 * :rand.uniform(13),
+    2_020 * :rand.uniform(14)
+    # 6_060 * :rand.uniform(15),
+    # 10_101 * :rand.uniform(16),
+    # 20_202 * :rand.uniform(17),
+    # 30_303 * :rand.uniform(18),
+    # 60_606 * :rand.uniform(19),
+  ]
 
 # Configure Mix tasks and generators
 config :swai,
@@ -66,12 +85,12 @@ config :swai_web,
     migration: true,
     binary_id: true,
     timestamp_type: :utc_datetime_usec,
-    sample_binary_id: "00000000-0000-0000-0000-000000000000"  # UUID.nil()
+    # UUID.nil()
+    sample_binary_id: "00000000-0000-0000-0000-000000000000"
   ]
 
 # configure RemoteImageController
-config :swai_web, SwaiWeb.RemoteImageController,
-  base_url: "https://localhost:4000"
+config :swai_web, SwaiWeb.RemoteImageController, base_url: "https://localhost:4000"
 
 # Configures the endpoint
 config :swai_web, SwaiWeb.Endpoint,
@@ -109,9 +128,8 @@ config :tailwind,
 
 # Configures Elixir's Logger
 config :logger, :console,
-  format: "$time[$level]\e[33;44m$metadata\e[0m>> $message\n",
+  format: "$time[$level] $metadata: $message\n",
   metadata: [:request_id, :initial_call, :mfa]
-
 
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason

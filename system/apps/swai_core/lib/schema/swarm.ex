@@ -6,6 +6,8 @@ defmodule Schema.Swarm do
 
   import Ecto.Changeset
 
+  require MnemonicSlugs
+
   @all_fields [
     :id,
     :name,
@@ -54,4 +56,15 @@ defmodule Schema.Swarm do
     |> cast(attrs, @all_fields)
     |> validate_required(@required_fields)
   end
+
+  def generate_swarm_name(prefix, nbr_of_words \\ 3) do
+    "#{prefix}_#{MnemonicSlugs.generate_slug(nbr_of_words)}"
+    |> String.replace("-", "_")
+    |> String.replace(" ", "_")
+    |> String.downcase()
+  end
+
+
+
+
 end

@@ -5,13 +5,16 @@ defmodule Swai.Accounts do
 
   import Ecto.Query, warn: false
   alias Schema.UserToken
-  alias Hex.API.User
+  # alias Hex.API.User
   alias Swai.Repo
 
   alias Schema.User, as: User
   alias Schema.UserToken, as: UserToken
   alias Swai.Accounts.UserNotifier, as: UserNotifier
   alias UniqueNamesGenerator, as: UNG
+
+  alias Phoenix.PubSub, as: PubSub
+
 
   require Logger
 
@@ -111,6 +114,8 @@ defmodule Swai.Accounts do
       validate_email: false
     )
   end
+
+
 
   def with_random_alias(changes) do
     random_alias =
@@ -245,6 +250,29 @@ defmodule Swai.Accounts do
       {:ok, %{user: user}} -> {:ok, user}
       {:error, :user, changeset, _} -> {:error, changeset}
     end
+  end
+
+
+  ### User Budget
+  def decrease_user_budget(user_id, amount) do
+    user = get_user!(user_id)
+    user
+    |> User.budget_changeset(%{budget: user.budget - amount})
+    |> Repo.update()
+    notify_user_changed(user)
+  end
+
+  def notify_user_changed(user) do
+    Swai.PubSub
+    |> PubSub.broadcast("user:#{user.id}", {"user_changed"})
+  end
+
+  def increase_user_budget(user_id, amount) do
+    user = get_user!(user_id)
+    user
+    |> User.budget_changeset(%{budget: user.budget + amount})
+    |> Repo.update()
+    notify_user_changed(user)
   end
 
   ## Session

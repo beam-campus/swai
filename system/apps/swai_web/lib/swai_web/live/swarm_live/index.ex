@@ -1,4 +1,7 @@
 defmodule SwaiWeb.SwarmLive.Index do
+  @moduledoc """
+  The index live view for the Swarms resource.
+  """
   use SwaiWeb, :live_view
 
   alias Swai.Swarms

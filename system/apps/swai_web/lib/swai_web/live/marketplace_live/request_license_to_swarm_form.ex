@@ -1,38 +1,52 @@
 defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
   use SwaiWeb, :live_component
 
-  alias Schema.SwarmTraining,
-    as: SwarmTraining
+  alias Schema.SwarmLicense,
+    as: SwarmLicense
 
-  alias Edge.Init, as: EdgeInit
   alias TrainSwarmProc, as: TrainSwarmProc
-  alias Schema.Biotope, as: Biotope
+  alias Schema.Swarm, as: Swarm
 
   require Logger
 
-  @form_data "swarm_training"
+  @form_data "swarm_license"
 
   @user_id "user_id"
+
   @biotope_id "biotope_id"
   @biotope_name "biotope_name"
-  @swarm_id "swarm_id"
+
   @agg_id "agg_id"
-  @id "id"
-  @scape_id "scape_id"
+  @license_id "license_id"
+
+  @algorithm_id "algorithm_id"
+  @algorithm_acronym "algorithm_acronym"
+  @algorithm_name "algorithm_name"
+
+  @swarm_name "swarm_name"
+  @swarm_id "swarm_id"
+  @available_tokens "available_tokens"
 
   @impl true
   def update(assigns, socket) do
+    prefix = "#{assigns.current_user.user_alias}_#{assigns.biotope.name}"
+
     map = %{
-      @id => "temporary_id",
+      @license_id => "temporary_id",
       @user_id => assigns.current_user.id,
       @biotope_id => assigns.biotope.id,
       @biotope_name => assigns.biotope.name,
-      @scape_id => assigns.biotope.scape_id
+      @algorithm_id => assigns.biotope.algorithm_id,
+      @algorithm_acronym => assigns.biotope.algorithm_acronym,
+      @algorithm_name => assigns.biotope.algorithm_name,
+      @swarm_id => UUID.uuid4(),
+      @swarm_name => Swarm.generate_swarm_name(prefix, 2),
+      @available_tokens => assigns.current_user.budget
     }
 
     lr_changes =
-      %SwarmTraining{}
-      |> TrainSwarmProc.change_swarm_training(map)
+      %SwarmLicense{}
+      |> TrainSwarmProc.change_swarm_license(map)
 
     {
       :ok,
@@ -48,7 +62,7 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     form = to_form(changeset, as: @form_data)
-    # Logger.alert("ASSIGNING FORM #{inspect(form)}")
+    # Logger.debug("ASSIGNING FORM #{inspect(form)}")
 
     if changeset.valid? do
       socket
@@ -67,18 +81,19 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
     enriched_params =
       source
       |> Map.put(@agg_id, agg_id)
-      |> Map.put(@id, agg_id)
+      |> Map.put(@license_id, agg_id)
       |> Map.put(@swarm_id, UUID.uuid4())
       |> Map.put(@user_id, socket.assigns.current_user.id)
       |> Map.put(@biotope_id, socket.assigns.biotope.id)
       |> Map.put(@biotope_name, socket.assigns.biotope.name)
-      |> Map.put(@scape_id, socket.assigns.biotope.scape_id)
-
-
+      |> Map.put(@algorithm_id, socket.assigns.biotope.algorithm_id)
+      |> Map.put(@algorithm_acronym, socket.assigns.biotope.algorithm_acronym)
+      |> Map.put(@algorithm_name, socket.assigns.biotope.algorithm_name)
+      |> Map.put(@available_tokens, socket.assigns.current_user.budget)
 
     case TrainSwarmProc.initialize(enriched_params) do
       :ok ->
-        notify_parent({:swarm_training_submitted, enriched_params})
+        notify_parent({:swarm_license_submitted, enriched_params})
 
         {:noreply, socket}
 
@@ -93,8 +108,8 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
   @impl true
   def handle_event("validate_lr", %{@form_data => form_data}, socket) do
     changeset =
-      socket.assigns.swarm_training
-      |> TrainSwarmProc.change_swarm_training(form_data)
+      socket.assigns.swarm_license
+      |> TrainSwarmProc.change_swarm_license(form_data)
       |> Map.put(:action, :validate)
 
     {
@@ -112,71 +127,5 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
       socket
       |> assign(:show_init_swarm_modal, false)
     }
-  end
-
-  ################## RENDERING ##################
-  @impl true
-  def render(assigns) do
-    ~H"""
-    <div>
-      <.header>
-          <%= @title %>
-          <:subtitle>
-          A 'License to Swarm' represents a reservation for a slot to evolve your swarm.
-          It is automatically activated when your budget (<strong><%= @current_user.budget %>👾</strong>) allows it. <br/>
-          <%= if @current_user.budget - @form[:cost_in_tokens].value < 0  do %>
-            <strong class="text-red-500">The cost of a license for this configuration is <%= @form[:cost_in_tokens].value %>👾</strong>.
-          <% else %>
-            <strong class="text-green-500">The cost of a license for this configuration is <%= @form[:cost_in_tokens].value %>👾</strong>.
-          <% end %>
-          </:subtitle>
-      </.header>
-      <.simple_form
-        for={@form}
-        class="modal-content"
-        id="license_request_form"
-        phx-target={@myself}
-        phx-submit="submit_lr"
-        phx-change="validate_lr"
-        phx-trigger-action={@trigger_submit}
-        method="post"
-      >
-         <.input
-            class="form-control"
-            label="Swarm Name"
-            type="text"
-            field={@form[:swarm_name]}
-            required
-          />
-
-          <.input
-            class="form-control"
-            label="Swarm Size"
-            type="number"
-            pattern="\\d*"
-            step="1"
-            field={@form[:swarm_size]}
-            required
-            readonly
-           />
-          <.input
-            class="form-control"
-            label="Swarming Time in Minutes"
-            type="number"
-            pattern="\\d*"
-            step="1"
-            field={@form[:generation_epoch_in_minutes]}
-            required
-            readonly
-          />
-        <div class="mt-3">
-        <.button
-          phx-disable-with="Requesting License..."
-        >Submit your License Request</.button>
-        </div>
-      </.simple_form>
-      <button class="modal-close is-large" aria-label="close" phx-click="close_modal"></button>
-    </div>
-    """
   end
 end

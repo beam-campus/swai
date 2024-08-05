@@ -8,9 +8,11 @@ defmodule Swai.TrainSwarm.Application do
   def start(_type, _args) do
     children = [
       TrainSwarmProc.CommandedApp,
+      TrainSwarmProc.Policies,
       TrainSwarmProc.ToPostgresDoc.V1,
-      TrainSwarmProc.ToPubSub.V1,
+      TrainSwarmProc.ToPubSubV1
     ]
+
     Supervisor.start_link(children,
       strategy: :one_for_one,
       name: __MODULE__

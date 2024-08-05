@@ -4,14 +4,9 @@ defmodule TrainSwarmProc.Activate.CmdV1 do
   """
   use Ecto.Schema
 
-  alias TrainSwarmProc.Activate.CmdV1,
-    as: Activate
-
-    alias TrainSwarmProc.Activate.PayloadV1,
-    as: ActivatePayload
-
-  alias Schema.SwarmTraining,
-    as: SwarmTraining
+  alias TrainSwarmProc.Activate.CmdV1, as: Activate
+  alias TrainSwarmProc.Activate.PayloadV1, as: ActivatePayload
+  alias Schema.SwarmLicense, as: SwarmLicense
 
   @all_fields [
     :agg_id,

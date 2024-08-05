@@ -3,37 +3,38 @@ defmodule TrainSwarmProc do
   TrainSwarmProc is the context module for the TrainSwarm aggregate/process.
   """
 
-  @prefix "train-swarm"
+  alias Schema.SwarmLicense, as: SwarmLicense
 
-  alias Schema.SwarmTraining, as: SwarmTraining
   alias TrainSwarmProc.CommandedApp, as: TrainSwarmApp
-  alias TrainSwarmProc.Initialize.Cmd.V1, as: Initialize
+  alias TrainSwarmProc.Initialize.CmdV1, as: Initialize
+  alias TrainSwarmProc.Initialize.PayloadV1, as: Initialization
 
   require Logger
 
   @agg_id "agg_id"
   @user_id "user_id"
 
-  def change_swarm_training(%SwarmTraining{} = root, %{} = map) do
-    root
-    |> SwarmTraining.changeset(map)
+
+  def change_swarm_license(%SwarmLicense{} = seed, %{} = map) do
+    seed
+    |> SwarmLicense.changeset(map)
   end
 
-  def initialize(
-    %{@agg_id => agg_id, @user_id => user_id} = license_request_params) do
-    seed = %SwarmTraining{id: agg_id}
+  def initialize(%{@agg_id => agg_id, @user_id => user_id} = license_request_params) do
+    seed = %SwarmLicense{license_id: agg_id}
 
-    case SwarmTraining.from_map(seed, license_request_params) do
-      {:ok, payload} ->
+    case SwarmLicense.from_map(seed, license_request_params) do
+      {:ok, license} ->
+        {:ok, initialization} = Initialization.from_map(%Initialization{}, license)
+
         cmd = %Initialize{
           agg_id: agg_id,
-          payload: payload
+          payload: initialization
         }
 
-        TrainSwarmApp.dispatch(cmd, metadata: %{@user_id => user_id} )
+        TrainSwarmApp.dispatch(cmd, metadata: %{@user_id => user_id})
 
       {:error, changeset} ->
-        Logger.error("Invalid license request params #{inspect(changeset)}")
         {:error, "Invalid license request params #{inspect(changeset)}"}
     end
   end

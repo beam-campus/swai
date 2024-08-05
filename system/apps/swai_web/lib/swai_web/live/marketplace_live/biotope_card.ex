@@ -1,7 +1,7 @@
 defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
   use SwaiWeb, :live_component
 
-  alias TrainSwarmProc.Initialize.Payload.V1, as: RequestLicense
+  alias TrainSwarmProc.Initialize.PayloadV1, as: RequestLicense
   require Logger
 
   @impl true
@@ -23,7 +23,7 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
       <div class="section-card-body">
         <div>
           <div class="flex flex-row text-swBrand-dark">
-          <p>  <%= @biotope.name %> [<%= @biotope.biotope_type %>] </p>
+          <p>  <%= @biotope.name %> [<%= @biotope.algorithm_name %>] </p>
           <p class="font-regular uppercase text-swBrand-light ml-auto" id="biotope_theme">
             <%= @biotope.theme %>
           </p>
@@ -32,7 +32,7 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
             <%= @biotope.description %>
           </p>
           <p class="mt-1 text-base">
-            <%= @biotope.objective %>
+            <%= @biotope.objectives %>
           </p>
 
         </div>

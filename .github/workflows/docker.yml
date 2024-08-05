@@ -61,7 +61,7 @@ jobs:
           push: true
           tags: beamcampus/swarm_wars_edge:latest
 
-  build_swai_edge_delivery_rush:
+  build_swai_aco:
     runs-on: ubuntu-latest
 
     steps:
@@ -85,6 +85,6 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./system
-          file: ./system/swai_edge_delivery_rush.Dockerfile
+          file: ./system/for_swai_aco.Dockerfile
           push: true
-          tags: beamcampus/swai_edge_delivery_rush:latest
+          tags: beamcampus/swai_aco:latest

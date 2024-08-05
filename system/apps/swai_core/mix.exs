@@ -9,7 +9,7 @@ defmodule SwaiCore.MixProject do
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
       lockfile: "../../mix.lock",
-      elixir: "~> 1.16",
+      elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       # ExDoc
@@ -27,7 +27,13 @@ defmodule SwaiCore.MixProject do
   def application do
     [
       mod: {Swai.Core.Application, []},
-      extra_applications: [:logger, :eex]
+      extra_applications: [
+        :logger,
+        :eex,
+        :observer,
+        :os_mon,
+        :runtime_tools
+      ]
     ]
   end
 
@@ -38,17 +44,17 @@ defmodule SwaiCore.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:dialyze, "~> 0.2.0", only: [:dev]},
+      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
+      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
+      {:mix_test_watch, "~> 1.1", only: [:dev, :test], runtime: false},
+      {:ex_doc, "~> 0.27", only: [:dev], runtime: false},
       {:phoenix_pubsub, "~> 2.1.3"},
       {:ecto, "~> 3.11.2"},
       {:elixir_uuid, "~> 1.2", override: true},
       {:jason, "~> 1.4.3"},
       {:req, "~> 0.4.14"},
       {:hackney, "~> 1.20.1"},
-      {:dialyze, "~> 0.2.0", only: [:dev]},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:mix_test_watch, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.27", only: [:dev], runtime: false},
       {:mnemonic_slugs, "~> 0.0.3"}
     ]
   end

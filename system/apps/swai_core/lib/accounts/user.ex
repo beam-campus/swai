@@ -34,7 +34,7 @@ defmodule Schema.User do
     field(:user_alias, :string)
     field(:bio, :string)
     field(:image_url, :string)
-    field(:budget, :integer, default: 12000)
+    field(:budget, :integer, default: 6_000)
     field(:wants_notifications?, :boolean, default: true)
     field(:has_accepted_terms?, :boolean, default: true)
     timestamps()
@@ -83,6 +83,12 @@ defmodule Schema.User do
     user
     |> cast(attrs, [:user_alias])
     |> validate_username(opts)
+  end
+
+  def budget_changeset(user, attrs, _opts \\ []) do
+    user
+    |> cast(attrs, [:budget])
+    |> validate_number(:budget, greater_than_or_equal_to: 0)
   end
 
   @doc """
@@ -161,11 +167,11 @@ defmodule Schema.User do
     changeset
     |> maybe_clear_password_confirmation(opts)
 
-    # Logger.alert("Changeset: #{inspect(changeset)}")
+    # Logger.debug("Changeset: #{inspect(changeset)}")
     password = get_change(changeset, :password)
     password_confirmation = get_change(changeset, :password_confirmation)
 
-    # Logger.alert(      "password: #{inspect(password)}, password_confirmation: #{inspect(password_confirmation)}")
+    # Logger.debug(      "password: #{inspect(password)}, password_confirmation: #{inspect(password_confirmation)}")
 
     if password == password_confirmation do
       changeset

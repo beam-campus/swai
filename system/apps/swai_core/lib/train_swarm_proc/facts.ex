@@ -1,11 +1,16 @@
 defmodule TrainSwarmProc.Facts do
-  def initialized, do: "swarm_training_initialized"
-  def configured, do: "swarm_training_configured"
-  def started, do: "swarm_training_started"
-  def paused, do: "swarm_training_paused"
-  def cancelled, do: "swarm_training_cancelled"
-  def completed, do: "swarm_training_completed"
-  def activated, do: "swarm_training_activated"
-  def deactivated, do: "swarm_training_deactivated"
-  def cache_updated_v1, do: "swarm_trainings_cache_updated_v1"
+  def license_initialized, do: "swarm_license_initialized"
+  def license_configured, do: "swarm_license_configured"
+  def license_paid, do: "swarm_license_paid"
+  def license_activated, do: "swarm_license_activated"
+  def license_deactivated, do: "swarm_license_deactivated"
+
+  def scape_queued, do: "scape_queued"
+  def scape_started, do: "scape_started"
+  def scape_paused, do: "scape_paused"
+  def scape_cancelled, do: "scape_cancelled"
+  def scape_completed, do: "scape_completed"
+
+
+  def cache_updated_v1, do: "swarm_licenses_cache_updated_v1"
 end

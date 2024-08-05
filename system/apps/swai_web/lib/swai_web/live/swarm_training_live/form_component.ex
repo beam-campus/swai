@@ -1,4 +1,4 @@
-defmodule SwaiWeb.SwarmTrainingLive.FormComponent do
+defmodule SwaiWeb.SwarmLicenseLive.FormComponent do
   use SwaiWeb, :live_component
 
   alias Swai.Workspace
@@ -9,12 +9,12 @@ defmodule SwaiWeb.SwarmTrainingLive.FormComponent do
     <div>
       <.header>
         <%= @title %>
-        <:subtitle>Use this form to manage swarm_training records in your database.</:subtitle>
+        <:subtitle>Use this form to manage swarm_license records in your database.</:subtitle>
       </.header>
 
       <.simple_form
         for={@form}
-        id="swarm_training-form"
+        id="swarm_license-form"
         phx-target={@myself}
         phx-change="validate"
         phx-submit="save"
@@ -38,29 +38,29 @@ defmodule SwaiWeb.SwarmTrainingLive.FormComponent do
   end
 
   @impl true
-  def update(%{swarm_training: swarm_training} = assigns, socket) do
+  def update(%{swarm_license: swarm_license} = assigns, socket) do
     {:ok,
      socket
      |> assign(assigns)
      |> assign_new(:form, fn ->
-       to_form(Workspace.change_swarm_training(swarm_training))
+       to_form(Workspace.change_swarm_license(swarm_license))
      end)}
   end
 
   @impl true
-  def handle_event("validate", %{"swarm_training" => swarm_training_params}, socket) do
-    changeset = Workspace.change_swarm_training(socket.assigns.swarm_training, swarm_training_params)
+  def handle_event("validate", %{"swarm_license" => swarm_license_params}, socket) do
+    changeset = Workspace.change_swarm_license(socket.assigns.swarm_license, swarm_license_params)
     {:noreply, assign(socket, form: to_form(changeset, action: :validate))}
   end
 
-  def handle_event("save", %{"swarm_training" => swarm_training_params}, socket) do
-    save_swarm_training(socket, socket.assigns.action, swarm_training_params)
+  def handle_event("save", %{"swarm_license" => swarm_license_params}, socket) do
+    save_swarm_license(socket, socket.assigns.action, swarm_license_params)
   end
 
-  defp save_swarm_training(socket, :edit, swarm_training_params) do
-    case Workspace.update_swarm_training(socket.assigns.swarm_training, swarm_training_params) do
-      {:ok, swarm_training} ->
-        notify_parent({:saved, swarm_training})
+  defp save_swarm_license(socket, :edit, swarm_license_params) do
+    case Workspace.update_swarm_license(socket.assigns.swarm_license, swarm_license_params) do
+      {:ok, swarm_license} ->
+        notify_parent({:saved, swarm_license})
 
         {:noreply,
          socket
@@ -72,10 +72,10 @@ defmodule SwaiWeb.SwarmTrainingLive.FormComponent do
     end
   end
 
-  defp save_swarm_training(socket, :new, swarm_training_params) do
-    case Workspace.create_swarm_training(swarm_training_params) do
-      {:ok, swarm_training} ->
-        notify_parent({:saved, swarm_training})
+  defp save_swarm_license(socket, :new, swarm_license_params) do
+    case Workspace.create_swarm_license(swarm_license_params) do
+      {:ok, swarm_license} ->
+        notify_parent({:saved, swarm_license})
 
         {:noreply,
          socket

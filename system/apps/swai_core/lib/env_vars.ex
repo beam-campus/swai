@@ -6,11 +6,11 @@ defmodule EnvVars do
   def swai_edge_api_key,
     do: "SWAI_EDGE_API_KEY"
 
-  def swai_edge_scape_id,
-    do: "SWAI_SCAPE_ID"
+  def swai_edge_biotope_id,
+    do: "SWAI_EDGE_BIOTOPE_ID"
 
-  def swai_edge_scape_name,
-    do: "SWAI_SCAPE_NAME"
+  def swai_edge_algorithm_acronym,
+    do: "SWAI_EDGE_ALGORITHM_ACRONYM"
 
   def swai_edge_scape_select_from,
     do: "SWAI_CONTINENTS"

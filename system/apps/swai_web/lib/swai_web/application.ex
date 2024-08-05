@@ -10,7 +10,8 @@ defmodule SwaiWeb.Application do
     children = [
       {Edge.Registry, name: Edge.Registry},
       SwaiWeb.Telemetry,
-      SwaiWeb.Dispatch.EdgePresence,
+      SwaiWeb.EdgePresence,
+      SwaiWeb.UserPresence,
 
       {SwaiWeb.Dispatch.ChannelWatcher, "edge:lobby"},
       SwaiWeb.Endpoint,

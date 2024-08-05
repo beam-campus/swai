@@ -4,22 +4,19 @@ defmodule Edge.Init do
   @moduledoc """
   Edge.Init is the struct that identifies the state of a Region.
   """
-  alias Edge.Init,
-    as: EdgeInit
-
-  alias Schema.Edge,
-    as: Edge
-
-  alias AppUtils
-
-  alias Schema.EdgeStats,
-    as: Stats
+  alias Schema.Biotope
+  alias Edge.Init, as: EdgeInit
+  alias Schema.Edge, as: Edge
+  alias AppUtils, as: AppUtils
+  alias Schema.EdgeStats, as: Stats
+  alias Phoenix.Socket, as: Socket
 
   import Ecto.Changeset
 
   @all_fields [
     :id,
-    :scape_id,
+    :biotope_id,
+    :algorithm_acronym,
     :api_key,
     :is_container,
     :ip_address,
@@ -48,12 +45,14 @@ defmodule Edge.Init do
     :connected_since,
     :image_url,
     :flag,
-    :stats
+    :stats,
+    :socket
   ]
 
   @flat_fields [
     :id,
-    :scape_id,
+    :biotope_id,
+    :algorithm_acronym,
     :api_key,
     :is_container,
     :ip_address,
@@ -81,16 +80,18 @@ defmodule Edge.Init do
     :hosting,
     :connected_since,
     :image_url,
-    :flag,
+    :flag
   ]
 
   @embedded_fields [
-    :stats
+    :stats,
+    :socket,
+    :biotopes
   ]
 
   @required_fields [
     :id,
-    :scape_id,
+    :biotope_id,
     :api_key,
     :is_container,
     :connected_since
@@ -100,7 +101,8 @@ defmodule Edge.Init do
   @primary_key false
   embedded_schema do
     field(:id, :string)
-    field(:scape_id, :string)
+    field(:biotope_id, :binary_id)
+    field(:algorithm_acronym, :string)
     field(:api_key, :string)
     field(:is_container, :boolean, default: false)
     field(:ip_address, :string)
@@ -130,6 +132,7 @@ defmodule Edge.Init do
     field(:image_url, :string, default: "https://picsum.photos/400/300")
     field(:flag, :string, default: "\u127988")
     embeds_one(:stats, Stats)
+    embeds_one(:socket, Socket)
   end
 
   def changeset(edge, args)
@@ -165,22 +168,14 @@ defmodule Edge.Init do
     {:ok, chost} = :inet.gethostname()
     edge_id = "#{to_string(chost)}-" <> Edge.random_id()
 
-    api_key =
-      case System.get_env("SWAI_EDGE_API_KEY") do
-        nil -> "no-api-key"
-        key -> key
-      end
+    api_key = System.get_env("SWAI_EDGE_API_KEY", "no-api-key")
+    biotope_id = System.get_env("SWAI_BIOTOPE_ID", "no-biotope-id-configured" )
 
-    scape_id =
-      case System.get_env("SWAI_SCAPE_ID") do
-        nil -> "no-scape-id"
-        id -> id
-      end
+
 
     %EdgeInit{
       id: edge_id,
       api_key: api_key,
-      scape_id: scape_id,
       is_container: AppUtils.running_in_container?(),
       ip_address: "unknown",
       continent: "unknown",
@@ -214,12 +209,14 @@ defmodule Edge.Init do
   def from_environment(ip_info) when is_map(ip_info) do
     {:ok, chost} = :inet.gethostname()
     api_key = System.get_env(EnvVars.swai_edge_api_key()) || "no-api-key"
-    scape_id = System.get_env(EnvVars.swai_edge_scape_id()) || "dairy-logs"
+    biotope_id = System.get_env(EnvVars.swai_edge_biotope_id()) || "no-biotope-id"
+    algorithm_acronym = System.get_env(EnvVars.swai_edge_algorithm_acronym()) || "no-algorithm-acronym"
     edge_id = "#{to_string(chost)}-" <> api_key
 
     %EdgeInit{
       id: edge_id,
-      scape_id: scape_id,
+      biotope_id: biotope_id,
+      algorithm_acronym: algorithm_acronym,
       api_key: api_key,
       is_container: AppUtils.running_in_container?(),
       ip_address: ip_info["query"],

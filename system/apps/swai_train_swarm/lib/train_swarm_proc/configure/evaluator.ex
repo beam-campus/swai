@@ -1,38 +1,39 @@
 defmodule TrainSwarmProc.Configure.Evaluator do
+  @moduledoc """
+  Commanded handler for configuring the swarm training process.
+  """
   @behaviour Commanded.Commands.Handler
 
-  alias TrainSwarmProc.Configure.Cmd.V1, as: Configure
-  alias TrainSwarmProc.Configure.Evt.V1, as: Configured
+  alias Schema.SwarmLicense.Status, as: Status
+  alias TrainSwarmProc.Configure.CmdV1, as: Configure
+  alias TrainSwarmProc.Configure.EvtV1, as: Configured
   alias TrainSwarmProc.Schema.Root, as: Root
+  alias TrainSwarmProc.Aggregate, as: Aggregate
 
   import Flags
 
-  @proc_initialized Schema.SwarmTraining.Status.initialized()
+  @proc_initialized Status.license_initialized()
 
+  @impl true
   def handle(
-        %{state: %Root{} = state} = aggregate,
+        %Aggregate{status: status},
         %Configure{} = cmd
       ) do
-    cond do
-      state.status
-      |> has?(@proc_initialized) ->
-        raise_configured(aggregate, cmd)
-
-      true ->
-        {:error, :not_initialized}
+    if status
+       |> has?(@proc_initialized) do
+      raise_configured(cmd)
+    else
+      {:error, :not_initialized}
     end
   end
 
-  defp raise_configured(
-         _aggregate,
-         %Configure{} = cmd
-       ) do
-    {
-      :ok,
-      %Configured{
-        agg_id: cmd.agg_id,
-        payload: cmd.payload
-      }
-    }
+  defp raise_configured(cmd) do
+    case Configured.from_map(%Configured{}, cmd) do
+      {:ok, evt} ->
+        evt
+
+      {:error, reason} ->
+        {:error, reason}
+    end
   end
 end
