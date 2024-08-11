@@ -13,9 +13,12 @@ defmodule Edge.Init do
 
   import Ecto.Changeset
 
+  require Logger
+
   @all_fields [
     :id,
     :biotope_id,
+    :biotope_name,
     :algorithm_acronym,
     :api_key,
     :is_container,
@@ -24,6 +27,10 @@ defmodule Edge.Init do
     :continent_code,
     :country,
     :country_code,
+    :country_ccn3,
+    :country_cca2,
+    :country_cca3,
+    :country_cioc,
     :region,
     :region_name,
     :city,
@@ -52,6 +59,7 @@ defmodule Edge.Init do
   @flat_fields [
     :id,
     :biotope_id,
+    :biotope_name,
     :algorithm_acronym,
     :api_key,
     :is_container,
@@ -60,6 +68,10 @@ defmodule Edge.Init do
     :continent_code,
     :country,
     :country_code,
+    :country_ccn3,
+    :country_cca2,
+    :country_cca3,
+    :country_cioc,
     :region,
     :region_name,
     :city,
@@ -92,6 +104,7 @@ defmodule Edge.Init do
   @required_fields [
     :id,
     :biotope_id,
+    :algorithm_acronym,
     :api_key,
     :is_container,
     :connected_since
@@ -102,6 +115,7 @@ defmodule Edge.Init do
   embedded_schema do
     field(:id, :string)
     field(:biotope_id, :binary_id)
+    field(:biotope_name, :string)
     field(:algorithm_acronym, :string)
     field(:api_key, :string)
     field(:is_container, :boolean, default: false)
@@ -110,6 +124,10 @@ defmodule Edge.Init do
     field(:continent_code, :string)
     field(:country, :string)
     field(:country_code, :string)
+    field(:country_ccn3, :string)
+    field(:country_cca2, :string)
+    field(:country_cca3, :string)
+    field(:country_cioc, :string)
     field(:region, :string)
     field(:region_name, :string)
     field(:city, :string)
@@ -169,9 +187,7 @@ defmodule Edge.Init do
     edge_id = "#{to_string(chost)}-" <> Edge.random_id()
 
     api_key = System.get_env("SWAI_EDGE_API_KEY", "no-api-key")
-    biotope_id = System.get_env("SWAI_BIOTOPE_ID", "no-biotope-id-configured" )
-
-
+    biotope_id = System.get_env("SWAI_BIOTOPE_ID", "no-biotope-id-configured")
 
     %EdgeInit{
       id: edge_id,
@@ -182,6 +198,7 @@ defmodule Edge.Init do
       continent_code: "unknown",
       country: "unknown",
       country_code: "unknown",
+      country_ccn3: "000",
       region: "unknown",
       region_name: "unknown",
       city: "unknown",
@@ -206,11 +223,14 @@ defmodule Edge.Init do
     }
   end
 
-  def from_environment(ip_info) when is_map(ip_info) do
+  def from_environment(ip_info, country_info \\ %{}) when is_map(ip_info) do
     {:ok, chost} = :inet.gethostname()
     api_key = System.get_env(EnvVars.swai_edge_api_key()) || "no-api-key"
     biotope_id = System.get_env(EnvVars.swai_edge_biotope_id()) || "no-biotope-id"
-    algorithm_acronym = System.get_env(EnvVars.swai_edge_algorithm_acronym()) || "no-algorithm-acronym"
+
+    algorithm_acronym =
+      System.get_env(EnvVars.swai_edge_algorithm_acronym()) || "no-algorithm-acronym"
+
     edge_id = "#{to_string(chost)}-" <> api_key
 
     %EdgeInit{
@@ -224,6 +244,10 @@ defmodule Edge.Init do
       continent_code: ip_info["continentCode"],
       country: ip_info["country"],
       country_code: ip_info["countryCode"],
+      country_ccn3: country_info["ccn3"],
+      country_cca2: country_info["cca2"],
+      country_cca3: country_info["cca3"],
+      country_cioc: country_info["cioc"],
       region: ip_info["region"],
       region_name: ip_info["regionName"],
       city: ip_info["city"],
@@ -249,7 +273,15 @@ defmodule Edge.Init do
   end
 
   def enriched() do
-    {:ok, ip_info} = Apis.IpInfoCache.refresh()
-    from_environment(ip_info)
+    {:ok, ip_info} =
+      Apis.IpInfoCache.refresh()
+
+    country_info =
+      case Apis.Countries.get_country_by_country_code(ip_info["countryCode"]) do
+        {:ok, country} -> country
+        _ -> %{}
+      end
+
+    from_environment(ip_info, country_info)
   end
 end

@@ -17,9 +17,15 @@ defmodule TrainSwarmProc.Aggregate do
 
   alias TrainSwarmProc.PayLicense.EvtV1, as: Paid
   alias TrainSwarmProc.PayLicense.PayloadV1, as: Payment
+  alias TrainSwarmProc.PayLicense.BudgetReachedV1, as: BudgetReached
+  alias TrainSwarmProc.PayLicense.BudgetInfoV1, as: BudgetInfo
 
   alias TrainSwarmProc.Activate.EvtV1, as: LicenseActivated
   alias TrainSwarmProc.Activate.PayloadV1, as: Activation
+
+  alias TrainSwarmProc.BlockLicense.CmdV1, as: BlockLicense
+  alias TrainSwarmProc.BlockLicense.PayloadV1, as: BlockInfo
+  alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
 
   alias TrainSwarmProc.QueueScape.EvtV1, as: ScapeQueued
   alias Scape.Init, as: ScapeInit
@@ -32,7 +38,10 @@ defmodule TrainSwarmProc.Aggregate do
   @license_configured_status Status.license_configured()
   @license_paid_status Status.license_paid()
   @license_active_status Status.license_active()
+  @license_blocked_status Status.license_blocked()
+
   @scape_queued_status Status.scape_queued()
+
 
 
   @all_fields [
@@ -129,6 +138,25 @@ defmodule TrainSwarmProc.Aggregate do
         state: %Root{root | swarm_license: new_license}
     }
   end
+
+
+  def apply(
+        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
+        %LicenseBlocked{payload: block_info} = _evt
+      ) do
+    {:ok, new_license} = SwarmLicense.from_map(license, block_info)
+
+    new_license = %SwarmLicense{new_license | status: @license_blocked_status}
+
+    %Aggregate{
+      agg
+      | status: @license_blocked_status,
+        state: %Root{root | swarm_license: new_license}
+    }
+  end
+
+
+
 
 
   def apply(agg, evt) do

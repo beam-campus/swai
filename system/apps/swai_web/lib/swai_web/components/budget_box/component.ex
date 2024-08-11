@@ -1,9 +1,7 @@
 defmodule SwaiWeb.BudgetBox do
   use SwaiWeb, :live_component
 
-  alias Swai.Accounts, as: Accounts
-  alias Schema.User, as: User
-
+  
   @impl true
   def update(assigns, socket) do
     {:ok, socket |> assign(assigns)}

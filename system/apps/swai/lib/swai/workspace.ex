@@ -21,20 +21,19 @@ defmodule Swai.Workspace do
   def get_swarm_license!(id), do: Repo.get!(SwarmLicense, id)
 
   def create_swarm_license(attrs \\ %{}) do
-    if not exists_swarm_license?(attrs.id) do
+    if exists_swarm_license?(attrs.id) do
+      Logger.error("SwarmLicense already exists with id #{attrs.id}")
+      {:error, "SwarmLicense already exists with id #{attrs.id}"}
+    else
       case %SwarmLicense{}
            |> SwarmLicense.changeset(attrs) do
         %{valid?: true} = changeset ->
           changeset
           |> Repo.insert()
-
         changeset ->
           Logger.error("Invalid changeset: #{inspect(changeset)}")
           changeset
       end
-    else
-      Logger.error("SwarmLicense already exists with id #{attrs.id}")
-      {:error, "SwarmLicense already exists with id #{attrs.id}"}
     end
   end
 

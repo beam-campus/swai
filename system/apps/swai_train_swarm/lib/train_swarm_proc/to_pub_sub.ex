@@ -15,6 +15,8 @@ defmodule TrainSwarmProc.ToPubSubV1 do
   alias TrainSwarmProc.PayLicense.EvtV1, as: LicensePaid
   alias TrainSwarmProc.Activate.EvtV1, as: LicenseActivated
   alias TrainSwarmProc.QueueScape.EvtV1, as: ScapeQueued
+  alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
+
 
   alias TrainSwarmProc.Facts, as: Facts
   alias Phoenix.PubSub, as: PubSub
@@ -25,6 +27,8 @@ defmodule TrainSwarmProc.ToPubSubV1 do
   @configured_v1 Facts.license_configured()
   @license_paid Facts.license_paid()
   @license_activated Facts.license_activated()
+  @license_blocked Facts.license_blocked()
+
   @scape_queued Facts.scape_queued()
 
   ###################### INITIALIZED #######################
@@ -78,6 +82,17 @@ defmodule TrainSwarmProc.ToPubSubV1 do
 
     Swai.PubSub
     |> PubSub.broadcast!(@scape_queued, {@scape_queued, evt, metadata})
+
+    :ok
+  end
+
+  ############################ LICENSE BLOCKED ############################
+  @impl true
+  def handle(%LicenseBlocked{} = evt, metadata) do
+    Logger.debug("LICENSE BLOCKED with event #{inspect(evt)}")
+
+    Swai.PubSub
+    |> PubSub.broadcast!(@license_blocked, {@license_blocked, evt, metadata})
 
     :ok
   end

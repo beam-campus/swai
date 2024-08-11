@@ -44,6 +44,13 @@ defmodule Apis.Countries do
         {:countries_of_regions, list_of_regions, min_area, min_population}
       )
 
+  def get_country_by_country_code(country_code),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:get_country_by_country_code, country_code}
+      )
+
   ##### INTERNALS ##########
   defp request_countries(false),
     do:
@@ -92,6 +99,28 @@ defmodule Apis.Countries do
   @impl true
   def handle_cast({:clear}, _state),
     do: {:noreply, []}
+
+  @impl true
+  def handle_call({:get_country_by_country_code, country_code}, _from, state) do
+    if Enum.empty?(state) do
+      state = request_countries(true)
+    end
+
+    field_name = "cca#{String.length(country_code)}"
+
+    country =
+      state
+      |> Stream.filter(fn c -> c[field_name] == country_code end)
+      |> Enum.at(0)
+
+    case country do
+      nil ->
+        {:reply, {:error, "Country not found"}, state}
+
+      _ ->
+        {:reply, {:ok, country}, state}
+    end
+  end
 
   @impl true
   def handle_call(

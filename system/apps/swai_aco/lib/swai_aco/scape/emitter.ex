@@ -78,7 +78,7 @@ defmodule Scape.Emitter do
   #   do: "scape.emitter.#{scape_id}"
 
   # def via(scape_id),
-  #   do: Edge.Registry.via_tuple({:scape_channel, to_name(scape_id)})
+  #   do: Swai.Registry.via_tuple({:scape_channel, to_name(scape_id)})
 
   # def start_link(%ScapeInit{} = scape_init) do
   #   GenServer.start_link(

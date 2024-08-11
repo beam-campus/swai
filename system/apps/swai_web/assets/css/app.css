@@ -386,7 +386,7 @@
 
 .section-card-body {
     /* font-family: 'WorkSans', sans-serif; */
-    font-family: 'Anonymous Pro', sans-serif;
+    font-family: 'Anonymous Pro';
     font-size: 1rem;
     color: #ffffff;
     /* White for readability */
@@ -554,4 +554,18 @@
   
   #marketplace-view::-webkit-scrollbar {
     display: none;  /* Safari and Chrome */
+  }
+
+  .map_country {
+    fill: transparent;
+    stroke: rgb(0, 191, 255);
+    stroke-width: 0.8;
+    stroke-opacity: 0.5;    
+  }
+
+  .map_country:hover {
+    fill: darkslategrey;
+    stroke: rgb(0, 191, 255);
+    stroke-width: 1;
+    stroke-opacity: 0.5;    
   }

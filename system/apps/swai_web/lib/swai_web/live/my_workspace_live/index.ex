@@ -7,7 +7,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
   alias Edges.Service, as: Edges
   alias Phoenix.PubSub, as: PubSub
   alias TrainSwarmProc.Facts, as: Facts
-  alias SwarmLicenses.Service, as: SwarmLicenses
+  alias SwarmLicenses.Service, as: Licenses
 
   alias TrainSwarmProc.Initialize.PayloadV1, as: InitPayload
   alias TrainSwarmProc.Configure.PayloadV1, as: ConfigPayload
@@ -26,7 +26,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
     case connected?(socket) do
       true ->
         # trainings = Workspace.get_swarm_licenses_by_user_id(current_user.id)
-        trainings = SwarmLicenses.get_all_for_user(current_user.id)
+        licenses = Licenses.get_all_for_user(current_user.id)
 
         Swai.PubSub
         |> PubSub.subscribe(@swarm_licenses_cache_updated_v1)
@@ -38,7 +38,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
             page_title: "My Workspace",
             edges: Edges.get_all(),
             now: DateTime.utc_now(),
-            swarm_licenses: trainings
+            swarm_licenses: licenses
           )
         }
 
@@ -73,11 +73,11 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
         {_, payload, %{@user_id => the_user} = meta},
         socket
       ) do
-    Logger.debug("Swarm Trainings Cache Updated - #{inspect(payload)} - #{inspect(meta)}")
+    Logger.debug("Swarm Licenses Cache Updated - #{inspect(payload)} - #{inspect(meta)}")
 
     if the_user == socket.assigns.current_user.id do
-      trainings = SwarmLicense.get_all_for_user(socket.assigns.current_user.id)
-      {:noreply, assign(socket, swarm_licenses: trainings)}
+      licenses = Licenses.get_all_for_user(socket.assigns.current_user.id)
+      {:noreply, assign(socket, swarm_licenses: licenses)}
     else
       {:noreply, socket}
     end
@@ -85,15 +85,15 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
 
   @impl true
   def handle_info(msg, socket) do
-    Logger.warn("Unhandled message: #{inspect(msg)}")
+    Logger.warning("Unhandled message: #{inspect(msg)}")
     {:noreply, socket}
   end
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div id="workspace" class="flex flex-col my-5">
-      <section class="py-3">
+    <div id="workspace" class="flex flex-row h-full">
+      <section class="mt-11">
         <.live_component
           id="active-swarms-section"
           current_user={@current_user}

@@ -9,12 +9,13 @@ defmodule Edge.Client do
 
   alias Edge.Facts, as: EdgeFacts
   alias Edge.Hopes, as: EdgeHopes
+  alias Swai.Registry, as: EdgeRegistry
 
 
   @edge_lobby "edge:lobby"
   @edge_attached_v1 EdgeFacts.edge_attached_v1()
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
-  @socket_reconnect_delay 1_000
+  # @socket_reconnect_delay 1_000
 
   @start_scape_v1 EdgeHopes.start_scape_v1()
 
@@ -69,7 +70,7 @@ defmodule Edge.Client do
 
   @impl Slipstream
   def handle_disconnect(reason, socket) do
-    time_out = @socket_reconnect_delay * :rand.uniform(20)
+    # time_out = @socket_reconnect_delay * :rand.uniform(20)
     Logger.debug("\nServer on socket: [#{socket.assigns.edge_init.id}]
     \tdisconnected for reason ~> #{inspect(reason)}\n")
     case reconnect(socket) do
@@ -121,7 +122,7 @@ defmodule Edge.Client do
     do: "edge:lobby:#{edge_id}"
 
   def via(edge_id),
-    do: Edge.Registry.via_tuple({:client, to_name(edge_id)})
+    do: EdgeRegistry.via_tuple({:client, to_name(edge_id)})
 
   def child_spec(edge_init) do
     config = Application.fetch_env!(:swai_edge, __MODULE__)

@@ -1,4 +1,4 @@
-defmodule Edge.Registry do
+defmodule Swai.Registry do
   @moduledoc """
   Registry is a simple key-value store that allows processes to be registered
   """

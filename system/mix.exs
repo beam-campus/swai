@@ -28,7 +28,7 @@ defmodule Swai.Umbrella.MixProject do
           swai_web: :permanent
         ]
       ],
-      for_node: [
+      for_swai_aco: [
         include_executables_for: [:unix],
         steps: [:assemble, :tar],
         applications: [
@@ -36,7 +36,7 @@ defmodule Swai.Umbrella.MixProject do
           logger: :permanent,
           observer: :permanent,
           os_mon: :permanent,
-          swai_node: :permanent
+          swai_aco: :permanent
         ]
       ]
     ]

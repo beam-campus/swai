@@ -12,6 +12,9 @@ defmodule TrainSwarmProc.Router do
   alias TrainSwarmProc.PayLicense.CmdV1, as: PayLicense
   alias TrainSwarmProc.PayLicense.Evaluator, as: PayLicenseHandler
 
+  alias TrainSwarmProc.BlockLicense.CmdV1, as: BlockLicense
+  alias TrainSwarmProc.BlockLicense.Evaluator, as: BlockLicenseHandler
+
   alias TrainSwarmProc.Activate.CmdV1, as: Activate
   alias TrainSwarmProc.Activate.Evaluator, as: ActivateHandler
 
@@ -48,6 +51,9 @@ defmodule TrainSwarmProc.Router do
     aggregate: Aggregate,
     identity: :agg_id
   )
+
+
+
 
 
 end

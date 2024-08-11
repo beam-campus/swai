@@ -45,4 +45,5 @@ defmodule SwaiWeb.Dispatch.EdgeHandler do
       {@edge_attached_v1, edge_init}
     )
   end
+  
 end

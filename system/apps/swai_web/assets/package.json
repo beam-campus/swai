@@ -1,9 +1,14 @@
 {
   "dependencies": {
     "alpinejs": "^3.14.1",
+    "d3": "^7.9.0",
     "phoenix": "^1.7.11",
     "phoenix_html": "^4.1.1",
-    "phoenix_live_view": "^0.20.14"
+    "phoenix_live_view": "^0.20.14",
+    "topojson-client": "^3.1.0",
+    "topojson-server": "^3.0.1",
+    "topojson-simplify": "^3.0.3",
+    "world-atlas": "^2.0.2"
   },
   "scripts": {
     "deploy": "esbuild --bundle --minify --sourcemap --outdir=priv/static/js --target=es2015 --define:process.env.NODE_ENV=\"production\" js/app.js",

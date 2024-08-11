@@ -8,13 +8,13 @@ defmodule SwaiWeb.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      {Edge.Registry, name: Edge.Registry},
+      {Swai.Registry, name: Web.Registry},
       SwaiWeb.Telemetry,
       SwaiWeb.EdgePresence,
-      SwaiWeb.UserPresence,
-
+      SwaiWeb.UserPresence,      
       {SwaiWeb.Dispatch.ChannelWatcher, "edge:lobby"},
       SwaiWeb.Endpoint,
+      SwaiWeb.ScapeQueueSup
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

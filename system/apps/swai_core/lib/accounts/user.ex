@@ -34,7 +34,7 @@ defmodule Schema.User do
     field(:user_alias, :string)
     field(:bio, :string)
     field(:image_url, :string)
-    field(:budget, :integer, default: 6_000)
+    field(:budget, :integer, default: 36_000)
     field(:wants_notifications?, :boolean, default: true)
     field(:has_accepted_terms?, :boolean, default: true)
     timestamps()

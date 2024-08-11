@@ -8,6 +8,7 @@ defmodule Scape.System do
 
   alias Edge.Emitter, as: EdgeEmitter
   alias Scape.Init, as: ScapeInit
+  alias Swai.Registry, as: EdgeRegistry
 
   @doc """
   Returns the list of children supervised by this module
@@ -57,7 +58,7 @@ defmodule Scape.System do
     EdgeEmitter.emit_initializing_scape(scape_init)
 
     children = [
-      
+
       # {Scape.Emitter, scape_init},
       {Scape.Builder, scape_init}
     ]
@@ -77,10 +78,10 @@ defmodule Scape.System do
 
   ################# PLUMBIMG #####################
   def via(key),
-    do: Edge.Registry.via_tuple({:scape_system, to_name(key)})
+    do: EdgeRegistry.via_tuple({:scape_system, to_name(key)})
 
   def via_sup(key),
-    do: Edge.Registry.via_tuple({:scape_sup, to_name(key)})
+    do: EdgeRegistry.via_tuple({:scape_sup, to_name(key)})
 
   def to_name(key) when is_bitstring(key),
     do: "scape.system.#{key}"

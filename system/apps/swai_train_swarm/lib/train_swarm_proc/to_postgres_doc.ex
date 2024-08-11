@@ -15,6 +15,8 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
   alias TrainSwarmProc.Initialize.EvtV1, as: Initialized
   alias TrainSwarmProc.Configure.EvtV1, as: Configured
   alias TrainSwarmProc.PayLicense.EvtV1, as: LicensePaid
+  alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
+
   alias TrainSwarmProc.Activate.EvtV1, as: LicenseActivated
   alias TrainSwarmProc.QueueScape.EvtV1, as: ScapeQueued
 
@@ -25,7 +27,9 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
   @license_initialized_status Status.license_initialized()
   @license_configured_status Status.license_configured()
   @license_paid_status Status.license_paid()
+  @license_blocked_status Status.license_blocked()
   @license_activated_status Status.license_active()
+
   @scape_queued_status Status.scape_queued()
 
   ####################### INITIALIZED #######################
@@ -103,7 +107,7 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
     end
   end
 
-  ############ @ LICENSE ACTIVATED ################
+  ############ LICENSE ACTIVATED ################
   @impl true
   def handle(
         %LicenseActivated{
@@ -145,6 +149,34 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
     case SwarmLicense.from_map(st, payload) do
       {:ok, st} ->
         new_st = %{st | status: @scape_queued_status}
+
+        new_st
+        |> MyWorkspace.update_swarm_license(payload)
+
+        :ok
+
+      {:error, changeset} ->
+        Logger.error("Invalid license request params #{inspect(changeset)}")
+        {:error, "Invalid license request params #{inspect(changeset)}"}
+    end
+  end
+
+
+  ############################ LICENSE BLOCKED ############################
+  @impl true
+  def handle(
+        %LicenseBlocked{
+          agg_id: agg_id,
+          payload: payload
+        } = evt,
+        _metadata
+      ) do
+    Logger.debug("Handling LicenseBlocked event => #{inspect(evt)}")
+    st = MyWorkspace.get_swarm_license!(agg_id)
+
+    case SwarmLicense.from_map(st, payload) do
+      {:ok, st} ->
+        new_st = %{st | status: @license_blocked_status}
 
         new_st
         |> MyWorkspace.update_swarm_license(payload)

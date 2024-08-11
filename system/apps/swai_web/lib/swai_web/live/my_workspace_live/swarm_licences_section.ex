@@ -21,7 +21,7 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
       </div>
 
 
-      <div class="cards-section grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-6">
+      <div class="cards-section grid grid-cols-1 gap-4 mt-3">
         <%= for swarm_license <- @swarm_licenses do %>
           <.live_component
             id={"swarm-training-card-#{swarm_license.license_id}"}

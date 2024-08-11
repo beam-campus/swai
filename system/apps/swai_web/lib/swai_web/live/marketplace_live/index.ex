@@ -97,6 +97,14 @@ defmodule SwaiWeb.MarketplaceLive.Index do
      |> put_flash(:info, "License Request Submitted")}
   end
 
+
+  @impl true
+  def handle_info(msg, socket) do
+    Logger.debug("MarketplaceLive.Index.handle_info: #{inspect(msg)}")
+    {:noreply, socket}
+  end
+
+
   @impl true
   def render(assigns) do
     ~H"""

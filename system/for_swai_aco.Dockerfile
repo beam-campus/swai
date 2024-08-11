@@ -44,21 +44,21 @@ RUN MIX_ENV="prod" mix do deps.get --only "prod", deps.compile
 COPY apps/${EDGE_APP} ./apps/${EDGE_APP}
 
 RUN MIX_ENV="prod" mix compile && \
-    MIX_ENV="prod" mix release for_edge
+    MIX_ENV="prod" mix release for_swai_aco
 
 ################ NORDVPN_IMAGE ################
 
-FROM ${RUNNER_IMAGE} as nordvpn
+# FROM ${RUNNER_IMAGE} AS nordvpn
 
-RUN apt-get update && \
-    apt-get install -y wget iputils-ping curl && \
-    wget -O /tmp/nordrepo.deb https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb && \
-    apt-get install -y /tmp/nordrepo.deb && \
-    apt-get update && \
-    apt-get install -y nordvpn=3.17.1 && \
-    apt-get remove -y wget nordvpn-release && \
-    rm /tmp/nordrepo.deb && \
-    apt-get clean
+# RUN apt-get update && \
+#     apt-get install -y wget iputils-ping curl && \
+#     wget -O /tmp/nordrepo.deb https://repo.nordvpn.com/deb/nordvpn/debian/pool/main/nordvpn-release_1.0.0_all.deb && \
+#     apt-get install -y /tmp/nordrepo.deb && \
+#     apt-get update && \
+#     apt-get install -y nordvpn=3.17.1 && \
+#     apt-get remove -y wget nordvpn-release && \
+#     rm /tmp/nordrepo.deb && \
+#     apt-get clean
 
 # ENTRYPOINT /etc/init.d/nordvpn start && sleep 5 && /bin/bash -c "$@"
 # CMD systemctl enable --now nordvpnd
@@ -72,7 +72,7 @@ RUN apt-get update && \
 FROM ${RUNNER_IMAGE} AS for_edge
 
 ARG CORE_APP=swai_core
-ARG EDGE_APP=swai_edge_delivery_rush
+ARG EDGE_APP=swai_aco
 ARG APIS_APP=apis
 
 RUN apt-get update -y && \
@@ -94,25 +94,12 @@ WORKDIR /system
 
 RUN chown nobody /system
 
-COPY --from=builder --chown=nobody /build_space/_build/prod/rel/for_edge .
+COPY --from=builder --chown=nobody /build_space/_build/prod/rel/for_swai_aco .
 
 COPY run-edge.sh .
 
 RUN chmod +x run-edge.sh
 
-# RUN which nordvpn
-
-# RUN mkdir /run/nordvpn
-
-# # RUN mkdir /var/log/nordvpn
-
-# RUN chown nobody /etc/init.d/nordvpn
-
-# RUN chown nobody /run/nordvpn
-
-# RUN chown nobody /var/log/nordvpn
-
-# RUN usermod -aG nordvpn nobody
 
 USER nobody
 
@@ -122,12 +109,7 @@ ENV MIX_ENV="prod"
 
 ENV SWAI_DB_URL="irrelevant"
 ENV SWAI_SECRET_KEY_BASE="irrelevant"
-ENV SWAI_SCAPE_ID="5693504a-89d6-4af3-bb70-2c2914913dc9"
-
-# ENTRYPOINT [ "/bin/bash", "-c", "/etc/init.d/nordvpn start && sleep 20 && ./run-edge.sh" ]
-
-
-# CMD ["/system/bin/for_edge", "start"]
+ENV SWAI_BIOTOPE_ID="b105f59e-42ce-4e85-833e-d123e36ce943"
 
 CMD ["./run-edge.sh"]
 

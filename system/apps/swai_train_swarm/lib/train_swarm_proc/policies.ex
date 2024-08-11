@@ -26,19 +26,24 @@ defmodule TrainSwarmProc.Policies do
   alias TrainSwarmProc.PayLicense.CmdV1, as: PayLicense
   alias TrainSwarmProc.PayLicense.PayloadV1, as: Payment
   alias TrainSwarmProc.PayLicense.EvtV1, as: Paid
+  alias TrainSwarmProc.PayLicense.BudgetReachedV1, as: BudgetReached
 
   alias TrainSwarmProc.Activate.CmdV1, as: Activate
   alias TrainSwarmProc.Activate.PayloadV1, as: Activation
   alias TrainSwarmProc.Activate.EvtV1, as: Activated
 
-  alias Scape.Init, as: ScapeInit
   alias TrainSwarmProc.QueueScape.CmdV1, as: QueueScape
+  alias Scape.Init, as: ScapeInit
   alias Schema.Vector, as: Vector
+
+  alias TrainSwarmProc.BlockLicense.CmdV1, as: BlockLicense
+  alias TrainSwarmProc.BlockLicense.PayloadV1, as: BlockInfo
 
   require Logger
 
   def interested?(%Configured{} = event), do: {:start, event}
   def interested?(%Paid{} = event), do: {:start, event}
+  def interested?(%BudgetReached{} = event), do: {:start, event}
   def interested?(%Activated{} = event), do: {:start, event}
   def interested?(_event), do: false
 
@@ -67,16 +72,46 @@ defmodule TrainSwarmProc.Policies do
         %Policies{} = _policies,
         %Activated{agg_id: agg_id, payload: activation} = _event
       ) do
-    # new_activation =
-    #   if not Map.keys(activation) |> Enum.member?(:dimensions) do
-    #     activation
-    #     |> Map.put(:dimensions,Vector.default_map_dimensions() )
-    #   else
-    #     activation
-    #   end
+    seed =
+      %ScapeInit{
+        dimensions: Vector.default_map_dimensions()
+      }
 
-    {:ok, scape_init} = ScapeInit.from_map(%ScapeInit{dimensions: Vector.default_map_dimensions()}, activation)
+    {:ok, scape_init} = ScapeInit.from_map(seed, activation)
 
     %QueueScape{agg_id: agg_id, payload: scape_init}
   end
+
+  def handle(
+        %Policies{} = _policies,
+        %BudgetReached{agg_id: agg_id, payload: budget_info} = _event
+      ) do
+    %BlockLicense{
+      agg_id: agg_id,
+      version: 1,
+      payload: %BlockInfo{
+        reason: "Budget reached",
+        additional_info:
+          "This is temporarily blocked because the budget has been reached.
+        Your current budget is #{budget_info.current_budget}👾 and the required budget is #{budget_info.required_budget}👾.",
+        instructions: "Please increase your budget to continue."
+      }
+    }
+
+    # {:ok, cmd} = BlockLicense.from_map(seed, event)
+    # cmd
+  end
+
+  # Stop process manager after three failures
+  def error({:error, _failure}, _failed_message, %{context: %{failures: failures}})   when failures >= 4 do
+    {:stop, :too_many_failures}
+  end
+
+  # Retry command, record failure count in context map
+  def error({:error, _failure}, _failed_message, %{context: context}) do
+    context = Map.update(context, :failures, 1, fn failures -> failures + 1 end)
+    {:retry, context}
+  end
+
+
 end

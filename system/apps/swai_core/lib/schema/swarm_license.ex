@@ -17,6 +17,7 @@ defmodule Schema.SwarmLicense do
     def license_active, do: 4
     def license_inactive, do: 8
     def license_paid, do: 16
+    def license_blocked, do: 32
 
     def scape_queued, do: 256
     def scape_started, do: 512
@@ -32,11 +33,26 @@ defmodule Schema.SwarmLicense do
         license_active() => "active",
         license_inactive() => "inactive",
         license_paid() => "paid",
+        license_blocked() => "blocked",
         scape_queued() => "queued",
         scape_started() => "started",
         scape_paused() => "paused",
         scape_cancelled() => "cancelled",
         scape_completed() => "completed"
+      }
+
+    def style,
+      do: %{
+        unknown() => "bg-gray-500 text-white",
+        license_initialized() => "bg-green-500 text-white",
+        license_configured() => "bg-blue-500 text-white",
+        license_paid() => "bg-blue-500 text-white",
+        license_blocked() => "bg-red-500 text-white",
+        scape_queued() => "bg-blue-500 text-white",
+        scape_started() => "bg-blue-500 text-white",
+        scape_paused() => "bg-orange-500 text-white",
+        scape_cancelled() => "bg-red-500 text-white",
+        scape_completed() => "bg-blue-500 text-white"
       }
 
     def to_list(status), do: Flags.to_list(status, map())
@@ -160,7 +176,7 @@ defmodule Schema.SwarmLicense do
   end
 
   def changeset(swarm_license, map) when is_struct(map),
-    do: changeset(swarm_license, Map.to_map(map))
+    do: changeset(swarm_license, Map.from_struct(map))
 
   def changeset(swarm_license, map) when is_map(map),
     do:

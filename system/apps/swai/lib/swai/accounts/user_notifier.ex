@@ -3,7 +3,7 @@ defmodule Swai.Accounts.UserNotifier do
 
   alias Swai.Mailer
 
-  @site_monitor_email "info@discomco.pl"
+  @site_monitor_email "macula@discomco.pl"
 
   # Delivers the email using the application mailer.
   defp deliver(recipient, subject, body) do

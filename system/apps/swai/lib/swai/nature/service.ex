@@ -164,7 +164,7 @@ defmodule Nature.Service do
     do: "nature.service.#{effect_id}"
 
   def via(nature_id),
-    do: Edge.Registry.via_tuple({:nature_srv, to_name(nature_id)})
+    do: Swai.Registry.via_tuple({:nature_srv, to_name(nature_id)})
 
   def child_spec(opts),
     do: %{

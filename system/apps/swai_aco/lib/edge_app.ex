@@ -11,26 +11,32 @@ defmodule SwaiAco.EdgeApp do
   alias Edge.Init, as: EdgeInit
   alias Scape.Init, as: ScapeInit
 
-  @scape_id "5693504a-89d6-4af3-bb70-2c2914913dc9"
-  @scape_name "Delivery Rush"
+  @planet_of_ants_id "b105f59e-42ce-4e85-833e-d123e36ce943"
+  @biotope_id @planet_of_ants_id
 
-  @capabilities []
+  @biotope_name "Planet of Ants"
+  @algorithm_acronym "ACO"
 
   @impl Application
   def start(_type, _args) do
-
     %EdgeInit{} = edge_init = EdgeInit.enriched()
+
     edge_init =
-      %EdgeInit{ edge_init | scape_id: @scape_id }
+      %EdgeInit{
+        edge_init
+        | biotope_id: @biotope_id,
+          biotope_name: @biotope_name,
+          algorithm_acronym: @algorithm_acronym
+      }
 
     IO.puts("\n\n\n
     +----------------------------------------------+
     |           ANT COLONY OPTIMIZATION            |
     +----------------------------------------------+
 
-
     edge_id:\t#{edge_init.id}
-    scape_id:\t#{edge_init.scape_id}
+    biotope_name:\t#{edge_init.biotope_name}
+    algorithm_acronym:\t#{edge_init.algorithm_acronym}
     api_key:\t#{edge_init.api_key}
     country:\t#{edge_init.country}
 
@@ -39,7 +45,7 @@ defmodule SwaiAco.EdgeApp do
     Process.sleep(2_000)
 
     children = [
-      {Edge.Registry, name: Edge.Registry},
+      {Swai.Registry, name: Edge.Registry},
       {Phoenix.PubSub, name: Edge.PubSub},
       {Edge.Client, edge_init}
     ]
@@ -72,5 +78,4 @@ defmodule SwaiAco.EdgeApp do
       {Scape.System, scape_init}
     )
   end
-
 end

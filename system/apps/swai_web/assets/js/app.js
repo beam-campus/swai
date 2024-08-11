@@ -28,6 +28,9 @@ import topbar from "../vendor/topbar"
 import "alpinejs"
 import { Alpine } from "alpinejs"
 
+import {TheMap, EdgesChanged} from "./edges_world_map.js"
+
+
 window.Alpine = Alpine
 Alpine.start()
 
@@ -68,8 +71,9 @@ const cubehelix = (s, r, h) => d => {
   ];
 };
 
-let hooks = {
-  // Prompt: window.Prompt,
+let hooks = {  
+  
+  // Prompt: window.Prompt,  
   cell_state_changed: {
     mounted() {
       this.handleEvent("cell_state_changed", ({ cell_states }) => {
@@ -164,6 +168,9 @@ let hooks = {
     }
   }
 };
+
+hooks.TheMap = TheMap;
+hooks.EdgesChanged = EdgesChanged;
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 

@@ -32,6 +32,13 @@ defmodule Edges.Service do
         :count
       )
 
+  def get_candidates_for_biotope(biotope_id),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:get_candidates_for_biotope, biotope_id}
+      )
+
   def get_all(),
     do:
       GenServer.call(
@@ -59,8 +66,6 @@ defmodule Edges.Service do
       |> Cachex.stream!()
       |> Stream.filter(fn {:entry, _, _, _, edge} -> edge.biotope_id == biotope_id end)
       |> Enum.to_list()
-
-
 
   # def get_by_id(id),
   #   do:
@@ -106,6 +111,17 @@ defmodule Edges.Service do
       {:reply,
        :edges_cache
        |> Cachex.stats!(), state}
+
+  def handle_call({:get_candidates_for_biotope, biotope_id}, _from, state),
+    do: {
+      :reply,
+      :edges_cache
+      |> Cachex.stream!()
+      |> Stream.filter(fn {:entry, _, _, _, edge} -> edge.biotope_id == biotope_id end)
+      |> Stream.map(fn {:entry, _, _, _, edge} -> edge end)
+      |> Enum.to_list(),
+      state
+    }
 
   @impl GenServer
   def handle_call({:get_edge_stats, edge_id}, _from, state) do
@@ -202,24 +218,22 @@ defmodule Edges.Service do
         # Logger.debug("Edge found: #{inspect(old_edge)}")
         %{stats: %EdgeStats{} = old_stats} = old_edge
 
-        cond do
-          old_stats.nbr_of_agents == 1 ->
-            :edges_cache
-            |> Cachex.del(old_edge.id)
+        if old_stats.nbr_of_agents == 1 do
+          :edges_cache
+          |> Cachex.del(old_edge.id)
+        else
+          new_stats = %EdgeStats{
+            old_stats
+            | nbr_of_agents: old_stats.nbr_of_agents - 1
+          }
 
-          true ->
-            new_stats = %EdgeStats{
-              old_stats
-              | nbr_of_agents: old_stats.nbr_of_agents - 1
-            }
+          new_edge = %EdgeInit{
+            old_edge
+            | stats: new_stats
+          }
 
-            new_edge = %EdgeInit{
-              old_edge
-              | stats: new_stats
-            }
-
-            :edges_cache
-            |> Cachex.update!(new_edge.id, new_edge)
+          :edges_cache
+          |> Cachex.update!(new_edge.id, new_edge)
         end
     end
 
