@@ -5,7 +5,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build_web:
+  build_swai_web:
     runs-on: ubuntu-latest
 
     steps:

@@ -175,6 +175,7 @@ defmodule Edges.Service do
         :edges_cache
         |> Cachex.put!(edge_init.id, new_edge)
 
+
       {:entry, _, _, _, old} ->
         # Logger.debug("Edge already attached: #{inspect(edge_init)} ...existing: #{inspect(old)}")
 

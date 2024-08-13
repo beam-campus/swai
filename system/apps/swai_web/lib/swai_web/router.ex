@@ -100,7 +100,7 @@ defmodule SwaiWeb.Router do
       live("/users/settings", UserSettingsLive, :edit)
       live("/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email)
 
-      live("/edges_live", EdgesLive.Index, :index)
+      live("/hives", EdgesLive.Index, :index)
 
       live("/my_workspace", MyWorkspaceLive.Index, :index)
 

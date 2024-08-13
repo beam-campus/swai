@@ -56,6 +56,48 @@ defmodule Edge.Init do
     :socket
   ]
 
+  @json_fields [
+    :id,
+    :biotope_id,
+    :biotope_name,
+    :algorithm_acronym,
+    :api_key,
+    :is_container,
+    :ip_address,
+    :continent,
+    :continent_code,
+    :country,
+    :country_code,
+    :country_ccn3,
+    :country_cca2,
+    :country_cca3,
+    :country_cioc,
+    :region,
+    :region_name,
+    :city,
+    :district,
+    :zip,
+    :lat,
+    :lon,
+    :timezone,
+    :offset,
+    :currency,
+    :isp,
+    :org,
+    :as,
+    :asname,
+    :reverse,
+    :mobile,
+    :proxy,
+    :hosting,
+    :connected_since,
+    :image_url,
+    :flag,
+    :stats,
+  ]
+
+
+
   @flat_fields [
     :id,
     :biotope_id,
@@ -110,7 +152,7 @@ defmodule Edge.Init do
     :connected_since
   ]
 
-  @derive {Jason.Encoder, only: @all_fields}
+  @derive {Jason.Encoder, only: @json_fields}
   @primary_key false
   embedded_schema do
     field(:id, :string)
@@ -148,7 +190,7 @@ defmodule Edge.Init do
     field(:hosting, :boolean)
     field(:connected_since, :utc_datetime)
     field(:image_url, :string, default: "https://picsum.photos/400/300")
-    field(:flag, :string, default: "\u127988")
+    field(:flag, :string, default: "\u127988")    
     embeds_one(:stats, Stats)
     embeds_one(:socket, Socket)
   end

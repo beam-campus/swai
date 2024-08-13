@@ -3,15 +3,11 @@ defmodule SwaiWeb.EdgesLive.Index do
 
   require Logger
   require Seconds
+  require Jason.Encoder
 
-  alias Edges.Service,
-    as: EdgesCache
-
+  alias Edges.Service, as: EdgesCache
   alias Phoenix.PubSub
-
-  alias Edge.Facts,
-    as: EdgeFacts
-
+  alias Edge.Facts, as: EdgeFacts
   alias Edge.Init, as: Edge
 
   @edges_cache_updated_v1 EdgeFacts.edges_cache_updated_v1()
@@ -53,22 +49,11 @@ defmodule SwaiWeb.EdgesLive.Index do
     end
   end
 
-  # @impl true
-  # def handle_info({@edges_cache_updated_v1, _payload}, socket) do
-  #   Logger.info("Edges updated")
-  #   {
-  #     :noreply,
-  #     socket
-  #     |> assign(
-  #       edges: EdgesCache.get_all(),
-  #       now: DateTime.utc_now()
-  #     )
-  #   }
-  # end
-
   @impl true
-  def handle_info(_msg, socket),
-    do: {
+  def handle_info({@edges_cache_updated_v1, _payload}, socket) do
+    Logger.alert("Edges updated")
+
+    {
       :noreply,
       socket
       |> assign(
@@ -76,36 +61,51 @@ defmodule SwaiWeb.EdgesLive.Index do
         now: DateTime.utc_now()
       )
     }
+  end
+
+  @impl true
+  def handle_info(msg, socket) do
+    Logger.alert("Unknown message #{inspect(msg)}")
+
+    {
+      :noreply,
+      socket
+      |> assign(
+        edges: EdgesCache.get_all(),
+        now: DateTime.utc_now()
+      )
+    }
+  end
+
 
   @impl true
   def render(assigns) do
     ~H"""
-    <div id="edges-world-map-div" class="flex flex-col w-full h-full ml-4">
-      <svg id="edges-world-map-svg" class="w-full h-full" phx-hook="TheMap" phx-edges="{@edges}" />
-    </div>
-    """
-  end
-
-  @impl true
-  def render2(assigns) do
-    ~H"""
-    <div class="flex flex-col w-screen h-full py-1 font-mono justify-left">
-      <div class="px-8">
-        <div class="flex flex-col w-full gap-2 text-sm text-white">
-          <%= if @current_user do %>
-            <.live_component
-              module={SwaiWeb.EdgesLive.EdgesGrid}
-              id={"edges_grid_" <> @current_user.id}
-              edges={@edges}
-              current_user={@current_user}
-            />
-          <% else %>
-            <div class="text-sm text-white font-brand font-regular">
-              Please sign in or register to view connected producers
-            </div>
-          <% end %>
-        </div>
-      </div>
+    <div class="flex flex-col">
+    <section class="top-hidden-section">   
+    
+    </section>
+    <section class="top-section">
+      <.live_component
+        id="edges-header"
+        module={SwaiWeb.EdgesLive.EdgesHeader}
+        edges={@edges}
+      />
+    </section>
+    <section  id="edges-map" class="top-section">
+      <.live_component
+          id="edge-browser-main"
+          module={SwaiWeb.EdgeBrowser.WorldMap}
+          edges={@edges}
+        />   
+    </section>
+    <section class="mid-section h-full">
+      <.live_component
+        id="edges-dash-card"
+        module={SwaiWeb.EdgesLive.EdgesDashCard}
+        edges={@edges}
+      />
+    </section>
     </div>
     """
   end
