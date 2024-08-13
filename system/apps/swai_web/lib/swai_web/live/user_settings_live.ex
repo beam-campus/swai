@@ -121,7 +121,7 @@ defmodule SwaiWeb.UserSettingsLive do
       |> assign(:page_title, "Profile")
       |> assign(:current_password, nil)
       |> assign(:email_form_current_password, nil)
-      |> assign(:username_form_current_username, user.alias)
+      |> assign(:username_form_current_username, user.user_alias)
       |> assign(:current_email, user.email)
       |> assign(:email_form, to_form(email_changeset))
       |> assign(:password_form, to_form(password_changeset))
