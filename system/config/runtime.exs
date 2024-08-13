@@ -66,25 +66,7 @@ if config_env() == :prod do
     server: true,
     secret_key_base: secret_key_base
 
-  config :swai_train_swarm, TrainSwarmProc.CommandedApp,
-    event_store: [
-      adapter: Commanded.EventStore.Adapters.Extreme,
-      serializer: Commanded.Serialization.JsonSerializer,
-      stream_prefix: "train_swarm",
-      extreme: [
-        db_type: :node,
-        host: "eventstore",
-        port: 1113,
-        username: "admin",
-        password: "changeit",
-        reconnect_delay: 2_000,
-        max_attempts: :infinity
-      ]
-    ],
-    pubsub: :local,
-    registry: :local
-
-  # ## Using releases
+    # ## Using releases
   #
   # If you are doing OTP releases, you need to instruct Phoenix
   # to start each relevant endpoint:

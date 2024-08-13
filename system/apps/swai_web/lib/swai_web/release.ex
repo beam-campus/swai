@@ -10,7 +10,7 @@ defmodule SwaiWeb.Release do
   @app :swai
 
   def migrate do
-    load_app()
+    load_web_app()
 
     for repo <- repos() do
       {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :up, all: true))
@@ -26,16 +26,16 @@ defmodule SwaiWeb.Release do
   end
 
   def rollback(repo, version) do
-    load_app()
+    load_web_app()
     {:ok, _, _} = Ecto.Migrator.with_repo(repo, &Ecto.Migrator.run(&1, :down, to: version))
   end
 
   defp repos do
-    Application.fetch_env!(@app, :ecto_repos)
+    Application.fetch_env!(@web_app, :ecto_repos)
   end
 
 
-  defp load_app do
-    Application.load(@app)
+  defp load_web_app do
+    Application.load(@web_app)
   end
 end
