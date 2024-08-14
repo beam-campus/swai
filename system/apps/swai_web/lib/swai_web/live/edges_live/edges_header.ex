@@ -16,7 +16,7 @@ defmodule SwaiWeb.EdgesLive.EdgesHeader do
         <div class="grid-item text-red-400">3 Countries present</div>
         <div class="grid-item text-orange-400">24187 Users online</div>
         <div class="grid-item text-yellow-400">7 Algorithms supported</div>
-        <div class="grid-item text-green-400">145 Nodes connected</div>
+        <div class="grid-item text-green-400"><%= Enum.count(@edges) %> Nodes connected</div>
         <div class="grid-item text-blue-400">241 Scapes active</div>
         <div class="grid-item text-indigo-400">10524 Messages/sec</div>
       </div>

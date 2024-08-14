@@ -28,12 +28,12 @@ export const EdgesChanged = {
 export const TheMap = {
   mounted() {
     nodes = JSON.parse(this.el.dataset.edges);
-    const [svg, projection] = drawWorldMap(this.el, 800, 600)
+    const [svg, projection] = drawWorldMap(this.el, 1200, 600)
     createPoints(svg, nodes, projection);
   },
   updated() {
     nodes = JSON.parse(this.el.dataset.edges);
-    const [svg, projection] = drawWorldMap(this.el, 800, 600)
+    const [svg, projection] = drawWorldMap(this.el, 1200, 600)
     createPoints(svg, nodes, projection);
   }
 };
