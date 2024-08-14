@@ -14,6 +14,7 @@ defmodule Edge.Init do
   import Ecto.Changeset
 
   require Logger
+  require EnvVars
 
   @all_fields [
     :id,
@@ -93,10 +94,8 @@ defmodule Edge.Init do
     :connected_since,
     :image_url,
     :flag,
-    :stats,
+    :stats
   ]
-
-
 
   @flat_fields [
     :id,
@@ -190,7 +189,7 @@ defmodule Edge.Init do
     field(:hosting, :boolean)
     field(:connected_since, :utc_datetime)
     field(:image_url, :string, default: "https://picsum.photos/400/300")
-    field(:flag, :string, default: "\u127988")    
+    field(:flag, :string, default: "\u127988")
     embeds_one(:stats, Stats)
     embeds_one(:socket, Socket)
   end
@@ -228,8 +227,8 @@ defmodule Edge.Init do
     {:ok, chost} = :inet.gethostname()
     edge_id = "#{to_string(chost)}-" <> Edge.random_id()
 
-    api_key = System.get_env("SWAI_EDGE_API_KEY", "no-api-key")
-    biotope_id = System.get_env("SWAI_BIOTOPE_ID", "no-biotope-id-configured")
+    api_key = System.get_env(EnvVars.swai_edge_api_key, "no-api-key")
+    biotope_id = System.get_env(EnvVars.swai_edge_biotope_id, "no-biotope-id-configured")
 
     %EdgeInit{
       id: edge_id,
@@ -273,6 +272,9 @@ defmodule Edge.Init do
     algorithm_acronym =
       System.get_env(EnvVars.swai_edge_algorithm_acronym()) || "no-algorithm-acronym"
 
+    latitude = EnvVars.get_env_var_as_float(EnvVars.swai_edge_lat(), ip_info["lat"])
+    longitude = EnvVars.get_env_var_as_float(EnvVars.swai_edge_lon(), ip_info["lon"])
+
     edge_id = "#{to_string(chost)}-" <> api_key
 
     %EdgeInit{
@@ -294,8 +296,8 @@ defmodule Edge.Init do
       region_name: ip_info["regionName"],
       city: ip_info["city"],
       zip: ip_info["zip"],
-      lat: ip_info["lat"],
-      lon: ip_info["lon"],
+      lat: latitude,
+      lon: longitude,
       timezone: ip_info["timezone"],
       offset: ip_info["offset"],
       currency: ip_info["currency"],

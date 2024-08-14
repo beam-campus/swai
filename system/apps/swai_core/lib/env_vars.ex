@@ -12,6 +12,12 @@ defmodule EnvVars do
   def swai_edge_algorithm_acronym,
     do: "SWAI_EDGE_ALGORITHM_ACRONYM"
 
+  def swai_edge_lat,
+    do: "SWAI_EDGE_LAT"
+
+  def swai_edge_lon,
+    do: "SWAI_EDGE_LON"
+
   def swai_edge_scape_select_from,
     do: "SWAI_CONTINENTS"
 
