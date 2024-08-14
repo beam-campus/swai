@@ -584,7 +584,7 @@ body {
 
 
 .top-hidden-section {
-    height: 38px;    
+    height: 38px;
 }
 
 
@@ -637,3 +637,44 @@ body {
     padding-bottom: 20px;
     /* Adjust the value as needed to hug the footer */
 }
+
+.world-map-grid {
+    display: gtid;
+    grid-template-columns: repeat(auto-fit, minmax(800px, 1fr));
+    gap: 16px;
+    padding: 16px;
+    margin: 0 auto;
+    width: 100%;
+    height: 100%;
+}
+
+.bottom-hidden-section {
+    display: flex;
+    border: #5a5050;
+    bottom: 0;
+    height: 10%;
+    width: 100%;
+}
+
+.ticker-container {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .ticker-content {
+    display: flex;
+    animation: ticker 10s linear infinite;
+  }
+  
+  @keyframes ticker {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(-100%);
+    }
+  }
+  
+  .ticker-item {
+    flex: 0 0 auto;
+  }

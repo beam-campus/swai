@@ -29,34 +29,40 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
 
   @impl true
   def update(assigns, socket) do
-    prefix = "#{assigns.current_user.user_alias}_#{assigns.biotope.name}"
+    if assigns.current_user do
+      prefix = "#{assigns.current_user.user_alias}_#{assigns.biotope.name}"
 
-    map = %{
-      @license_id => "temporary_id",
-      @user_id => assigns.current_user.id,
-      @biotope_id => assigns.biotope.id,
-      @biotope_name => assigns.biotope.name,
-      @algorithm_id => assigns.biotope.algorithm_id,
-      @algorithm_acronym => assigns.biotope.algorithm_acronym,
-      @algorithm_name => assigns.biotope.algorithm_name,
-      @swarm_id => UUID.uuid4(),
-      @swarm_name => Swarm.generate_swarm_name(prefix, 2),
-      @available_tokens => assigns.current_user.budget
-    }
+      map = %{
+        @license_id => "temporary_id",
+        @user_id => assigns.current_user.id,
+        @biotope_id => assigns.biotope.id,
+        @biotope_name => assigns.biotope.name,
+        @algorithm_id => assigns.biotope.algorithm_id,
+        @algorithm_acronym => assigns.biotope.algorithm_acronym,
+        @algorithm_name => assigns.biotope.algorithm_name,
+        @swarm_id => UUID.uuid4(),
+        @swarm_name => Swarm.generate_swarm_name(prefix, 2),
+        @available_tokens => assigns.current_user.budget
+      }
 
-    lr_changes =
-      %SwarmLicense{}
-      |> TrainSwarmProc.change_swarm_license(map)
+      lr_changes =
+        %SwarmLicense{}
+        |> TrainSwarmProc.change_swarm_license(map)
 
-    {
-      :ok,
-      socket
-      |> assign(assigns)
-      |> assign(trigger_submit: false)
-      |> assign(check_errors: true)
-      |> assign_form(lr_changes)
-    }
+      {
+        :ok,
+        socket
+        |> assign(assigns)
+        |> assign(trigger_submit: false)
+        |> assign(check_errors: true)
+        |> assign_form(lr_changes)
+      }
+    else
+      {:ok, push_redirect(socket, to: Routes.login_path(socket, :new))}
+    end
   end
+
+  
 
   defp notify_parent(msg), do: send(self(), {__MODULE__, msg})
 

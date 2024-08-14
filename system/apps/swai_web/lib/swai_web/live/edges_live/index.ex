@@ -81,31 +81,30 @@ defmodule SwaiWeb.EdgesLive.Index do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class="flex flex-col">
-    <section class="top-hidden-section">   
-    
-    </section>
-    <section class="top-section">
-      <.live_component
-        id="edges-header"
-        module={SwaiWeb.EdgesLive.EdgesHeader}
-        edges={@edges}
-      />
-    </section>
-    <section  id="edges-map" class="top-section">
-      <.live_component
-          id="edge-browser-main"
-          module={SwaiWeb.EdgeBrowser.WorldMap}
-          edges={@edges}
-        />   
-    </section>
-    <section class="mid-section h-full">
-      <.live_component
-        id="edges-dash-card"
-        module={SwaiWeb.EdgesLive.EdgesDashCard}
-        edges={@edges}
-      />
-    </section>
+    <div class="flex flex-col mr-5 ml-5 h-full">
+
+        <section class="top-hidden-section">
+        </section>
+
+        <section class="top-section">
+          <.live_component
+            id="edges-header"
+            module={SwaiWeb.EdgesLive.EdgesHeader}
+            edges={@edges}
+          />
+        </section>
+
+        <section
+          id="edges-map"
+          class="flex justify-center"
+        >
+          <.live_component
+            id="edge-world-map"
+            module={SwaiWeb.EdgeBrowser.WorldMap}
+            edges={@edges}
+          />
+        </section>
+
     </div>
     """
   end

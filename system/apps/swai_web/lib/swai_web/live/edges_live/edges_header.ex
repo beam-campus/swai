@@ -12,9 +12,16 @@ defmodule SwaiWeb.EdgesLive.EdgesHeader do
     <div class="container mx-auto px-4 py-2">
       <div class="flex flex-wrap justify-start gap-2">
       <p>A global overview of the Macula Mesh</p>
+      <div class="grid-container w-full h-15 border rounded-lg shadow-lg overflow-hidden grid grid-cols-4 grid-rows-2 gap-4 p-4">
+        <div class="grid-item text-red-400">3 Countries present</div>
+        <div class="grid-item text-orange-400">24187 Users online</div>
+        <div class="grid-item text-yellow-400">7 Algorithms supported</div>
+        <div class="grid-item text-green-400">145 Nodes connected</div>
+        <div class="grid-item text-blue-400">241 Scapes active</div>
+        <div class="grid-item text-indigo-400">10524 Messages/sec</div>
+      </div>
       </div>
     </div>
     """
   end
-
 end

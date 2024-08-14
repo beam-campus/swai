@@ -68,41 +68,17 @@ defmodule SwaiWeb.UserMenu do
           hidden="true"
         >
           <.link
-            href="/mission"
-            class="border-b border-white border-opacity-50 menu-item"
+            href="/hives"
+            class="menu-item"
             role="menuitem"
             tabindex="-1"
             method="get"
             id="user-menu-item-about"
           >
-            Our Mission
+            Mesh Status
           </.link>
 
-          <%= if @current_user do %>
-            <.link
-              href={~p"/users/settings"}
-              class="border-b border-white border-opacity-50 menu-item"
-              role="menuitem"
-              tabindex="-1"
-              method="get"
-              id="user-menu-item-profile"
-            >
-              Singed in as <%= @current_user.email %>
-            </.link>
-
-            <.link
-              href="/my_workspace"
-              class="border-b border-white border-opacity-50 menu-item"
-              role="menuitem"
-              tabindex="-1"
-              method="get"
-              id="user-menu-workspace"
-            >
-              Workspace
-            </.link>
-
-
-            <.link
+          <.link
               href="/marketplace"
               class="border-b border-white border-opacity-50 menu-item"
               role="menuitem"
@@ -111,6 +87,32 @@ defmodule SwaiWeb.UserMenu do
               id="user-menu-training-grounds"
             >
               Marketplace
+            </.link>
+
+
+          <%= if @current_user do %>
+
+            <.link
+              href="/my_workspace"
+              class="menu-item"
+              role="menuitem"
+              tabindex="-1"
+              method="get"
+              id="user-menu-workspace"
+            >
+              My Workspace
+            </.link>
+
+
+            <.link
+              href={~p"/users/settings"}
+              class="border-b border-white border-opacity-50 menu-item"
+              role="menuitem"
+              tabindex="-1"
+              method="get"
+              id="user-menu-item-profile"
+            >
+              My Profile
             </.link>
 
             <.link
@@ -124,16 +126,6 @@ defmodule SwaiWeb.UserMenu do
               Sign out
             </.link>
           <% else %>
-          <.link
-              href="/marketplace"
-              class="menu-item"
-              role="menuitem"
-              tabindex="-1"
-              method="get"
-              id="user-menu-training-grounds"
-            >
-              Marketplace
-            </.link>
 
             <.link
               href={~p"/users/log_in"}
