@@ -21,20 +21,7 @@ export const EdgesChanged = {
   }
 };
 
-// .selectAll("path")
-// .attr("fill", "transparent")
-// .data(countries.features)
-// .enter()
-// .append("path")
-// .attr("class", "map_country")
-// .attr("d", pathGenerator)
-// .attr("fill", "#a4aa4")
-// .attr("stroke", "#5ae")
-// .append("title")
-// .text(d => countryName[d.id]);
 
-
-import * as d3 from 'd3';
 
 export const TheMap = {
   mounted() {
@@ -72,17 +59,23 @@ function createPoints(a_svg, data, projection) {
     .attr("cy", d => projection([d.lon, d.lat])[1])
     .attr("r", 10)
     .attr("fill", node_color)
-    .on("mouseover", function(event, d) {
+    .on("mouseover", function (event, d) {
       tooltip.style("visibility", "visible")
         .text(`Node: ${d.id}`);
     })
-    .on("mousemove", function(event) {
+    .on("mousemove", function (event) {
       tooltip.style("top", (event.pageY - 10) + "px")
         .style("left", (event.pageX + 10) + "px");
     })
-    .on("mouseout", function() {
+    .on("mouseout", function () {
       tooltip.style("visibility", "hidden");
     });
+
+  enter.append("circle")
+    .attr("cx", d => projection([d.lon, d.lat])[0])
+    .attr("cy", d => projection([d.lon, d.lat])[1])
+    .attr("r", 8)
+    .attr("fill", "grey");
 
   enter.append("image")
     .attr("xlink:href", d => d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
@@ -115,17 +108,23 @@ function updatePoints(a_svg, data, projection) {
     .attr("cy", d => projection([d.lon, d.lat])[1])
     .attr("r", 9)
     .attr("fill", node_color)
-    .on("mouseover", function(event, d) {
+    .on("mouseover", function (event, d) {
       tooltip.style("visibility", "visible")
         .text(`Node: ${d.id}`);
     })
-    .on("mousemove", function(event) {
+    .on("mousemove", function (event) {
       tooltip.style("top", (event.pageY - 10) + "px")
         .style("left", (event.pageX + 10) + "px");
     })
-    .on("mouseout", function() {
+    .on("mouseout", function () {
       tooltip.style("visibility", "hidden");
     });
+
+  enter.append("circle")
+    .attr("cx", d => projection([d.lon, d.lat])[0])
+    .attr("cy", d => projection([d.lon, d.lat])[1])
+    .attr("r", 8)
+    .attr("fill", "grey");
 
   enter.append("image")
     .attr("xlink:href", d => d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
@@ -137,6 +136,7 @@ function updatePoints(a_svg, data, projection) {
   points.select("circle")
     .attr("cx", d => projection([d.lon, d.lat])[0])
     .attr("cy", d => projection([d.lon, d.lat])[1])
+    .attr("r", 10)
     .attr("fill", node_color);
 
   points.select("image")
@@ -193,14 +193,14 @@ let node_color = function (d) {
   if (d.stats.nbr_of_agents > 0) {
     return "green";
   } else {
-    return "orange";
+    return "red";
   }
 }
 
 function drawWorldMap(an_el, width, height) {
   if (this.svg != null && this.projection != null) {
     return [this.svg, this.projection];
-  }    
+  }
   const svg = d3.select(an_el)
     .append("svg")
     .attr("width", width)
@@ -227,6 +227,18 @@ function drawWorldMap(an_el, width, height) {
 
         svg
           .attr("viewBox", "0 0 1000 500")
+          .selectAll("path")
+          .attr("fill", "transparent")
+          .data(countries.features)
+          .enter()
+          .append("path")
+          .attr("class", "map_country")
+          .attr("d", pathGenerator)
+          .attr("fill", "#a4aa4")
+          .attr("stroke", "#5ae")
+          .append("title")
+          .text(d => countryName[d.id]);
+
       }
     );
 
