@@ -12,22 +12,22 @@ defmodule Schema.EdgeStats do
 
   @all_fields [
     :nbr_of_agents,
-    :nbr_of_hives,
-    :nbr_of_tokens
+    :nbr_of_scapes,
+    :nbr_of_particles,
   ]
 
   @required_fields [
     :nbr_of_agents,
-    :nbr_of_hives,
-    :nbr_of_tokens
+    :nbr_of_scapes,
+    :nbr_of_particles
   ]
 
   @derive {Jason.Encoder, only: @all_fields}
   @primary_key false
   embedded_schema do
     field(:nbr_of_agents, :integer)
-    field(:nbr_of_hives, :integer)
-    field(:nbr_of_tokens, :integer)
+    field(:nbr_of_scapes, :integer)
+    field(:nbr_of_particles, :integer)
   end
 
   def changeset(edge_stats, args)
@@ -54,8 +54,8 @@ defmodule Schema.EdgeStats do
   def empty do
     %EdgeStats{
       nbr_of_agents: 0,
-      nbr_of_hives: 0,
-      nbr_of_tokens: 0
+      nbr_of_scapes: 0,
+      nbr_of_particles: 0
     }
   end
 end

@@ -175,7 +175,6 @@ defmodule Edges.Service do
         :edges_cache
         |> Cachex.put!(edge_init.id, new_edge)
 
-
       {:entry, _, _, _, old} ->
         # Logger.debug("Edge already attached: #{inspect(edge_init)} ...existing: #{inspect(old)}")
 
@@ -216,29 +215,38 @@ defmodule Edges.Service do
         {:noreply, state}
 
       {:entry, _, _, _, old_edge} ->
-        # Logger.debug("Edge found: #{inspect(old_edge)}")
+        Logger.alert("Edge found: #{inspect(old_edge)}")
         %{stats: %EdgeStats{} = old_stats} = old_edge
 
-        if old_stats.nbr_of_agents == 1 do
-          :edges_cache
-          |> Cachex.del(old_edge.id)
-        else
-          new_stats = %EdgeStats{
-            old_stats
-            | nbr_of_agents: old_stats.nbr_of_agents - 1
-          }
+        # if old_stats.nbr_of_agents == 1 do
+        #   :edges_cache
+        #   |> Cachex.del(old_edge.id)
+        # else
 
-          new_edge = %EdgeInit{
-            old_edge
-            | stats: new_stats
-          }
+        new_stats = %EdgeStats{
+          old_stats
+          | nbr_of_agents: old_stats.nbr_of_agents - 1
+        }
 
-          :edges_cache
-          |> Cachex.update!(new_edge.id, new_edge)
-        end
+        new_edge = %EdgeInit{
+          old_edge
+          | stats: new_stats
+        }
+
+        Logger.alert("new_edge: #{inspect(new_edge)}")
+
+        :edges_cache
+        |> Cachex.update!(new_edge.id, new_edge)
+
+        # end
     end
 
     notify_edges_updated({@edge_detached_v1, edge_init})
+    {:noreply, state}
+  end
+
+  def handle_info(msg, state) do
+    Logger.alert("Unknown message #{inspect(msg)}")
     {:noreply, state}
   end
 

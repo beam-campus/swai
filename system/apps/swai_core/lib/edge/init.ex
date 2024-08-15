@@ -4,6 +4,7 @@ defmodule Edge.Init do
   @moduledoc """
   Edge.Init is the struct that identifies the state of a Region.
   """
+  alias DBConnection.App
   alias Schema.Biotope
   alias Edge.Init, as: EdgeInit
   alias Schema.Edge, as: Edge
@@ -228,6 +229,7 @@ defmodule Edge.Init do
     edge_id = "#{to_string(chost)}-" <> Edge.random_id()
 
     api_key = System.get_env(EnvVars.swai_edge_api_key, "no-api-key")
+
     biotope_id = System.get_env(EnvVars.swai_edge_biotope_id, "no-biotope-id-configured")
 
     %EdgeInit{
@@ -275,6 +277,10 @@ defmodule Edge.Init do
     latitude = EnvVars.get_env_var_as_float(EnvVars.swai_edge_lat(), ip_info["lat"])
     longitude = EnvVars.get_env_var_as_float(EnvVars.swai_edge_lon(), ip_info["lon"])
 
+    country = System.get_env(EnvVars.swai_edge_country()) || ip_info["country"]
+
+    is_container = EnvVars.get_env_var_as_boolean(EnvVars.swai_edge_is_container(), AppUtils.running_in_container?())
+
     edge_id = "#{to_string(chost)}-" <> api_key
 
     %EdgeInit{
@@ -282,11 +288,11 @@ defmodule Edge.Init do
       biotope_id: biotope_id,
       algorithm_acronym: algorithm_acronym,
       api_key: api_key,
-      is_container: AppUtils.running_in_container?(),
+      is_container: is_container,
       ip_address: ip_info["query"],
       continent: ip_info["continent"],
       continent_code: ip_info["continentCode"],
-      country: ip_info["country"],
+      country: country,
       country_code: ip_info["countryCode"],
       country_ccn3: country_info["ccn3"],
       country_cca2: country_info["cca2"],

@@ -11,11 +11,12 @@ defmodule SwaiWeb.EdgeBrowser.WorldMap do
   @impl true
   def render(assigns) do
     ~H"""
-      <svg
+      <div class="flex justify-center pt-10"
         id="edges-world-map-svg"
         phx-hook="TheMap"
         data-edges={Jason.encode!(@edges)}
       />
+
     """
   end
 

@@ -64,9 +64,7 @@ defmodule SwaiWeb.EdgesLive.Index do
   end
 
   @impl true
-  def handle_info(msg, socket) do
-    Logger.alert("Unknown message #{inspect(msg)}")
-
+  def handle_info(_msg, socket) do
     {
       :noreply,
       socket

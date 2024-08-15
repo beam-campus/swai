@@ -18,6 +18,13 @@ defmodule EnvVars do
   def swai_edge_lon,
     do: "SWAI_EDGE_LON"
 
+  def swai_edge_is_container,
+    do: "SWAI_EDGE_IS_CONTAINER"
+
+  def swai_edge_country,
+    do: "SWAI_EDGE_COUNTRY"
+
+
   def swai_edge_scape_select_from,
     do: "SWAI_CONTINENTS"
 
@@ -85,9 +92,13 @@ defmodule EnvVars do
       value ->
         case value do
           "1" -> true
+          1 -> true
           "0" -> false
+          0 -> false
           "true" -> true
+          true -> true
           "false" -> false
+          false -> false
           _ -> default
         end
     end
