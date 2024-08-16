@@ -218,11 +218,6 @@ defmodule Edges.Service do
         Logger.alert("Edge found: #{inspect(old_edge)}")
         %{stats: %EdgeStats{} = old_stats} = old_edge
 
-        # if old_stats.nbr_of_agents == 1 do
-        #   :edges_cache
-        #   |> Cachex.del(old_edge.id)
-        # else
-
         new_stats = %EdgeStats{
           old_stats
           | nbr_of_agents: old_stats.nbr_of_agents - 1
@@ -238,13 +233,28 @@ defmodule Edges.Service do
         :edges_cache
         |> Cachex.update!(new_edge.id, new_edge)
 
-        # end
+        notify_edges_updated({@edge_detached_v1, new_edge})
+
+        if new_edge.stats.nbr_of_agents == 0 do
+          Process.send_after(self(), {:remove_edge, new_edge}, 10_000)
+        end
     end
 
-    notify_edges_updated({@edge_detached_v1, edge_init})
     {:noreply, state}
   end
 
+  @impl GenServer
+  def handle_info({:remove_edge, %EdgeInit{} = edge_init}, state) do
+    Logger.alert("Removing edge: #{inspect(edge_init)}")
+
+    :edges_cache
+    |> Cachex.del!(edge_init.id)
+
+    notify_edges_updated({:remove_edge, edge_init})
+    {:noreply, state}
+  end
+
+  @impl GenServer
   def handle_info(msg, state) do
     Logger.alert("Unknown message #{inspect(msg)}")
     {:noreply, state}

@@ -34,31 +34,37 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
   attr :biotope, Biotope
   defp card_body(assigns) do
     ~H"""
-    <div class="section-card-body">
-        <p class="font-xs text-base">
-          <%= @biotope.description %>
-        </p>
-        <p class="mt-1 text-base">
-          <%= @biotope.objectives %>
-        </p>
-    </div>
+      <div class="section-card-body">
+          <p class="font-xs text-base">
+            <%= @biotope.description %>
+          </p>
+          <p class="mt-1 text-base">
+            <%= @biotope.objectives %>
+          </p>
+      </div>
     """
   end
 
   attr :biotope, Biotope
+  attr :current_user, Schema.User
   defp card_footer(assigns) do
     ~H"""
-    <div class="button-row mt-1 flex justify-between">
+      <div class="button-row mt-1 flex justify-between">
         <%= if @biotope.is_active? do %>
-            <%!-- <button class="btn-view">View</button> --%>
-            <.link patch={~p"/marketplace/start-swarm/#{@biotope.id}"}>
-            <.button>Launch this Swarm!</.button>
-            </.link>
+            <%= if @current_user do %>
+              <.link patch={~p"/marketplace/start-swarm/#{@biotope.id}"}>
+              <.button>Launch this Swarm!</.button>
+              </.link>
+            <% else %>
+              <.link patch={~p"/users/log_in"}>
+              <.button>Log in to Launch this Swarm!</.button>
+              </.link>
+            <% end %>
             <%!-- <button class="btn-dashboard">Dashboard</button> --%>
         <% else %>
           <.button class="btn-sponsor">Sponsor this Model</.button>
         <% end %>
-     </div>
+      </div>
      """
   end
 
@@ -67,11 +73,11 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
   @impl true
   def render(assigns) do
     ~H"""
-    <div class={"section-card " <> active_class(@biotope.is_active?)}>
-      <.card_header biotope={@biotope} />
-      <.card_body biotope={@biotope} />
-      <.card_footer biotope={@biotope} />
-    </div>
+      <div class={"section-card " <> active_class(@biotope.is_active?)}>
+        <.card_header biotope={@biotope} />
+        <.card_body biotope={@biotope} />
+        <.card_footer biotope={@biotope} current_user={@current_user1111} />
+      </div>
     """
   end
 

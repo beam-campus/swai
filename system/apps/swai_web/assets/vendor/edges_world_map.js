@@ -1,11 +1,27 @@
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
 
-const maps_url = 'https://unpkg.com/world-atlas@1/world/110m.json';
+const maps_url = 'https://unpkg.com/world-atlas@1/world/50m.json';
 const topojson_url = 'https://unpkg.com/topojson@3.0.2/dist/topojson.min.js';
-const world_atlas_tsv = 'https://unpkg.com/world-atlas@1.1.4/world/110m.tsv';
+const world_atlas_tsv = 'https://unpkg.com/world-atlas@1.1.4/world/50m.tsv';
 
 let g = null;
+
+let atlasData, tjData;
+
+async function preloadData() {
+  try {
+    const [atlasResponse, tjResponse] = await Promise.all([
+      d3.tsv(world_atlas_tsv),
+      d3.json(maps_url)
+    ]);
+    this.atlasData = atlasResponse;
+    this.tjData = tjResponse;
+  } catch (error) {
+    console.error('Error preloading data:', error);
+  }
+}
+
 
 
 export const EdgesChanged = {
@@ -26,17 +42,21 @@ export const EdgesChanged = {
 export const TheMap = {
   mounted() {
     this.nodes = JSON.parse(this.el.dataset.edges);
-    [this.svg, this.projection] = drawWorldMap(this.el, 1200, 600);
-    createPoints(this.svg, this.nodes, this.projection);
-    createCurvedLines(this.svg, this.nodes, this.projection);
+    preloadData().then(() => {
+      // Now you can use the preloaded data to draw the map
+      [this.svg, this.projection] = drawWorldMap(this.el, 1200, 600);
+      createPoints(this.svg, this.nodes, this.projection);
+      createCurvedLines(this.svg, this.nodes, this.projection);
+    });
   },
   updated() {
     this.nodes = JSON.parse(this.el.dataset.edges);
     [this.svg, this.projection] = drawWorldMap(this.el, 1200, 600);
     updatePoints(this.svg, this.nodes, this.projection);
-    updateCurvedLines(this.svg, this.nodes, this.projection);
+    createCurvedLines(this.svg, this.nodes, this.projection);
   }
 };
+
 
 function createPoints(a_svg, data, projection) {
   const tooltip = d3.select("body").append("div")
@@ -148,9 +168,14 @@ function updatePoints(a_svg, data, projection) {
 }
 
 function createCurvedLines(a_svg, data, projection) {
-  const links = data.filter(d => d.connected_to).map(d => ({
+  // const links = data.filter(d => d.connected_to).map(d => ({
+  //   source: d,
+  //   target: data.find(node => node.id === d.connected_to)
+  // }));
+
+  const links = data.map(d => ({
     source: d,
-    target: data.find(node => node.id === d.connected_to)
+    target: data.find(node => node.id != d.id)
   }));
 
   const lineGenerator = d3.linkHorizontal()
@@ -163,17 +188,23 @@ function createCurvedLines(a_svg, data, projection) {
     .append("path")
     .attr("class", "node-lines")
     .attr("d", d => lineGenerator({ source: d.source, target: d.target }))
-    .attr("fill", "blue")
+    .attr("fill", "none")
     .attr("stroke", "grey") // Customize stroke color
-    .attr("stroke-width", 2) // Customize stroke width
+    .attr("stroke-width", 1) // Customize stroke width
     .attr("stroke-dasharray", "5,5"); // Customize stroke dash pattern
 }
 
 function updateCurvedLines(a_svg, data, projection) {
-  const links = data.filter(d => d.connected_to).map(d => ({
+  // const links = data.filter(d => d.connected_to).map(d => ({
+  //   source: d,
+  //   target: data.find(node => node.id === d.connected_to)
+  // }));
+
+  const links = data.map(d => ({
     source: d,
-    target: data.find(node => node.id === d.connected_to)
+    target: data.find(node => node.id !== d.id)
   }));
+
 
   const lineGenerator = d3.linkHorizontal()
     .x(d => projection([d.lon, d.lat])[0])
@@ -181,21 +212,24 @@ function updateCurvedLines(a_svg, data, projection) {
 
   a_svg.selectAll(".node-lines")
     .data(links)
+    .enter()
     .attr("d", d => lineGenerator({ source: d.source, target: d.target }))
-    .attr("fill", "blue")
-    .attr("stroke", "grey") // Customize stroke color
-    .attr("stroke-width", 2) // Customize stroke width
+    .attr("fill", "none")
+    .attr("stroke", "white") // Customize stroke color
+    .attr("stroke-width", 1) // Customize stroke width
     .attr("stroke-dasharray", "5,5"); // Customize stroke dash pattern
 }
 
 let node_color = function (d) {
-  console.log(d.stats);
+  console.log(d.id);
   if (d.stats.nbr_of_agents > 0) {
     return "green";
   } else {
     return "red";
   }
 }
+
+
 
 function drawWorldMap(an_el, width, height) {
   if (this.svg != null && this.projection != null) {
@@ -212,8 +246,8 @@ function drawWorldMap(an_el, width, height) {
 
   Promise
     .all([
-      d3.tsv(world_atlas_tsv),
-      d3.json(maps_url)
+      this.atlasData,
+      this.tjData
     ])
     .then(
       ([atlas_data, tj_data]) => {
@@ -223,6 +257,7 @@ function drawWorldMap(an_el, width, height) {
           acc[d.iso_n3] = d.name;
           return acc;
         }, countryName);
+
         const countries = topojson.feature(tj_data, tj_data.objects.countries);
 
         svg
@@ -234,203 +269,16 @@ function drawWorldMap(an_el, width, height) {
           .append("path")
           .attr("class", "map_country")
           .attr("d", pathGenerator)
-          .attr("fill", "#a4aa4")
-          .attr("stroke", "#5ae")
-          .append("title")
-          .text(d => countryName[d.id]);
+          // .attr("fill", "#a4aa4")
+          .attr("stroke", "#5ae");
+          // .append("title")
+          // .text(d => countryName[d.id]);
 
       }
     );
 
   return [svg, projection];
 }
-
-
-
-// export const TheMap = {
-//   mounted() {
-//     this.nodes = JSON.parse(this.el.dataset.edges);
-//     [this.svg, this.projection] = drawWorldMap(this.el, 1200, 600);
-//     createPoints(this.svg, this.nodes, this.projection);
-//     createCurvedLines(this.svg, this.nodes, this.projection);
-//   },
-//   updated() {
-//     this.nodes = JSON.parse(this.el.dataset.edges);
-//     [this.svg, this.projection] = drawWorldMap(this.el, 1200, 600);
-//     updatePoints(this.svg, this.nodes, this.projection);
-//     updateCurvedLines(this.svg, this.nodes, this.projection);
-//   }
-// };
-
-// function createPoints(a_svg, data, projection) {
-//   a_svg.selectAll("circle")
-//     .data(data)
-//     .enter()
-//     .each(function (d) {
-//       const group = d3.select(this).append("g");
-
-//       group.append("circle")
-//         .attr("cx", d => projection([d.lon, d.lat])[0])
-//         .attr("cy", d => projection([d.lon, d.lat])[1])
-//         .attr("r", 7)
-//         .attr("fill", node_color(d));
-
-//       if (d.is_container) {
-//         group.append("image")
-//           .attr("xlink:href", "/images/docker-mark.svg")
-//           .attr("width", 10)
-//           .attr("height", 10)
-//           .attr("x", d => projection([d.lon, d.lat])[0] - 5)
-//           .attr("y", d => projection([d.lon, d.lat])[1] - 5);
-//       } else {
-//         group.append("image")
-//           .attr("xlink:href", "/images/erlang-mark.svg")
-//           .attr("width", 10)
-//           .attr("height", 10)
-//           .attr("x", d => projection([d.lon, d.lat])[0] - 5)
-//           .attr("y", d => projection([d.lon, d.lat])[1] - 5);
-//       }
-//     });
-// }
-
-// function updatePoints(a_svg, data, projection) {
-//   const points = a_svg.selectAll("g").data(data);
-
-//   points.enter()
-//     .each(function (d) {
-//       const group = d3.select(this).append("g");
-
-//       group.append("circle")
-//         .attr("cx", d => projection([d.lon, d.lat])[0])
-//         .attr("cy", d => projection([d.lon, d.lat])[1])
-//         .attr("r", 7)
-//         .attr("fill", node_color(d));
-
-//       if (d.is_container) {
-//         group.append("image")
-//           .attr("xlink:href", "/images/docker-mark.svg")
-//           .attr("width", 10)
-//           .attr("height", 10)
-//           .attr("x", d => projection([d.lon, d.lat])[0] - 5)
-//           .attr("y", d => projection([d.lon, d.lat])[1] - 5);
-//       } else {
-//         group.append("image")
-//           .attr("xlink:href", "/images/erlang-mark.svg")
-//           .attr("width", 10)
-//           .attr("height", 10)
-//           .attr("x", d => projection([d.lon, d.lat])[0] - 5)
-//           .attr("y", d => projection([d.lon, d.lat])[1] - 5);
-//       }
-//     });
-
-//   points.select("circle")
-//     .attr("cx", d => projection([d.lon, d.lat])[0])
-//     .attr("cy", d => projection([d.lon, d.lat])[1])
-//     .attr("fill", node_color(d));
-
-//   points.select("image")
-//     .attr("x", d => projection([d.lon, d.lat])[0] - 5)
-//     .attr("y", d => projection([d.lon, d.lat])[1] - 5);
-
-//   points.exit().remove();
-// }
-
-// function createCurvedLines(a_svg, data, projection) {
-//   const links = data.filter(d => d.connected_to).map(d => ({
-//     source: d,
-//     target: data.find(node => node.id === d.connected_to)
-//   }));
-
-//   const lineGenerator = d3.linkHorizontal()
-//     .x(d => projection([d.lon, d.lat])[0])
-//     .y(d => projection([d.lon, d.lat])[1]);
-
-//   a_svg.selectAll(".node-lines")
-//     .data(links)
-//     .enter()
-//     .append("path")
-//     .attr("class", "node-lines")
-//     .attr("d", d => lineGenerator({ source: d.source, target: d.target }))
-//     .attr("fill", "none")
-//     .attr("stroke", "blue") // Customize stroke color
-//     .attr("stroke-width", 2) // Customize stroke width
-//     .attr("stroke-dasharray", "5,5"); // Customize stroke dash pattern
-// }
-
-// function updateCurvedLines(a_svg, data, projection) {
-//   const links = data.filter(d => d.connected_to).map(d => ({
-//     source: d,
-//     target: data.find(node => node.id === d.connected_to)
-//   }));
-
-//   const lineGenerator = d3.linkHorizontal()
-//     .x(d => projection([d.lon, d.lat])[0])
-//     .y(d => projection([d.lon, d.lat])[1]);
-
-//   a_svg.selectAll(".node-lines")
-//     .data(links)
-//     .attr("d", d => lineGenerator({ source: d.source, target: d.target }))
-//     .attr("stroke", "blue") // Customize stroke color
-//     .attr("stroke-width", 2) // Customize stroke width
-//     .attr("stroke-dasharray", "5,5"); // Customize stroke dash pattern
-// }
-
-// let node_color = function (d) {
-//   console.log(d.stats);
-//   if (d.stats.nbr_of_agents > 0) {
-//     return "white";
-//   } else {
-//     return "red";
-//   }
-// }
-
-// function drawWorldMap(an_el, width, height) {
-//   if (this.svg != null && this.projection != null) {
-
-//     return [this.svg, this.projection];
-//   }    
-//   const svg = d3.select(an_el)
-//     .append("svg")
-//     .attr("width", width)
-//     .attr("height", height);
-//   const projection = d3.geoMercator()
-//     .scale(150)
-//     .translate([width / 2.5, height / 2]);
-//   const pathGenerator = d3.geoPath().projection(projection);
-
-//   Promise
-//     .all([
-//       d3.tsv(world_atlas_tsv),
-//       d3.json(maps_url)
-//     ])
-//     .then(
-//       ([atlas_data, tj_data]) => {
-//         const countryName = {};
-
-//         atlas_data.reduce((acc, d) => {
-//           acc[d.iso_n3] = d.name;
-//           return acc;
-//         }, countryName);
-//         const countries = topojson.feature(tj_data, tj_data.objects.countries);
-
-//         svg
-//           .attr("viewBox", "0 0 1000 500")
-//           .selectAll("path")
-//           .attr("fill", "transparent")
-//           .data(countries.features)
-//           .enter()
-//           .append("path")
-//           .attr("class", "map_country")
-//           .attr("d", pathGenerator)
-//           .attr("fill", "#a4aa4")
-//           .attr("stroke", "#5ae")
-//           .append("title")
-//           .text(d => countryName[d.id]);
-
-//       }
-//     );
-//   return [svg, projection];
-// }
 
 
 

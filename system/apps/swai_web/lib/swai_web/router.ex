@@ -102,32 +102,32 @@ defmodule SwaiWeb.Router do
       live("/users/settings", UserSettingsLive, :edit)
       live("/users/settings/confirm_email/:token", UserSettingsLive, :confirm_email)
 
-      live("/hives", EdgesLive.Index, :index)
+      # live("/hives", EdgesLive.Index, :index)
 
       live("/my_workspace", MyWorkspaceLive.Index, :index)
 
       live("/train_swarm/:biotope_id", InitializeSwarmLive.Index, :index)
 
-      live("/biotopes", BiotopeLive.Index, :index)
-      live("/biotopes/new", BiotopeLive.Index, :new)
-      live("/biotopes/:id/edit", BiotopeLive.Index, :edit)
+      # live("/biotopes", BiotopeLive.Index, :index)
+      # live("/biotopes/new", BiotopeLive.Index, :new)
+      # live("/biotopes/:id/edit", BiotopeLive.Index, :edit)
 
-      live("/biotopes/:id", BiotopeLive.Show, :show)
-      live("/biotopes/:id/show/edit", BiotopeLive.Show, :edit)
+      # live("/biotopes/:id", BiotopeLive.Show, :show)
+      # live("/biotopes/:id/show/edit", BiotopeLive.Show, :edit)
 
-      live("/swarms", SwarmLive.Index, :index)
-      live("/swarms/new", SwarmLive.Index, :new)
-      live("/swarms/:id/edit", SwarmLive.Index, :edit)
+      # live("/swarms", SwarmLive.Index, :index)
+      # live("/swarms/new", SwarmLive.Index, :new)
+      # live("/swarms/:id/edit", SwarmLive.Index, :edit)
 
-      live("/swarms/:id", SwarmLive.Show, :show)
-      live("/swarms/:id/show/edit", SwarmLive.Show, :edit)
+      # live("/swarms/:id", SwarmLive.Show, :show)
+      # live("/swarms/:id/show/edit", SwarmLive.Show, :edit)
 
-      live("/drone_orders/:user_id", DroneOrderLive.Index, :index)
-      live("/drone_orders/new", DroneOrderLive.Index, :new)
-      live("/drone_orders/:id/edit", DroneOrderLive.Index, :edit)
+      # live("/drone_orders/:user_id", DroneOrderLive.Index, :index)
+      # live("/drone_orders/new", DroneOrderLive.Index, :new)
+      # live("/drone_orders/:id/edit", DroneOrderLive.Index, :edit)
 
-      live("/drone_orders/:id", DroneOrderLive.Show, :show)
-      live("/drone_orders/:id/show/edit", DroneOrderLive.Show, :edit)
+      # live("/drone_orders/:id", DroneOrderLive.Show, :show)
+      # live("/drone_orders/:id/show/edit", DroneOrderLive.Show, :edit)
       live("/marketplace/start-swarm/:biotope_id", MarketplaceLive.Index, :start_swarm)
 
       live("/swarm_licenses", SwarmLicenseLive.Index, :index)

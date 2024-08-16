@@ -97,6 +97,18 @@ defmodule SwaiWeb.MarketplaceLive.Index do
      |> put_flash(:info, "License Request Submitted")}
   end
 
+  
+  @impl true
+  def handle_info({:no_user}, socket) do
+    {
+      :noreply,
+      socket
+      |> put_flash(:warning, "You must be logged in to access this page.")
+      |> redirect(to: ~p"/users/log_in")
+    }
+  end
+
+
 
   @impl true
   def handle_info(msg, socket) do
