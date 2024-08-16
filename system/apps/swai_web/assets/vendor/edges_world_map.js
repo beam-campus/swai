@@ -52,8 +52,8 @@ export const TheMap = {
   updated() {
     this.nodes = JSON.parse(this.el.dataset.edges);
     [this.svg, this.projection] = drawWorldMap(this.el, 1200, 600);
-    updatePoints(this.svg, this.nodes, this.projection);
-    // createCurvedLines(this.svg, this.nodes, this.projection);
+    updatePoints(this.svg, this.nodes, this.projection);    
+    // updateCurvedLines(this.svg, this.nodes, this.projection);
   }
 };
 
@@ -98,7 +98,7 @@ function createPoints(a_svg, data, projection) {
     .attr("fill", "grey");
 
   enter.append("image")
-    .attr("xlink:href", d => d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
+    .attr("xlink:href", d =>  !d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
     .attr("width", 10)
     .attr("height", 10)
     .attr("x", d => projection([d.lon, d.lat])[0] - 5)
@@ -147,7 +147,7 @@ function updatePoints(a_svg, data, projection) {
     .attr("fill", "grey");
 
   enter.append("image")
-    .attr("xlink:href", d => d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
+    .attr("xlink:href", d => !d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
     .attr("width", 10)
     .attr("height", 10)
     .attr("x", d => projection([d.lon, d.lat])[0] - 5)
@@ -160,11 +160,20 @@ function updatePoints(a_svg, data, projection) {
     .attr("fill", node_color);
 
   points.select("image")
-    .attr("xlink:href", d => d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
+    .attr("xlink:href", d => !d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
     .attr("x", d => projection([d.lon, d.lat])[0] - 5)
     .attr("y", d => projection([d.lon, d.lat])[1] - 5);
 
   points.exit().remove();
+}
+
+let node_color = function (d) {
+  console.log(d.id);
+  if (d.stats.nbr_of_agents > 0) {
+    return "green";
+  } else {
+    return "red";
+  }
 }
 
 function createCurvedLines(a_svg, data, projection) {
@@ -184,11 +193,11 @@ function createCurvedLines(a_svg, data, projection) {
     .x(d => projection([d.lon, d.lat])[0])
     .y(d => projection([d.lon, d.lat])[1]);
 
-  a_svg.selectAll(".node-lines")
+  a_svg.selectAll(".curved-lines")
     .data(links)
     .enter()
     .append("path")
-    .attr("class", "node-lines")
+    .attr("class", "curved-lines")
     .attr("d", d => lineGenerator({ source: d.source, target: d.target }))
     .attr("fill", "none")
     .attr("stroke", "grey") // Customize stroke color
@@ -218,24 +227,31 @@ function updateCurvedLines(a_svg, data, projection) {
     .x(d => projection([d.lon, d.lat])[0])
     .y(d => projection([d.lon, d.lat])[1]);
 
-  a_svg.selectAll(".node-lines")
-    .data(links)
+  // Select and update the curved lines without affecting country contours
+  const curvedLines = a_svg.selectAll(".curved-lines")
+    .data(links);
+
+  // Enter new elements
+  curvedLines.enter()
+    .append("path")
+    .attr("class", "curved-lines")
     .attr("d", d => lineGenerator({ source: d.source, target: d.target }))
-    .attr("fill", "blue")
+    .attr("fill", "none")
     .attr("stroke", "white") // Customize stroke color
     .attr("stroke-width", 1) // Customize stroke width
     .attr("stroke-dasharray", "5,5"); // Customize stroke dash pattern
-}
 
-let node_color = function (d) {
-  console.log(d.id);
-  if (d.stats.nbr_of_agents > 0) {
-    return "green";
-  } else {
-    return "red";
-  }
-}
+  // Update existing elements
+  curvedLines
+    .attr("d", d => lineGenerator({ source: d.source, target: d.target }))
+    .attr("fill", "none")
+    .attr("stroke", "white") // Customize stroke color
+    .attr("stroke-width", 1) // Customize stroke width
+    .attr("stroke-dasharray", "5,5"); // Customize stroke dash pattern
 
+  // Remove old elements
+  curvedLines.exit().remove();
+}
 
 
 function drawWorldMap(an_el, width, height) {
@@ -258,18 +274,8 @@ function drawWorldMap(an_el, width, height) {
     ])
     .then(
       ([atlas_data, tj_data]) => {
-        
-        // const countryName = {};
-
-        // atlas_data.reduce((acc, d) => {
-        //   acc[d.iso_n3] = d.name;
-        //   return acc;
-        // }, countryName);
 
         const countries = topojson.feature(tj_data, tj_data.objects.countries);
-
-    
-        
 
         svg
           .attr("viewBox", "0 0 1000 500")
@@ -280,19 +286,8 @@ function drawWorldMap(an_el, width, height) {
           .append("path")
           .attr("class", "map_country")
           .attr("d", pathGenerator);
-          // .attr("fill", "#a4aa4")
-          // .attr("stroke", "#5ae")
-          // .on("mouseover", function (event, d) {
-          //   d3.select(this).attr("fill", "transparent");
-          // })
-          // .append("title")
-          // .text(d => countryName[d.id]);
-
-
-
       }
     );
-
   return [svg, projection];
 }
 

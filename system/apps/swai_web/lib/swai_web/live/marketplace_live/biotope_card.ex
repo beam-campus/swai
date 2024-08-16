@@ -76,7 +76,7 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
       <div class={"section-card " <> active_class(@biotope.is_active?)}>
         <.card_header biotope={@biotope} />
         <.card_body biotope={@biotope} />
-        <.card_footer biotope={@biotope} current_user={@current_user1111} />
+        <.card_footer biotope={@biotope} current_user={@current_user} />
       </div>
     """
   end
