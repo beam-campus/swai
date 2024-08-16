@@ -570,16 +570,16 @@ body {
 .map_country {
     fill: transparent;
     stroke: rgb(0, 191, 255);
-    stroke-width: 0.8;
-    stroke-opacity: 0.5;
+    stroke-width: 0.6;
+    stroke-opacity: 0.7;
 }
 
-.map_country:hover {
+/* .map_country:hover {
     fill: darkslategrey;
     stroke: rgb(0, 191, 255);
     stroke-width: 1;
     stroke-opacity: 0.5;
-}
+} */
 
 
 

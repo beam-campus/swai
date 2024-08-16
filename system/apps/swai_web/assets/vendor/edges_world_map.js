@@ -46,14 +46,14 @@ export const TheMap = {
       // Now you can use the preloaded data to draw the map
       [this.svg, this.projection] = drawWorldMap(this.el, 1200, 600);
       createPoints(this.svg, this.nodes, this.projection);
-      createCurvedLines(this.svg, this.nodes, this.projection);
+      // createCurvedLines(this.svg, this.nodes, this.projection);
     });
   },
   updated() {
     this.nodes = JSON.parse(this.el.dataset.edges);
     [this.svg, this.projection] = drawWorldMap(this.el, 1200, 600);
     updatePoints(this.svg, this.nodes, this.projection);
-    createCurvedLines(this.svg, this.nodes, this.projection);
+    // createCurvedLines(this.svg, this.nodes, this.projection);
   }
 };
 
@@ -130,7 +130,7 @@ function updatePoints(a_svg, data, projection) {
     .attr("fill", node_color)
     .on("mouseover", function (event, d) {
       tooltip.style("visibility", "visible")
-        .text(`Node: ${d.id}`);
+        .text(`<span>Node: ${d.id} \n Lat: ${d.lat}  </span>`);
     })
     .on("mousemove", function (event) {
       tooltip.style("top", (event.pageY - 10) + "px")
@@ -168,15 +168,17 @@ function updatePoints(a_svg, data, projection) {
 }
 
 function createCurvedLines(a_svg, data, projection) {
-  // const links = data.filter(d => d.connected_to).map(d => ({
-  //   source: d,
-  //   target: data.find(node => node.id === d.connected_to)
-  // }));
-
-  const links = data.map(d => ({
-    source: d,
-    target: data.find(node => node.id != d.id)
-  }));
+  const links = [];
+  for (let i = 0; i < data.length; i++) {
+    for (let j = 0; j < data.length; j++) {
+      if (i !== j) {
+        links.push({
+          source: data[i],
+          target: data[j]
+        });
+      }
+    }
+  }
 
   const lineGenerator = d3.linkHorizontal()
     .x(d => projection([d.lon, d.lat])[0])
@@ -200,11 +202,17 @@ function updateCurvedLines(a_svg, data, projection) {
   //   target: data.find(node => node.id === d.connected_to)
   // }));
 
-  const links = data.map(d => ({
-    source: d,
-    target: data.find(node => node.id !== d.id)
-  }));
-
+  const links = [];
+  for (let i = 0; i < data.length; i++) {
+    for (let j = 0; j < data.length; j++) {
+      if (i !== j) {
+        links.push({
+          source: data[i],
+          target: data[j]
+        });
+      }
+    }
+  }
 
   const lineGenerator = d3.linkHorizontal()
     .x(d => projection([d.lon, d.lat])[0])
@@ -212,9 +220,8 @@ function updateCurvedLines(a_svg, data, projection) {
 
   a_svg.selectAll(".node-lines")
     .data(links)
-    .enter()
     .attr("d", d => lineGenerator({ source: d.source, target: d.target }))
-    .attr("fill", "none")
+    .attr("fill", "blue")
     .attr("stroke", "white") // Customize stroke color
     .attr("stroke-width", 1) // Customize stroke width
     .attr("stroke-dasharray", "5,5"); // Customize stroke dash pattern
@@ -251,14 +258,18 @@ function drawWorldMap(an_el, width, height) {
     ])
     .then(
       ([atlas_data, tj_data]) => {
-        const countryName = {};
+        
+        // const countryName = {};
 
-        atlas_data.reduce((acc, d) => {
-          acc[d.iso_n3] = d.name;
-          return acc;
-        }, countryName);
+        // atlas_data.reduce((acc, d) => {
+        //   acc[d.iso_n3] = d.name;
+        //   return acc;
+        // }, countryName);
 
         const countries = topojson.feature(tj_data, tj_data.objects.countries);
+
+    
+        
 
         svg
           .attr("viewBox", "0 0 1000 500")
@@ -268,11 +279,16 @@ function drawWorldMap(an_el, width, height) {
           .enter()
           .append("path")
           .attr("class", "map_country")
-          .attr("d", pathGenerator)
+          .attr("d", pathGenerator);
           // .attr("fill", "#a4aa4")
-          .attr("stroke", "#5ae");
+          // .attr("stroke", "#5ae")
+          // .on("mouseover", function (event, d) {
+          //   d3.select(this).attr("fill", "transparent");
+          // })
           // .append("title")
           // .text(d => countryName[d.id]);
+
+
 
       }
     );

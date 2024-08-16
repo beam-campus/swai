@@ -21,6 +21,9 @@ defmodule EnvVars do
   def swai_edge_is_container,
     do: "SWAI_EDGE_IS_CONTAINER"
 
+  def swai_edge_is_root,
+    do: "SWAI_EDGE_IS_ROOT"
+
   def swai_edge_country,
     do: "SWAI_EDGE_COUNTRY"
 
