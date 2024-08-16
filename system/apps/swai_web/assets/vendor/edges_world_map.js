@@ -98,7 +98,7 @@ function createPoints(a_svg, data, projection) {
     .attr("fill", "grey");
 
   enter.append("image")
-    .attr("xlink:href", d =>  !d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
+    .attr("xlink:href", d =>  d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
     .attr("width", 10)
     .attr("height", 10)
     .attr("x", d => projection([d.lon, d.lat])[0] - 5)
@@ -147,7 +147,7 @@ function updatePoints(a_svg, data, projection) {
     .attr("fill", "grey");
 
   enter.append("image")
-    .attr("xlink:href", d => !d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
+    .attr("xlink:href", d => d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
     .attr("width", 10)
     .attr("height", 10)
     .attr("x", d => projection([d.lon, d.lat])[0] - 5)
@@ -160,7 +160,7 @@ function updatePoints(a_svg, data, projection) {
     .attr("fill", node_color);
 
   points.select("image")
-    .attr("xlink:href", d => !d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
+    .attr("xlink:href", d => d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
     .attr("x", d => projection([d.lon, d.lat])[0] - 5)
     .attr("y", d => projection([d.lon, d.lat])[1] - 5);
 
