@@ -18,6 +18,11 @@ defmodule SwaiWeb.ScapeQueue do
 
   @scape_queued_v1 TrainSwarmFacts.scape_queued()
 
+  ####### inspect_queue ############################
+  def inspect_queue() do
+    GenServer.call(__MODULE__, :inspect_queue)
+  end
+
   ################# INIT ##########################
 
   @impl true
@@ -51,8 +56,6 @@ defmodule SwaiWeb.ScapeQueue do
 
     state = state ++ {edge, scape}
 
-    
-
     {:noreply, state}
   end
 
@@ -66,7 +69,6 @@ defmodule SwaiWeb.ScapeQueue do
   @impl true
   def handle_info(:pop_queue, [{edge, scape} | rest]) do
     Logger.info("handle_info :pop_queue")
-   
 
     SwaiWeb.EdgeChannel.start_scape(edge, scape)
 
@@ -74,9 +76,6 @@ defmodule SwaiWeb.ScapeQueue do
 
     {:noreply, rest}
   end
-
-
-
 
   #################### PLUMBING ###################
 
@@ -88,11 +87,14 @@ defmodule SwaiWeb.ScapeQueue do
     )
   end
 
-  
   def child_spec(init_args),
     do: %{
       id: __MODULE__,
-      start: {__MODULE__, :start_link, [init_args]},
+      start: {
+        __MODULE__,
+        :start_link,
+        [init_args]
+      },
       type: :worker
     }
 

@@ -659,22 +659,46 @@ body {
 .ticker-container {
     position: relative;
     overflow: hidden;
-  }
-  
-  .ticker-content {
+}
+
+.ticker-content {
     display: flex;
     animation: ticker 10s linear infinite;
-  }
-  
-  @keyframes ticker {
+}
+
+@keyframes ticker {
     0% {
-      transform: translateX(100%);
+        transform: translateX(100%);
     }
+
     100% {
-      transform: translateX(-100%);
+        transform: translateX(-100%);
     }
-  }
-  
-  .ticker-item {
+}
+
+.ticker-item {
     flex: 0 0 auto;
-  }
+}
+
+
+@keyframes blink {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
+
+.blink_offline {
+    animation: blink 1s infinite;
+}
+
+.blink_online {
+    animation: blink 1s linear 10 ;
+}

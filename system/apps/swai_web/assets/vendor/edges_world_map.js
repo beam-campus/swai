@@ -4,6 +4,7 @@ import * as topojson from 'topojson-client';
 const maps_url = 'https://unpkg.com/world-atlas@1/world/50m.json';
 const topojson_url = 'https://unpkg.com/topojson@3.0.2/dist/topojson.min.js';
 const world_atlas_tsv = 'https://unpkg.com/world-atlas@1.1.4/world/50m.tsv';
+const consideredNewNode = 10; // seconds
 
 let g = null;
 
@@ -75,6 +76,8 @@ function createPoints(a_svg, data, projection) {
     .attr("class", "node");
 
   enter.append("circle")
+    .classed("blink_offline", d => d.stats && d.stats.nbr_of_agents == 0)
+    .classed("blink_online", d => secondsElapsedSince(d.connected_since)<=consideredNewNode && d.stats && d.stats.nbr_of_agents > 0)
     .attr("cx", d => projection([d.lon, d.lat])[0])
     .attr("cy", d => projection([d.lon, d.lat])[1])
     .attr("r", 10)
@@ -92,12 +95,16 @@ function createPoints(a_svg, data, projection) {
     });
 
   enter.append("circle")
+    .classed("blink_offline", d => d.stats && d.stats.nbr_of_agents == 0)
+    .classed("blink_online", d => secondsElapsedSince(d.connected_since)<=consideredNewNode && d.stats && d.stats.nbr_of_agents > 0)
     .attr("cx", d => projection([d.lon, d.lat])[0])
     .attr("cy", d => projection([d.lon, d.lat])[1])
     .attr("r", 8)
     .attr("fill", "grey");
 
   enter.append("image")
+    .classed("blink_offline", d => d.stats && d.stats.nbr_of_agents == 0)
+    .classed("blink_online", d => secondsElapsedSince(d.connected_since)<=consideredNewNode && d.stats && d.stats.nbr_of_agents > 0)
     .attr("xlink:href", d =>  d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
     .attr("width", 10)
     .attr("height", 10)
@@ -124,6 +131,8 @@ function updatePoints(a_svg, data, projection) {
     .attr("class", "node");
 
   enter.append("circle")
+    .classed("blink_offline", d => d.stats && d.stats.nbr_of_agents == 0)
+    .classed("blink_online", d => secondsElapsedSince(d.connected_since)<=consideredNewNode && d.stats && d.stats.nbr_of_agents > 0)
     .attr("cx", d => projection([d.lon, d.lat])[0])
     .attr("cy", d => projection([d.lon, d.lat])[1])
     .attr("r", 9)
@@ -141,12 +150,16 @@ function updatePoints(a_svg, data, projection) {
     });
 
   enter.append("circle")
+    .classed("blink_offline", d => d.stats && d.stats.nbr_of_agents == 0)
+    .classed("blink_online", d => secondsElapsedSince(d.connected_since)<=consideredNewNode && d.stats && d.stats.nbr_of_agents > 0)
     .attr("cx", d => projection([d.lon, d.lat])[0])
     .attr("cy", d => projection([d.lon, d.lat])[1])
     .attr("r", 8)
     .attr("fill", "grey");
 
   enter.append("image")
+    .classed("blink_offline", d => d.stats && d.stats.nbr_of_agents == 0)
+    .classed("blink_online", d => secondsElapsedSince(d.connected_since)<=consideredNewNode && d.stats && d.stats.nbr_of_agents > 0)
     .attr("xlink:href", d => d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
     .attr("width", 10)
     .attr("height", 10)
@@ -154,12 +167,16 @@ function updatePoints(a_svg, data, projection) {
     .attr("y", d => projection([d.lon, d.lat])[1] - 5);
 
   points.select("circle")
+    .classed("blink_offline", d => d.stats && d.stats.nbr_of_agents == 0)
+    .classed("blink_online", d => secondsElapsedSince(d.connected_since)<=consideredNewNode && d.stats && d.stats.nbr_of_agents > 0)
     .attr("cx", d => projection([d.lon, d.lat])[0])
     .attr("cy", d => projection([d.lon, d.lat])[1])
     .attr("r", 10)
     .attr("fill", node_color);
 
   points.select("image")
+    .classed("blink_offline", d => d.stats && d.stats.nbr_of_agents == 0)
+    .classed("blink_online", d => secondsElapsedSince(d.connected_since)<=consideredNewNode && d.stats && d.stats.nbr_of_agents > 0)
     .attr("xlink:href", d => d.is_container ? "/images/docker-mark.svg" : "/images/erlang-mark.svg")
     .attr("x", d => projection([d.lon, d.lat])[0] - 5)
     .attr("y", d => projection([d.lon, d.lat])[1] - 5);
@@ -167,8 +184,27 @@ function updatePoints(a_svg, data, projection) {
   points.exit().remove();
 }
 
+
+
+function secondsElapsedSince(utc_in) {
+  // Parse the input UTC datetime string to a Date object
+  const inputDate = new Date(utc_in);
+  // Check if the input date is valid
+  if (isNaN(inputDate.getTime())) {
+      throw new Error('Invalid UTC datetime string');
+  }
+  // Get the current date and time in UTC
+  const now = new Date();
+  // Calculate the difference in milliseconds
+  const differenceInMilliseconds = now - inputDate;
+  // Convert milliseconds to seconds
+  const differenceInSeconds = Math.floor(differenceInMilliseconds / 1000);
+  return differenceInSeconds;
+}
+
+
 let node_color = function (d) {
-  console.log(d.id);
+  console.log("connected since", d.connected_since, (secondsElapsedSince(d.connected_since)) );
   if (d.stats.nbr_of_agents > 0) {
     return "green";
   } else {

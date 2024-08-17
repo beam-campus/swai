@@ -4,8 +4,6 @@ defmodule Edge.Init do
   @moduledoc """
   Edge.Init is the struct that identifies the state of a Region.
   """
-  alias DBConnection.App
-  alias Schema.Biotope
   alias Edge.Init, as: EdgeInit
   alias Schema.Edge, as: Edge
   alias AppUtils, as: AppUtils
@@ -52,6 +50,7 @@ defmodule Edge.Init do
     :proxy,
     :hosting,
     :connected_since,
+    :online_since,
     :image_url,
     :flag,
     :stats,
@@ -93,6 +92,7 @@ defmodule Edge.Init do
     :proxy,
     :hosting,
     :connected_since,
+    :online_since,
     :image_url,
     :flag,
     :stats
@@ -133,15 +133,16 @@ defmodule Edge.Init do
     :proxy,
     :hosting,
     :connected_since,
+    :online_since,
     :image_url,
     :flag
   ]
 
-  @embedded_fields [
-    :stats,
-    :socket,
-    :biotopes
-  ]
+  # @embedded_fields [
+  #   :stats,
+  #   :socket,
+  #   :biotopes
+  # ]
 
   @required_fields [
     :id,
@@ -149,7 +150,8 @@ defmodule Edge.Init do
     :algorithm_acronym,
     :api_key,
     :is_container,
-    :connected_since
+    :connected_since,
+    :online_since
   ]
 
   @derive {Jason.Encoder, only: @json_fields}
@@ -189,6 +191,7 @@ defmodule Edge.Init do
     field(:proxy, :boolean)
     field(:hosting, :boolean)
     field(:connected_since, :utc_datetime)
+    field(:online_since, :utc_datetime)
     field(:image_url, :string, default: "https://picsum.photos/400/300")
     field(:flag, :string, default: "\u127988")
     embeds_one(:stats, Stats)
@@ -228,15 +231,16 @@ defmodule Edge.Init do
     {:ok, chost} = :inet.gethostname()
     edge_id = "#{to_string(chost)}-" <> Edge.random_id()
 
-    api_key = System.get_env(EnvVars.swai_edge_api_key, "no-api-key")
+    api_key = System.get_env(EnvVars.swai_edge_api_key(), "no-api-key")
 
-    biotope_id = System.get_env(EnvVars.swai_edge_biotope_id, "no-biotope-id-configured")
+    biotope_id = System.get_env(EnvVars.swai_edge_biotope_id(), "no-biotope-id-configured")
 
     %EdgeInit{
       id: edge_id,
       api_key: api_key,
       is_container: AppUtils.running_in_container?(),
       ip_address: "unknown",
+      biotope_id: biotope_id,
       continent: "unknown",
       continent_code: "unknown",
       country: "unknown",
@@ -260,6 +264,7 @@ defmodule Edge.Init do
       proxy: false,
       hosting: false,
       connected_since: DateTime.utc_now(),
+      online_since: DateTime.utc_now(),
       image_url: "https://picsum.photos/400/300",
       flag: "\u127988",
       stats: Stats.empty()
@@ -279,7 +284,11 @@ defmodule Edge.Init do
 
     country = System.get_env(EnvVars.swai_edge_country()) || ip_info["country"]
 
-    is_container = EnvVars.get_env_var_as_boolean(EnvVars.swai_edge_is_container(), AppUtils.running_in_container?())
+    is_container =
+      EnvVars.get_env_var_as_boolean(
+        EnvVars.swai_edge_is_container(),
+        AppUtils.running_in_container?()
+      )
 
     edge_id = "#{to_string(chost)}-" <> api_key
 
@@ -316,6 +325,7 @@ defmodule Edge.Init do
       proxy: ip_info["proxy"],
       hosting: ip_info["hosting"],
       connected_since: DateTime.utc_now(),
+      online_since: DateTime.utc_now(),
       image_url: "https://picsum.photos/400/300",
       flag: "\u127988",
       stats: Stats.empty()

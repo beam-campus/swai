@@ -1,3 +1,4 @@
+
 defmodule TrainSwarmProc.QueueScape.CmdV1 do
   @moduledoc """
   Command to start a swarm training.
