@@ -47,14 +47,14 @@ export const TheMap = {
       // Now you can use the preloaded data to draw the map
       [this.svg, this.projection] = drawWorldMap(this.el, 1200, 600);
       createPoints(this.svg, this.nodes, this.projection);
-      createCurvedLines(this.svg, this.nodes, this.projection);
+      // createCurvedLines(this.svg, this.nodes, this.projection);
     });
   },
   updated() {
     this.nodes = JSON.parse(this.el.dataset.edges);
     [this.svg, this.projection] = drawWorldMap(this.el, 1200, 600);
     updatePoints(this.svg, this.nodes, this.projection);    
-    updateCurvedLines(this.svg, this.nodes, this.projection);
+    // updateCurvedLines(this.svg, this.nodes, this.projection);
   }
 };
 
