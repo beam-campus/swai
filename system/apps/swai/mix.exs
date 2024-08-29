@@ -41,13 +41,13 @@ defmodule Swai.MixProject do
       {:phoenix_pubsub, "~> 2.1"},
       {:ecto_sql, "~> 3.10"},
       {:postgrex, ">= 0.0.0"},
-      {:ecto_sqlite3, ">= 0.0.0"},
       {:jason, "~> 1.2"},
       {:swoosh, "~> 1.5"},
       {:gen_smtp, "~> 1.1"},
       {:finch, "~> 0.13"},
       {:ets, "~> 0.9.0"},
       {:cachex, "~> 3.6"},
+      {:khepri, "0.14.0"},
       {:unique_names_generator, "~> 0.2.0"},
       {:swai_core, in_umbrella: true}
     ]

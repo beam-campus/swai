@@ -6,8 +6,7 @@ defmodule TrainSwarmProc do
   alias Schema.SwarmLicense, as: SwarmLicense
 
   alias TrainSwarmProc.CommandedApp, as: TrainSwarmApp
-  alias TrainSwarmProc.Initialize.CmdV1, as: Initialize
-  alias TrainSwarmProc.Initialize.PayloadV1, as: Initialization
+  alias TrainSwarmProc.InitializeLicense.CmdV1, as: Initialize
 
   require Logger
 
@@ -22,19 +21,16 @@ defmodule TrainSwarmProc do
 
   def initialize(%{@agg_id => agg_id, @user_id => user_id} = license_request_params) do
     seed = %SwarmLicense{license_id: agg_id}
-
     case SwarmLicense.from_map(seed, license_request_params) do
       {:ok, license} ->
-        {:ok, initialization} = Initialization.from_map(%Initialization{}, license)
-
-        cmd = %Initialize{
+        initialize = %Initialize{
           agg_id: agg_id,
-          payload: initialization
+          payload: license
         }
-
-        TrainSwarmApp.dispatch(cmd, metadata: %{@user_id => user_id})
+        TrainSwarmApp.dispatch(initialize, metadata: %{@user_id => user_id})
 
       {:error, changeset} ->
+        Logger.error("\n\n\nInvalid license request params \n\n\n #{inspect(changeset)} \n\n\n")
         {:error, "Invalid license request params #{inspect(changeset)}"}
     end
   end

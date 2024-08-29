@@ -38,6 +38,7 @@ defmodule Swai.Workspace do
   end
 
   def update_swarm_license(%SwarmLicense{} = swarm_license, attrs) do
+    Logger.warning("Updating swarm license #{inspect(swarm_license)} with attrs #{inspect(attrs)}")
     swarm_license
     |> SwarmLicense.changeset(attrs)
     |> Repo.update()

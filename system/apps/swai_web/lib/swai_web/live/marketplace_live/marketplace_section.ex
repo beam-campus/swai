@@ -15,11 +15,11 @@ defmodule SwaiWeb.MarketplaceLive.ModelsSection do
   def render(assigns) do
     ~H"""
     <div id="marketplace-models-section" class="mx-4">
-      <div class="header-section px-5 text-white">
+      <div class="px-5 text-white">
         <h2> <%= @section_title %> </h2>
         <p class="text-sm font-brand"> <%= @section_description %> </p>
       </div>
-      <div class="cards-section grid grid-cols-1 md:grid-cols-1 gap-4 mt-3">
+      <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-3">
         <%= for biotope <- @biotopes do %>
           <.live_component
             id={"section-card-#{biotope.id}"}

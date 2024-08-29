@@ -21,67 +21,89 @@ defmodule TrainSwarmProc.Policies do
 
   alias TrainSwarmProc.Policies, as: Policies
 
-  alias TrainSwarmProc.Configure.EvtV1, as: Configured
+  alias TrainSwarmProc.ConfigureLicense.EvtV1, as: LicenseConfigured
 
   alias TrainSwarmProc.PayLicense.CmdV1, as: PayLicense
-  alias TrainSwarmProc.PayLicense.PayloadV1, as: Payment
+  alias Schema.SwarmLicense, as: Payment
   alias TrainSwarmProc.PayLicense.EvtV1, as: Paid
   alias TrainSwarmProc.PayLicense.BudgetReachedV1, as: BudgetReached
-
-  alias TrainSwarmProc.Activate.CmdV1, as: Activate
-  alias TrainSwarmProc.Activate.PayloadV1, as: Activation
-  alias TrainSwarmProc.Activate.EvtV1, as: Activated
-
-  alias TrainSwarmProc.QueueScape.CmdV1, as: QueueScape
+  alias TrainSwarmProc.ActivateLicense.CmdV1, as: Activate
+  alias Schema.SwarmLicense, as: Activation
+  alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
+  alias TrainSwarmProc.QueueLicense.CmdV1, as: QueueLicense
   alias Scape.Init, as: ScapeInit
   alias Schema.Vector, as: Vector
-
   alias TrainSwarmProc.BlockLicense.CmdV1, as: BlockLicense
-  alias TrainSwarmProc.BlockLicense.PayloadV1, as: BlockInfo
+  alias Schema.SwarmLicense, as: BlockInfo
+  alias TrainSwarmProc.PauseScape.CmdV1, as: PauseScape
+  alias TrainSwarmProc.DetachScape.EvtV1, as: ScapeDetached
+
+
+
 
   require Logger
 
-  def interested?(%Configured{} = event), do: {:start, event}
+  def interested?(%LicenseConfigured{} = event), do: {:start, event}
   def interested?(%Paid{} = event), do: {:start, event}
   def interested?(%BudgetReached{} = event), do: {:start, event}
-  def interested?(%Activated{} = event), do: {:start, event}
+  def interested?(%LicenseActivated{} = event), do: {:start, event}
+  def interested?(%ScapeDetached{} = event), do: {:start, event}
+
   def interested?(_event), do: false
 
   #################### HANDLE INCOMING EVENTS AND THROW THE COMMANDS ####################
+
+  #################### CONFIGURED TRIGGERS PAYMENT ####################
   def handle(
         %Policies{} = _policies,
-        %Configured{agg_id: agg_id, payload: configuration} = _event
+        %LicenseConfigured{agg_id: agg_id, payload: configuration} = _event
       ) do
-    {:ok, payload} =
-      Payment.from_map(%Payment{}, configuration)
+    case Payment.from_map(%Payment{}, configuration) do
+      {:ok, payment} ->
+        %PayLicense{agg_id: agg_id, payload: payment}
 
-    %PayLicense{agg_id: agg_id, payload: payload}
+      {:error, changeset} ->
+        Logger.error("invalid configuration for payment \n #{inspect(changeset)}")
+        {:error, "invalid configuration"}
+    end
   end
 
+  #################### PAYMENT TRIGGERS ACTIVATION ####################
   def handle(
         %Policies{} = _policies,
         %Paid{agg_id: agg_id, payload: payment} = _event
       ) do
-    {:ok, activation} =
-      Activation.from_map(%Activation{}, payment)
+    case Activation.from_map(%Activation{}, payment) do
+      {:ok, activation} ->
+        %Activate{agg_id: agg_id, payload: activation}
 
-    %Activate{agg_id: agg_id, payload: activation}
+      {:error, changeset} ->
+        Logger.error("invalid payment for activation\n #{inspect(changeset)}")
+        {:error, "invalid payment, cannot activate"}
+    end
   end
 
+  #################### LICENSE ACTIVATION TRIGGERS SCAPE QUEUING ####################
   def handle(
         %Policies{} = _policies,
-        %Activated{agg_id: agg_id, payload: activation} = _event
+        %LicenseActivated{agg_id: agg_id, payload: activation} = _event
       ) do
     seed =
       %ScapeInit{
         dimensions: Vector.default_map_dimensions()
       }
 
-    {:ok, scape_init} = ScapeInit.from_map(seed, activation)
+    case ScapeInit.from_map(seed, activation) do
+      {:ok, scape_init} ->
+        %QueueLicense{agg_id: agg_id, payload: scape_init}
 
-    %QueueScape{agg_id: agg_id, payload: scape_init}
+      {:error, changeset} ->
+        Logger.error("invalid activation for scape queuing\n #{inspect(changeset)}")
+        {:error, "invalid activation, cannot queue scape"}
+    end
   end
 
+  #################### BUDGET REACHED TRIGGERS BLOCKING ####################
   def handle(
         %Policies{} = _policies,
         %BudgetReached{agg_id: agg_id, payload: budget_info} = _event
@@ -97,13 +119,24 @@ defmodule TrainSwarmProc.Policies do
         instructions: "Please increase your budget to continue."
       }
     }
-
-    # {:ok, cmd} = BlockLicense.from_map(seed, event)
-    # cmd
   end
 
-  # Stop process manager after three failures
-  def error({:error, _failure}, _failed_message, %{context: %{failures: failures}})   when failures >= 4 do
+
+  ######################## SCAPE DETACHED TRIGGERS PAUSE SCAPE ########################
+  def handle(
+        %Policies{} = _policies,
+        %ScapeDetached{agg_id: agg_id, payload: scape_init} = _event
+      ) do
+    %PauseScape{
+      agg_id: agg_id,
+      version: 1,
+      payload: scape_init
+    }
+  end
+
+  # Stop Policies after three failures
+  def error({:error, _failure}, _failed_message, %{context: %{failures: failures}})
+      when failures >= 4 do
     {:stop, :too_many_failures}
   end
 
@@ -112,6 +145,4 @@ defmodule TrainSwarmProc.Policies do
     context = Map.update(context, :failures, 1, fn failures -> failures + 1 end)
     {:retry, context}
   end
-
-
 end

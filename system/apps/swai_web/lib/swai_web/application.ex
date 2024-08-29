@@ -11,10 +11,10 @@ defmodule SwaiWeb.Application do
       {Swai.Registry, name: Web.Registry},
       SwaiWeb.Telemetry,
       SwaiWeb.EdgePresence,
-      SwaiWeb.UserPresence,      
+      SwaiWeb.UserPresence,
       {SwaiWeb.Dispatch.ChannelWatcher, "edge:lobby"},
       SwaiWeb.Endpoint,
-      SwaiWeb.ScapeQueueSup
+      SwaiWeb.LicenseQueueSup
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -6,8 +6,10 @@ defmodule TrainSwarmProc.PayLicense.CmdV1 do
 
   import Ecto.Changeset
 
+  require Logger
+
   alias TrainSwarmProc.PayLicense.CmdV1, as: PayLicense
-  alias TrainSwarmProc.PayLicense.PayloadV1, as: Payment
+  alias Schema.SwarmLicense, as: Payment
 
   @all_fields [:agg_id, :payload]
   @required_fields [:agg_id, :payload]
@@ -24,12 +26,17 @@ defmodule TrainSwarmProc.PayLicense.CmdV1 do
     |> validate_required(@required_fields)
   end
 
-  def from_map(map) do
-    case changeset(%PayLicense{}, map) do
+  def from_map(seed, map) when is_struct(map) do
+    from_map(seed, Map.from_struct(map))
+  end
+
+  def from_map(seed, map) when is_map(map) do
+    case changeset(seed, map) do
       %{valid?: true} = changeset ->
         {:ok, apply_changes(changeset)}
 
       changeset ->
+        Logger.error("Failed to create PayLicense from map: #{inspect(map)}")
         {:error, changeset}
     end
   end

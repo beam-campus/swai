@@ -48,7 +48,6 @@ defmodule TrainSwarmProc.PayLicense.Evaluator do
         required_budget: required_budget
       }
     }
-
     case BudgetReached.from_map(seed, cmd) do
       {:ok, evt} ->
         evt

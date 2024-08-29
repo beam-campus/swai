@@ -8,7 +8,7 @@ defmodule TrainSwarmProc.BlockLicense.CmdV1 do
   require Jason.Encoder
 
   alias TrainSwarmProc.BlockLicense.CmdV1, as: BlockLicense
-  alias TrainSwarmProc.BlockLicense.PayloadV1, as: BlockInfo
+  alias Schema.SwarmLicense, as: BlockInfo
 
   @all_fields [
     :agg_id,
@@ -32,7 +32,7 @@ defmodule TrainSwarmProc.BlockLicense.CmdV1 do
   embedded_schema do
     field(:agg_id, :binary_id)
     field(:version, :integer, default: 1)
-    embeds_one(:payload, BlockInfo, on_replace: :update)
+    embeds_one(:payload, BlockInfo, on_replace: :delete)
   end
 
   def changeset(%BlockLicense{} = seed, attrs) when is_struct(attrs),

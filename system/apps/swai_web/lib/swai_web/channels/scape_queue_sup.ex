@@ -1,9 +1,9 @@
-defmodule SwaiWeb.ScapeQueueSup do
+defmodule SwaiWeb.LicenseQueueSup do
   @moduledoc """
   The ScapeQueueSup is used to broadcast messages to all clients
   """
   use Supervisor
-  alias SwaiWeb.ScapeQueue, as: ScapeQueue
+  alias SwaiWeb.LicenseQueue, as: ScapeQueue
   require Logger
 
   def start_link(_init_arg) do
@@ -13,18 +13,15 @@ defmodule SwaiWeb.ScapeQueueSup do
   def start_queue(biotope_id) do
     Supervisor.start_child(
       __MODULE__,
-      {SwaiWeb.ScapeQueue, biotope_id}
+      {SwaiWeb.LicenseQueue, biotope_id}
     )
   end
 
   def init(:ok) do
-
     children = [
       ScapeQueue
     ]
 
     Supervisor.init(children, strategy: :one_for_one)
   end
-
-
 end

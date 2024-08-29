@@ -62,6 +62,8 @@ defmodule SwaiWeb.Router do
         {SwaiWeb.EdgesInfo, :mount_edges_count},
         {SwaiWeb.UserAuth, :mount_current_user}
       ] do
+
+      live("/scapes", ScapesLive.Index, :index)
       live("/macula", EdgesLive.Index, :index)
       live("/hives", EdgesLive.Index, :index)
       live("/marketplace", MarketplaceLive.Index, :index)

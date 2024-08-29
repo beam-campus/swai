@@ -27,6 +27,9 @@ defmodule EnvVars do
   def swai_edge_country,
     do: "SWAI_EDGE_COUNTRY"
 
+  def swai_edge_country_code,
+    do: "SWAI_EDGE_COUNTRY_CODE"
+
 
   def swai_edge_scape_select_from,
     do: "SWAI_CONTINENTS"

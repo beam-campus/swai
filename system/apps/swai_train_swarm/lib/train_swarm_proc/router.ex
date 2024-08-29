@@ -3,33 +3,39 @@ defmodule TrainSwarmProc.Router do
 
   alias TrainSwarmProc.Aggregate, as: Aggregate
 
-  alias TrainSwarmProc.Initialize.CmdV1, as: Initialize
-  alias TrainSwarmProc.Initialize.Evaluator, as: InitializeHandler
+  alias TrainSwarmProc.InitializeLicense.CmdV1, as: InitializeLicense
+  alias TrainSwarmProc.InitializeLicense.Evaluator, as: InitializeLicenseHandler
 
-  alias TrainSwarmProc.Configure.CmdV1, as: Configure
-  alias TrainSwarmProc.Configure.Evaluator, as: ConfigureHandler
+  alias TrainSwarmProc.ConfigureLicense.CmdV1, as: ConfigureLicense
+  alias TrainSwarmProc.ConfigureLicense.Evaluator, as: ConfigureLicenseHandler
 
   alias TrainSwarmProc.PayLicense.CmdV1, as: PayLicense
   alias TrainSwarmProc.PayLicense.Evaluator, as: PayLicenseHandler
 
-  alias TrainSwarmProc.BlockLicense.CmdV1, as: BlockLicense
-  alias TrainSwarmProc.BlockLicense.Evaluator, as: BlockLicenseHandler
+  alias TrainSwarmProc.ActivateLicense.CmdV1, as: ActivateLicense
+  alias TrainSwarmProc.ActivateLicense.Evaluator, as: ActivateLicenseHandler
 
-  alias TrainSwarmProc.Activate.CmdV1, as: Activate
-  alias TrainSwarmProc.Activate.Evaluator, as: ActivateHandler
+  alias TrainSwarmProc.QueueLicense.CmdV1, as: QueueLicense
+  alias TrainSwarmProc.QueueLicense.Evaluator, as: QueueLicenseHandler
 
-  alias TrainSwarmProc.QueueScape.CmdV1, as: QueueScape
-  alias TrainSwarmProc.QueueScape.Evaluator, as: QueueScapeHandler
+  alias TrainSwarmProc.StartScape.CmdV1, as: StartScape
+  alias TrainSwarmProc.StartScape.Evaluator, as: StartScapeHandler
+
+  alias TrainSwarmProc.PauseScape.CmdV1, as: PauseScape
+  alias TrainSwarmProc.PauseScape.Evaluator, as: PauseScapeHandler
+
+  alias TrainSwarmProc.DetachScape.CmdV1, as: DetachScape
+  alias TrainSwarmProc.DetachScape.Evaluator, as: DetachScapeHandler
 
 
-  dispatch(Initialize,
-    to: InitializeHandler,
+  dispatch(InitializeLicense,
+    to: InitializeLicenseHandler,
     aggregate: Aggregate,
     identity: :agg_id
   )
 
-  dispatch(Configure,
-    to: ConfigureHandler,
+  dispatch(ConfigureLicense,
+    to: ConfigureLicenseHandler,
     aggregate: Aggregate,
     identity: :agg_id
   )
@@ -40,20 +46,35 @@ defmodule TrainSwarmProc.Router do
     identity: :agg_id
   )
 
-  dispatch(Activate,
-    to: ActivateHandler,
+  dispatch(ActivateLicense,
+    to: ActivateLicenseHandler,
     aggregate: Aggregate,
     identity: :agg_id
   )
 
-  dispatch(QueueScape,
-    to: QueueScapeHandler,
+  dispatch(QueueLicense,
+    to: QueueLicenseHandler,
     aggregate: Aggregate,
     identity: :agg_id
   )
 
+  dispatch(StartScape,
+    to: StartScapeHandler,
+    aggregate: Aggregate,
+    identity: :agg_id
+    )
 
+  dispatch(DetachScape,
+    to: DetachScapeHandler,
+    aggregate: Aggregate,
+    identity: :agg_id
+  )
 
+  dispatch(PauseScape,
+    to: PauseScapeHandler,
+    aggregate: Aggregate,
+    identity: :agg_id
+  )
 
 
 end

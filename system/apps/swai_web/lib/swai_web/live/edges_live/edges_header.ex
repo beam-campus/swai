@@ -21,7 +21,7 @@ defmodule SwaiWeb.EdgesLive.EdgesHeader do
         <div class="grid-item text-yellow-400"> <%= Enum.uniq_by(@edges, fn it -> it.algorithm_acronym end) |> Enum.count() %> Algorithms supported</div>
         <div class="grid-item text-green-400"><%= Enum.count(@edges) %> Nodes connected</div>
         <div class="grid-item text-blue-400">241 Scapes active</div>
-        <div class="grid-item text-indigo-400">10524 Messages/sec</div>
+        <div class="grid-item text-indigo-400"><%= "#{@nbr_of_msgs}  Messages/sec" %></div>
       </div>
       </div>
     </div>

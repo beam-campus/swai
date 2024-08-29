@@ -23,6 +23,9 @@ defmodule Particle.Init do
   @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
     field(:id, :binary_id, primary_key: true, default: UUID.uuid4())
+    field(:age, :integer, default: 0)
+    field(:health, :integer, default: 100)
+    field(:energy, :integer, default: 100)
     embeds_one(:position, Vector)
     embeds_one(:momentum, Vector)
     embeds_one(:orientation, Vector)

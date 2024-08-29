@@ -10,6 +10,7 @@ defmodule Edge.Client do
   alias Edge.Facts, as: EdgeFacts
   alias Edge.Hopes, as: EdgeHopes
   alias Swai.Registry, as: EdgeRegistry
+  alias Edge.Server, as: EdgeServer
 
 
   @edge_lobby "edge:lobby"
@@ -17,17 +18,18 @@ defmodule Edge.Client do
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
   # @socket_reconnect_delay 1_000
 
-  @start_scape_v1 EdgeHopes.start_scape_v1()
-
   # @joined_edge_lobby "edge:lobby:joined"
 
   ############# API ################
-  def publish(edge_id, event, payload),
-    do:
-      GenServer.cast(
+  def publish(edge_id, event, payload) do
+
+    # Logger.debug("Edge.Client publish: #{inspect(event)} #{inspect(payload)}")
+
+    GenServer.cast(
         via(edge_id),
         {:publish, @edge_lobby, event, payload}
       )
+  end
 
   ############# CALLBACKS ################
   @impl Slipstream
@@ -40,7 +42,7 @@ defmodule Edge.Client do
 
   @impl Slipstream
   def init(args) do
-    Logger.debug("Edge.Client init: #{inspect(args)}")
+    Logger.debug("Edge.Client init: #{inspect(args)} => #{inspect(self())}")
     socket =
       new_socket()
       |> assign(:edge_init, args.edge_init)
@@ -69,10 +71,7 @@ defmodule Edge.Client do
   end
 
   @impl Slipstream
-  def handle_disconnect(reason, socket) do
-    # time_out = @socket_reconnect_delay * :rand.uniform(20)
-    Logger.debug("\nServer on socket: [#{socket.assigns.edge_init.id}]
-    \tdisconnected for reason ~> #{inspect(reason)}\n")
+  def handle_disconnect(_reason, socket) do
     case reconnect(socket) do
       {:ok, socket} -> {:ok, socket}
       {:error, reason} -> {:stop, reason, socket}
@@ -98,8 +97,8 @@ defmodule Edge.Client do
   end
 
   @impl Slipstream
-  def handle_info(msg, socket) do
-    Logger.debug("Edge.Client received: #{inspect(msg)}")
+  def handle_info(_msg, socket) do
+    # Logger.debug("Edge.Client received: #{inspect(msg)}")
     {:noreply, socket}
   end
 
@@ -107,12 +106,17 @@ defmodule Edge.Client do
 
   @impl Slipstream
   def handle_message(room, message, params, socket) do
-    Logger.debug("Edge.Client received:
-    room: #{inspect(room)}
-    msg: #{inspect(message)}
-    params: #{inspect(params)}")
+    # Logger.warning("Edge.Client received:
+    # room: #{inspect(room)}
+    # msg: #{inspect(message)}
+    # params: #{inspect(params)}")
+
+    EdgeServer.process_message(room, {message, params})
+
     {:ok, socket}
   end
+
+
 
   ############ PLUMBING ################
   def to_name(edge_id),

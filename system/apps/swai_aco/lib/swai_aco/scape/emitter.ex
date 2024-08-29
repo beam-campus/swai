@@ -1,90 +1,47 @@
 defmodule Scape.Emitter do
-  # use GenServer, restart: :transient
+  use GenServer, restart: :transient
 
   @moduledoc """
   Scape.Emitter is a GenServer that manages a channel to a scape,
   """
 
   alias Scape.Init, as: ScapeInit
-  alias Region.Init, as: RegionInit
   alias Edge.Client, as: Client
-  alias Region.Facts, as: RegionFacts
+  alias Scape.Facts, as: ScapeFacts
+
+  @scape_detached_v1 ScapeFacts.scape_detached_v1()
 
   require Logger
 
-  @initializing_region_v1 RegionFacts.initializing_region_v1()
-  @region_initialized_v1 RegionFacts.region_initialized_v1()
 
   ######### API #############
+  def emit_scape_detached(edge_id, %ScapeInit{} = scape_init),
+  do:
+    Client.publish(
+      edge_id,
+      @scape_detached_v1,
+      %{scape_init: scape_init}
+    )
 
-  def emit_initializing_region(%RegionInit{} = region_init),
-    do:
-      Client.publish(
-        region_init.edge_id,
-        @initializing_region_v1,
-        %{region_init: region_init}
-      )
 
-  def emit_region_initialized(%RegionInit{} = region_init),
-    do:
-      Client.publish(
-        region_init.edge_id,
-        @region_initialized_v1,
-        %{region_init: region_init}
-      )
+  @impl GenServer
+  def init(%ScapeInit{} = scape_init)  do
+    Logger.debug("scape.emitter is up: #{Colors.scape_theme(self())} id: #{scape_init.id}")
+    {:ok, scape_init}
+  end
 
-  # def emit_initializing_region(%RegionInit{} = region_init),
-  #   do:
-  #     GenServer.cast(
-  #       via(region_init.scape_id),
-  #       {:emit_initializing_region, region_init}
-  #     )
+  ##### PLUMBING #####
+  defp to_name(scape_id),
+    do: "scape.emitter.#{scape_id}"
 
-  # def emit_region_initialized(%RegionInit{} = region_init),
-  #   do:
-  #     GenServer.cast(
-  #       via(region_init.scape_id),
-  #       {:emit_region_initialized, region_init}
-  #     )
+  def via(scape_id),
+    do: Swai.Registry.via_tuple({:scape_channel, to_name(scape_id)})
 
-  ######## CALLBACKS ########
-
-  # @impl GenServer
-  # def handle_cast({:emit_initializing_region, %RegionInit{} = region_init}, state) do
-  #   EdgeClient.publish(
-  #     region_init.edge_id,
-  #     @initializing_region_v1, %{region_init: region_init}
-  #   )
-
-  #   {:noreply, state}
-  # end
-
-  # @impl GenServer
-  # def handle_cast({:emit_region_initialized, %RegionInit{} = region_init}, state) do
-  #   EdgeClient.publish(
-  #     region_init.edge_id,
-  #     @region_initialized_v1, %{region_init: region_init}
-  #   )
-
-  #   {:noreply, state}
-  # end
-
-  # @impl GenServer
-  # def init(%ScapeInit{} = scape_init),
-  #   do: {:ok, scape_init}
-
-  # ##### PLUMBING #####
-  # defp to_name(scape_id),
-  #   do: "scape.emitter.#{scape_id}"
-
-  # def via(scape_id),
-  #   do: Swai.Registry.via_tuple({:scape_channel, to_name(scape_id)})
-
-  # def start_link(%ScapeInit{} = scape_init) do
-  #   GenServer.start_link(
-  #     __MODULE__,
-  #     scape_init,
-  #     name: via(scape_init.id)
-  #   )
-  # end
+  def start_link(%ScapeInit{} = scape_init) do
+    GenServer.start_link(
+      __MODULE__,
+      scape_init,
+      name: via(scape_init.id)
+    )
+  end
 end

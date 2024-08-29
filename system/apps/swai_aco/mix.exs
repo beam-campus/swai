@@ -27,6 +27,7 @@ defmodule Aco.MixProject do
   defp deps do
     [
       {:slipstream, "~> 1.1.0"},
+      {:axon, ">= 0.5.0"},
       {:swai_core, in_umbrella: true},
       {:apis, in_umbrella: true}
     ]

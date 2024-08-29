@@ -1,4 +1,5 @@
 defmodule SwaiWeb.EdgesLive.Index do
+
   use SwaiWeb, :live_view
 
   require Logger
@@ -8,17 +9,17 @@ defmodule SwaiWeb.EdgesLive.Index do
   alias Edges.Service, as: EdgesCache
   alias Phoenix.PubSub
   alias Edge.Facts, as: EdgeFacts
-  alias Edge.Init, as: Edge
+
+  import ErlUtils
 
   @edges_cache_updated_v1 EdgeFacts.edges_cache_updated_v1()
-  @edge_attached_v1 EdgeFacts.edge_attached_v1()
-  @edge_detached_v1 EdgeFacts.edge_detached_v1()
 
   # def refresh(_caller_state),
   #   do: Process.send(self(), :refresh, @refresh_seconds * 1_000)
 
   @impl true
   def mount(_params, _session, socket) do
+    Process.send_after(self(), :count_messages, 1_000)
     case connected?(socket) do
       true ->
         Logger.info("Connected")
@@ -30,7 +31,8 @@ defmodule SwaiWeb.EdgesLive.Index do
           |> assign(
             page_title: "Hives",
             edges: EdgesCache.get_all(),
-            now: DateTime.utc_now()
+            now: DateTime.utc_now(),
+            nbr_of_msgs: count_messages()
           )
         }
 
@@ -43,16 +45,28 @@ defmodule SwaiWeb.EdgesLive.Index do
           |> assign(
             page_title: "Hives",
             edges: EdgesCache.get_all(),
-            now: DateTime.utc_now()
+            now: DateTime.utc_now(),
+            nbr_of_msgs: count_messages()
           )
         }
     end
   end
 
+
+  @impl true
+  def handle_info(:count_messages, socket) do
+    Process.send_after(self(), :count_messages, 10_000)
+    old_nbr_of_msgs = total_messages()
+    Logger.info("Counting messages => #{old_nbr_of_msgs}")
+
+    {:noreply, socket |> assign(nbr_of_msgs: old_nbr_of_msgs)}
+  end
+
+
+
+
   @impl true
   def handle_info({@edges_cache_updated_v1, _payload}, socket) do
-    Logger.alert("Edges updated")
-
     {
       :noreply,
       socket
@@ -89,6 +103,7 @@ defmodule SwaiWeb.EdgesLive.Index do
             id="edges-header"
             module={SwaiWeb.EdgesLive.EdgesHeader}
             edges={@edges}
+            nbr_of_msgs={@nbr_of_msgs}
           />
         </section>
 

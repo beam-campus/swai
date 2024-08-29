@@ -1,9 +1,9 @@
 defmodule TrainSwarmProc.Repl do
-  alias TrainSwarmProc.Initialize.EvtV1, as: Initialized
-  alias TrainSwarmProc.Configure.EvtV1, as: Configured
-  alias TrainSwarmProc.Initialize.CmdV1, as: Initialize
-  alias TrainSwarmProc.Configure.CmdV1, as: Configure
-  alias TrainSwarmProc.Initialize.PayloadV1, as: InitializePayload
+  alias TrainSwarmProc.InitializeLicense.EvtV1, as: Initialized
+  alias TrainSwarmProc.ConfigureLicense.EvtV1, as: Configured
+  alias TrainSwarmProc.InitializeLicense.CmdV1, as: Initialize
+  alias TrainSwarmProc.ConfigureLicense.CmdV1, as: Configure
+  alias TrainSwarmProc.InitializeLicense.PayloadV1, as: InitializePayload
   alias TrainSwarmProc.CommandedApp, as: TrainSwarmApp
 
   require Logger

@@ -6,6 +6,20 @@
 
 ## Diagrams
 
+## Class Diagram
+
+```mermaid
+classDiagram
+  class EdgeApplication {    
+  }
+  class ScapeSystem {
+  }
+
+  EdgeApplication --> ScapeSystem: spawns
+
+
+```
+
 ### Sequence Diagram
 
 ```mermaid
@@ -17,5 +31,4 @@ sequenceDiagram
     Edge.Application->>Scape.System: start_link
     Scape.System->>Scape.Regions: start_link
     Scape.System->>Scape.Builder: start_link    
-
 ```

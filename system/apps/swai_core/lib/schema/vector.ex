@@ -8,6 +8,11 @@ defmodule Schema.Vector do
   import Ecto.Changeset
   alias Schema.Vector, as: Vector
 
+  @default_width 800.0
+  @default_height 600.0
+  @default_depth 0.0
+
+
   @all_fields [
     :x,
     :y,
@@ -31,7 +36,7 @@ defmodule Schema.Vector do
   embedded_schema do
     field(:x, :float)
     field(:y, :float)
-    field(:z, :integer)
+    field(:z, :float)
   end
 
   def new(x, y, z) do
@@ -59,7 +64,10 @@ defmodule Schema.Vector do
   end
 
   def default_map_dimensions() do
-    %Vector{x: 200, y: 200, z: 0}
+    %Vector{
+      x: @default_width,
+      y: @default_height,
+      z: @default_depth}
   end
 
   def as_tuple(%Vector{} = vector) do
@@ -139,23 +147,24 @@ defmodule Schema.Vector do
     new(x, y, z)
   end
 
-  def changeset(%Vector{} = seed, attr) when is_struct(attr) do
-    changeset(seed, Map.from_struct(attr))
-  end
+  def changeset(%Vector{} = seed, attr)
+      when is_struct(attr),
+      do:
+        changeset(seed, Map.from_struct(attr))
 
 
-  def changeset(%Vector{} = seed , attr) when is_map(attr) do
+
+  def changeset(%Vector{} = seed , attr)
+    when is_map(attr),
+    do:
     seed
     |> cast(attr, @flat_fields)
     |> validate_required(@required_fields)
-  end
 
 
-  def from_map(seed,map) when is_struct(seed) do
-    from_map(seed, Map.from_struct(map))
-  end
 
-  def from_map(seed, map) when is_map(map) do
+
+  def from_map(seed, map) do
     case changeset(seed, map) do
       %{valid?: true} = changeset ->
         state =

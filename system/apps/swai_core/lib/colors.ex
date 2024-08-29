@@ -1,6 +1,6 @@
 defmodule Colors do
   @moduledoc """
-  Colors is the module that contains the colors for the Agrex System
+  Colors is the module that contains the colors for the Swai System
   """
 
   def reset, do: "\e[0m"
@@ -85,6 +85,12 @@ defmodule Colors do
   def workspace_theme(pid),
     do: "#{yellow_on_black()}#{inspect(pid)}#{reset()}"
 
-    def swarm_theme(pid),
+  def swarm_theme(pid),
     do: "#{yellow_on_black_blinking()}#{inspect(pid)}#{reset()}"
+
+  def arena_theme(pid),
+    do: "#{white_on_blue()}#{inspect(pid)}#{reset()}"
+
+  def particle_theme(pid),
+    do: "#{yellow_on_black()}#{inspect(pid)}#{reset()}"
 end

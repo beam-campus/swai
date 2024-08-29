@@ -16,15 +16,37 @@
 # General application configuration
 import Config
 
+config :elixir_rakv,
+  data_dir: "/volume/swai/data",
+  wal_data_dir: "/volume/swai/wal_data"
+
+config :logger, :console,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id, :initial_call, :mfa]
+
 config :swai_aco,
   scape_id: "5693504a-89d6-4af3-bb70-2c2914913dc9"
 
+
+config :swai_train_swarm, TrainSwarmProc.CommandedApp,
+  log_level: :info
+
+config :swai_train_swarm, TrainSwarmProc.CommandedApp,
+  snapshotting: %{
+    TrainSwarmProc.Aggregate => [
+      snapshot_every: 10_000,
+      snapshot_version: 1
+    ]
+  }
+
 config :swai_train_swarm, TrainSwarmProc.CommandedApp,
   event_store: [
+    log_level: :info,
     adapter: Commanded.EventStore.Adapters.Extreme,
     serializer: Commanded.Serialization.JsonSerializer,
     stream_prefix: "train_swarm",
     extreme: [
+      log_level: :info,
       db_type: :node,
       host: "localhost",
       port: 1113,

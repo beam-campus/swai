@@ -7,15 +7,29 @@ defmodule Schema.Scape do
 
   import Ecto.Changeset
 
-  alias Schema.Edge
-  alias Schema.Scape
-  alias Schema.Id
-  alias Schema.Region
+  alias Edge.Init, as: Edge
+  alias Schema.Scape, as: Scape
 
   def id_prefix(), do: "scape"
 
   @all_fields [
     :id,
+    :name,
+    :description,
+    :image_url,
+    :tags,
+    :sourced_by
+  ]
+
+  @flat_fields [
+    :id,
+    :name,
+    :description,
+    :image_url,
+    :tags
+  ]
+
+  @required_fields [
     :name
   ]
 
@@ -24,64 +38,39 @@ defmodule Schema.Scape do
   @derive {Jason.Encoder, only: @all_fields}
   @primary_key false
   embedded_schema do
-    field(:id, :string)
+    field(:id, :binary_id, default: UUID.uuid4())
     field(:name, :string)
     field(:description, :string, default: "")
     field(:image_url, :string, default: "")
-    embeds_many(:tags, :string)
+    field(:tags, :string)
     embeds_many(:sourced_by, Edge)
-    embeds_many(:regions, Region)
+    embeds_one(:license, License)
   end
 
-  def random_id() do
-    Id.new(id_prefix())
-    |> Id.as_string()
-  end
+  def changeset(seed, struct)
+      when is_struct(struct),
+      do: changeset(seed, Map.from_struct(struct))
 
   def changeset(scape, args)
       when is_map(args) do
     scape
-    |> cast(args, @all_fields)
+    |> cast(args, @flat_fields)
     |> cast_embed(:sourced_by, with: &Edge.changeset/2)
-    |> cast_embed(:regions, with: &Region.changeset/2)
     |> validate_required(@required_fields)
   end
 
-  @doc """
-  Scape.new(args) requires an input map that contains:
-  1. a name for the Scape
-  2. regions: a list of regions for the Scape
-  """
-  def new(map) when is_map(map) do
-    new_id =
-      Id.new(id_prefix())
-      |> Id.as_string()
-
-    case changeset(%Scape{}, map) do
-      %{valid?: true} = changeset ->
-        scape =
-          changeset
-          |> apply_changes()
-          |> Map.put(:id, new_id)
-
-        {:ok, scape}
-
-      changeset ->
-        {:error, changeset}
-    end
-  end
+  def from_map(seed, struct)
+      when is_struct(struct),
+      do: from_map(seed, Map.from_struct(struct))
 
   def from_map(map) when is_map(map) do
     case changeset(%Scape{}, map) do
       %{valid?: true} = changeset ->
-        scape =
-          changeset
-          |> apply_changes()
-
-        {:ok, scape}
+        {:ok, apply_changes(changeset)}
 
       changeset ->
         {:error, changeset}
     end
   end
+
 end

@@ -101,11 +101,11 @@ defmodule Apis.Countries do
     do: {:noreply, []}
 
   @impl true
-  def handle_call({:get_country_by_country_code, country_code}, _from, state) do
-    if Enum.empty?(state) do
-      state = request_countries(true)
-    end
+  def handle_call({:get_country_by_country_code, country_code}, from, []),
+    do: handle_call({:get_country_by_country_code, country_code}, from, request_countries(true))
 
+  @impl true
+  def handle_call({:get_country_by_country_code, country_code}, _from, state) do
     field_name = "cca#{String.length(country_code)}"
 
     country =

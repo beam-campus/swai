@@ -5,10 +5,32 @@ defmodule Scape.System do
   use GenServer
 
   require Logger
+  require Colors
 
   alias Edge.Emitter, as: EdgeEmitter
+  alias Scape.Emitter, as: ScapeEmitter
   alias Scape.Init, as: ScapeInit
   alias Swai.Registry, as: EdgeRegistry
+  alias Arena.Init, as: ArenaInit
+
+
+
+  def start(scape_init) do
+    case start_link(scape_init) do
+      {:ok, pid} ->
+        Logger.debug("Started [#{__MODULE__} > #{inspect(pid)}]]")
+        {:ok, pid}
+
+      {:error, {:already_started, pid}} ->
+        Logger.warning("Already Started [#{__MODULE__} > #{inspect(pid)}]]")
+        {:ok, pid}
+
+      {:error, reason} ->
+        Logger.error("Failed to start #{__MODULE__}: #{reason}")
+        {:error, reason}
+    end
+  end
+
 
   @doc """
   Returns the list of children supervised by this module
@@ -22,17 +44,19 @@ defmodule Scape.System do
     end
   end
 
-  ####### CALLBACKS ############
-  # @impl GenServer
-  # def handle_info({:EXIT, from_pid, reason}, state) do
-  #   Logger.error(
-  #     "#{Colors.red_on_black()}EXIT received from #{inspect(from_pid)} reason: #{inspect(reason)}#{Colors.reset()}"
-  #   )
+  ###### CALLBACKS ############
+  @impl GenServer
+  def handle_info({:EXIT, from_pid, reason}, %ScapeInit{} = scape_init) do
+    Logger.error(
+      "#{Colors.red_on_black()}EXIT received from #{inspect(from_pid)} reason: #{inspect(reason)}#{Colors.reset()}"
+    )
 
-  #   Channel.scape_detached(state)
+    ScapeEmitter.emit_scape_detached(scape_init.edge_id, scape_init)
 
-  #   {:noreply, state}
-  # end
+    {:noreply, scape_init}
+  end
+
+
 
   @impl GenServer
   def handle_info(msg, state) do
@@ -40,27 +64,33 @@ defmodule Scape.System do
     {:noreply, state}
   end
 
-
   @impl GenServer
-  def terminate(reason, scape_init) do
+  def terminate(reason, %ScapeInit{edge_id: edge_id} = scape_init) do
     Logger.error(
       "#{Colors.red_on_black()}Terminating Scape.System with reason: #{inspect(reason)}#{Colors.reset()}"
     )
 
+    ScapeEmitter.emit_scape_detached(edge_id, scape_init)
+
     {:ok, scape_init}
   end
 
-  @impl GenServer
-  def init(%ScapeInit{} = scape_init) do
-    # Process.flag(:trap_exit, true)
-    Logger.debug("scape.system: #{Colors.scape_theme(self())}")
 
-    EdgeEmitter.emit_initializing_scape(scape_init)
+
+
+  @impl GenServer
+  def init(%ScapeInit{edge_id: edge_id} = scape_init) do
+    Process.flag(:trap_exit, true)
+
+    Logger.debug("scape.system is coming up: #{Colors.scape_theme(self())} id: #{scape_init.id}")
+
+    EdgeEmitter.emit_initializing_scape(edge_id, scape_init)
+
+    arena_init = ArenaInit.from_scape_init(scape_init)
 
     children = [
-
-      # {Scape.Emitter, scape_init},
-      {Scape.Builder, scape_init}
+      {Scape.Emitter, scape_init},
+      {SwaiAco.Arena.System,  arena_init},
     ]
 
     Supervisor.start_link(
@@ -69,12 +99,12 @@ defmodule Scape.System do
       name: via_sup(scape_init.id)
     )
 
-    EdgeEmitter.emit_scape_initialized(scape_init)
+    EdgeEmitter.emit_scape_initialized(edge_id, scape_init)
+
+    Logger.debug("scape.system is up: #{Colors.scape_theme(self())} id: #{scape_init.id}")
 
     {:ok, scape_init}
   end
-
-
 
   ################# PLUMBIMG #####################
   def via(key),

@@ -1,7 +1,7 @@
 defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
   use SwaiWeb, :live_component
 
-  alias TrainSwarmProc.Initialize.PayloadV1, as: RequestLicense
+  alias Schema.SwarmLicense, as: Initialization
   alias Schema.Biotope, as: Biotope
 
   require Logger
@@ -19,7 +19,7 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
     ~H"""
     <div class="section-card-header">
       <img class="h-24 w-full object-cover opacity-80 rounded radius-10"
-      src={"#{@biotope.image_url}"} alt={"#{@biotope.id}"}>
+      src={"#{@biotope.image_url}"} alt={"#{@biotope.id}"}/>
       <div class="flex flex-row text-swBrand-dark pt-2 font-regular">
         <p><%= @biotope.name %> [<%= @biotope.algorithm_name %>] </p>
         <p class="font-regular uppercase text-swBrand-light ml-auto" id="biotope_theme">

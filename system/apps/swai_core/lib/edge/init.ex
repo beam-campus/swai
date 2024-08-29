@@ -9,6 +9,7 @@ defmodule Edge.Init do
   alias AppUtils, as: AppUtils
   alias Schema.EdgeStats, as: Stats
   alias Phoenix.Socket, as: Socket
+  alias Scape.Init, as: ScapeInit
 
   import Ecto.Changeset
 
@@ -53,6 +54,7 @@ defmodule Edge.Init do
     :online_since,
     :image_url,
     :flag,
+    :flag_svg,
     :stats,
     :socket
   ]
@@ -95,6 +97,7 @@ defmodule Edge.Init do
     :online_since,
     :image_url,
     :flag,
+    :flag_svg,
     :stats
   ]
 
@@ -135,7 +138,8 @@ defmodule Edge.Init do
     :connected_since,
     :online_since,
     :image_url,
-    :flag
+    :flag,
+    :flag_svg
   ]
 
   # @embedded_fields [
@@ -194,9 +198,14 @@ defmodule Edge.Init do
     field(:online_since, :utc_datetime)
     field(:image_url, :string, default: "https://picsum.photos/400/300")
     field(:flag, :string, default: "\u127988")
-    embeds_one(:stats, Stats)
-    embeds_one(:socket, Socket)
+    field(:flag_svg, :string, default: "https://picsum.photos/400/300")
+    embeds_one(:stats, Stats, on_replace: :delete)
+    embeds_one(:socket, Socket, on_replace: :delete)
   end
+
+  def changeset(seed, struct)
+      when is_struct(struct),
+      do: changeset(seed, Map.from_struct(struct))
 
   def changeset(edge, args)
       when is_map(args),
@@ -206,7 +215,11 @@ defmodule Edge.Init do
         |> cast_embed(:stats, with: &Stats.changeset/2)
         |> validate_required(@required_fields)
 
-  def from_map(map) when is_map(map) do
+  def from_map(seed, struct) when is_struct(struct),
+    do: from_map(seed, Map.from_struct(struct))
+
+  def from_map(map)
+      when is_map(map) do
     case(changeset(%EdgeInit{}, map)) do
       %{valid?: true} = changeset ->
         edge_init =
@@ -222,14 +235,49 @@ defmodule Edge.Init do
 
   def default,
     do: %EdgeInit{
-      id: Edge.random_id(),
-      api_key: "europe_",
-      is_container: AppUtils.running_in_container?()
+      id: "N/A",
+      biotope_id: "N/A",
+      algorithm_acronym: "N/A",
+      api_key: "N/A",
+      is_container: false,
+      ip_address: "N/A",
+      continent: "N/A",
+      continent_code: "N/A",
+      country: "N/A",
+      country_code: "N/A",
+      country_ccn3: "N/A",
+      country_cca2: "N/A",
+      country_cca3: "N/A",
+      country_cioc: "N/A",
+      region: "N/A",
+      region_name: "N/A",
+      city: "N/A",
+      district: "N/A",
+      zip: "N/A",
+      lat: 0.0,
+      lon: 0.0,
+      timezone: "N/A",
+      offset: 0,
+      currency: "N/A",
+      isp: "N/A",
+      org: "N/A",
+      as: "N/A",
+      asname: "N/A",
+      reverse: "N/A",
+      mobile: false,
+      proxy: false,
+      hosting: false,
+      connected_since: DateTime.utc_now(),
+      online_since: DateTime.utc_now(),
+      image_url: "https://picsum.photos/400/300",
+      flag: "\u127988",
+      flag_svg: "https://picsum.photos/400/300",
+      stats: Stats.empty()
     }
 
   def from_environment() do
     {:ok, chost} = :inet.gethostname()
-    edge_id = "#{to_string(chost)}-" <> Edge.random_id()
+    edge_id = "#{to_string(chost)}-" <> "#{inspect(UUID.uuid4())}"
 
     api_key = System.get_env(EnvVars.swai_edge_api_key(), "no-api-key")
 
@@ -267,6 +315,7 @@ defmodule Edge.Init do
       online_since: DateTime.utc_now(),
       image_url: "https://picsum.photos/400/300",
       flag: "\u127988",
+      flag_svg: "https://picsum.photos/400/300",
       stats: Stats.empty()
     }
   end
@@ -283,6 +332,7 @@ defmodule Edge.Init do
     longitude = EnvVars.get_env_var_as_float(EnvVars.swai_edge_lon(), ip_info["lon"])
 
     country = System.get_env(EnvVars.swai_edge_country()) || ip_info["country"]
+    country_code = System.get_env(EnvVars.swai_edge_country_code()) || ip_info["countryCode"]
 
     is_container =
       EnvVars.get_env_var_as_boolean(
@@ -328,6 +378,7 @@ defmodule Edge.Init do
       online_since: DateTime.utc_now(),
       image_url: "https://picsum.photos/400/300",
       flag: "\u127988",
+      flag_svg: ip_info["flag_svg"],
       stats: Stats.empty()
     }
   end
@@ -342,6 +393,12 @@ defmodule Edge.Init do
         _ -> %{}
       end
 
-    from_environment(ip_info, country_info)
+    new_info =
+      ip_info
+      |> Map.put("flag_svg", country_info["flags"]["svg"])
+
+    Logger.info("IP Info: #{inspect(new_info)}")
+
+    from_environment(new_info, country_info)
   end
 end

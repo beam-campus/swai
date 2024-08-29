@@ -1,31 +1,73 @@
 defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
+  alias Schema.Vector
   use SwaiWeb, :live_component
 
-  alias Schema.SwarmLicense,
-    as: SwarmLicense
+  alias Schema.SwarmLicense, as: SwarmLicense
 
+  alias MnemonicSlugs, as: MnemonicSlugs
   alias TrainSwarmProc, as: TrainSwarmProc
   alias Schema.Swarm, as: Swarm
 
   require Logger
 
-  @form_data "swarm_license"
-
-  @user_id "user_id"
-
-  @biotope_id "biotope_id"
-  @biotope_name "biotope_name"
+  @all_fields [
+    :license_id,
+    :status,
+    :status_string,
+    :user_id,
+    :algorithm_id,
+    :algorithm_name,
+    :algorithm_acronym,
+    :biotope_id,
+    :biotope_name,
+    :image_url,
+    :theme,
+    :tags,
+    :swarm_id,
+    :swarm_name,
+    :swarm_size,
+    :swarm_time_min,
+    :cost_in_tokens,
+    :tokens_used,
+    :run_time_sec,
+    :available_tokens,
+    :tokens_balance,
+    :dimensions
+  ]
 
   @agg_id "agg_id"
+  @form_data "swarm_license"
+
   @license_id "license_id"
-
+  @status "status"
+  @status_string "status_string"
+  @user_id "user_id"
   @algorithm_id "algorithm_id"
-  @algorithm_acronym "algorithm_acronym"
   @algorithm_name "algorithm_name"
-
-  @swarm_name "swarm_name"
+  @algorithm_acronym "algorithm_acronym"
+  @biotope_id "biotope_id"
+  @biotope_name "biotope_name"
+  @image_url "image_url"
+  @theme "theme"
+  @tags "tags"
   @swarm_id "swarm_id"
+  @swarm_name "swarm_name"
+  @swarm_size "swarm_size"
+  @swarm_time_min "swarm_time_min"
+  @cost_in_tokens "cost_in_tokens"
+  @tokens_used "tokens_used"
+  @run_time_sec "run_time_sec"
   @available_tokens "available_tokens"
+  @tokens_balance "tokens_balance"
+  @dimensions "dimensions"
+
+
+  defp generate_swarm_name(prefix, nbr_of_slugs) do
+    "#{prefix}_#{MnemonicSlugs.generate_slug(nbr_of_slugs)}"
+    |> String.downcase()
+    |> String.replace("-", "_")
+    |> String.replace(" ", "_")
+  end
 
   @impl true
   def update(assigns, socket) do
@@ -36,11 +78,14 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
       @user_id => assigns.current_user.id,
       @biotope_id => assigns.biotope.id,
       @biotope_name => assigns.biotope.name,
+      @image_url => assigns.biotope.image_url,
+      @theme => assigns.biotope.theme,
+      @tags => assigns.biotope.tags,
       @algorithm_id => assigns.biotope.algorithm_id,
       @algorithm_acronym => assigns.biotope.algorithm_acronym,
       @algorithm_name => assigns.biotope.algorithm_name,
       @swarm_id => UUID.uuid4(),
-      @swarm_name => Swarm.generate_swarm_name(prefix, 2),
+      @swarm_name => generate_swarm_name(prefix, 2),
       @available_tokens => assigns.current_user.budget
     }
 
@@ -62,7 +107,6 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
 
   defp assign_form(socket, %Ecto.Changeset{} = changeset) do
     form = to_form(changeset, as: @form_data)
-    # Logger.debug("ASSIGNING FORM #{inspect(form)}")
 
     if changeset.valid? do
       socket
@@ -78,6 +122,10 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
   def handle_event("submit_lr", %{@form_data => source} = _license_params, socket) do
     agg_id = UUID.uuid4()
 
+    dimensions =
+      Vector.default_map_dimensions()
+      |> Map.from_struct()
+
     enriched_params =
       source
       |> Map.put(@agg_id, agg_id)
@@ -86,15 +134,18 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
       |> Map.put(@user_id, socket.assigns.current_user.id)
       |> Map.put(@biotope_id, socket.assigns.biotope.id)
       |> Map.put(@biotope_name, socket.assigns.biotope.name)
+      |> Map.put(@image_url, socket.assigns.biotope.image_url)
+      |> Map.put(@theme, socket.assigns.biotope.theme)
+      |> Map.put(@tags, socket.assigns.biotope.tags)
       |> Map.put(@algorithm_id, socket.assigns.biotope.algorithm_id)
       |> Map.put(@algorithm_acronym, socket.assigns.biotope.algorithm_acronym)
       |> Map.put(@algorithm_name, socket.assigns.biotope.algorithm_name)
       |> Map.put(@available_tokens, socket.assigns.current_user.budget)
+      |> Map.put(@dimensions, dimensions)
 
     case TrainSwarmProc.initialize(enriched_params) do
       :ok ->
         notify_parent({:swarm_license_submitted, enriched_params})
-
         {:noreply, socket}
 
       _msg ->

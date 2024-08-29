@@ -357,7 +357,9 @@
     border-color: #00A1FE;
     border-width: 2px;
     border-radius: 10px;
-    padding: 20px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 20px;
     margin: 20px;
     box-shadow: 0 5px 30px rgba(255, 255, 255, 0.8);
     transition: transform 0.3s ease-in-out;
@@ -567,6 +569,25 @@ body {
     /* Safari and Chrome */
 }
 
+
+#workspace-view {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    -ms-overflow-style: none;
+    /* Internet Explorer 10+ */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+
+#workspace-view::-webkit-scrollbar {
+    display: none;
+    /* Safari and Chrome */
+}
+
+
 .map_country {
     fill: transparent;
     stroke: rgb(0, 191, 255);
@@ -702,3 +723,156 @@ body {
 .blink_online {
     animation: blink 1s linear 10 ;
 }
+
+
+.unknown-status {
+    background-color: #5a5050;
+    opacity: 0.8;
+}
+
+.initialized-status {
+    background-color: #70A521;
+    opacity: 0.8;
+}
+
+.configured-status {
+    background-color: #00A1FE;
+    opacity: 0.8;
+}
+
+.active-status {
+    background-color: #595cff;
+    opacity: 0.8;
+}
+
+.inactive-status {
+    background-color: #f19b9b;
+    opacity: 0.8;
+}
+
+.paid-status {
+    background-color: #9fe438;
+    opacity: 0.8;
+}
+
+.blocked-status {
+    background-color: #ca3434;
+    opacity: 0.8;
+}
+
+.queued-status {
+    background-color: #70A521;
+    opacity: 0.8;
+}
+
+.started-status {
+    background-color: #00A1FE;
+    opacity: 0.8;
+}
+
+.paused-status {
+    background-color: #c99e2a;
+    opacity: 0.8;
+}
+
+.cancelled-status {
+    background-color: #722626;
+    opacity: 0.8;
+}
+
+.completed-status {
+    background-color: #70A521;
+    opacity: 0.8;
+}
+
+.detached-status {
+    background-color: #5a5050;
+    opacity: 0.8;
+}
+
+.status-text {
+    font-family: 'WorkSans', sans-serif;
+    font-size: 1rem;
+    font-weight: bold;
+    color: white;
+    text-align: center;
+    margin-top: 10px;
+}
+
+
+.scape-minimap {
+    width: 400px;
+    height: 300px;
+    background-color: #383838; /* Light gray background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid #0b123baf; /* Optional: border to make it more visible */    
+    border-radius: 10px;
+    margin-top: 10px;
+    margin-left: auto;
+  }
+
+
+  .edge-card {
+    display: flex;
+    /* border: 1px solid #ddd; */
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    margin: 1px;
+  }
+  
+  .edge-image {
+    width: 150px;
+    height: 100px;
+    object-fit: stretch;
+    margin-left: 5px;
+    margin-right: 5px;
+    margin-top: 10px;
+  }
+  
+  .edge-details {
+    padding: 16px;
+    flex-grow: 1;
+  }
+  
+  .edge-details h2 {
+    margin: 0;
+    font-size: 1.5em;
+    display: flex;
+    align-items: center;
+  }
+  
+  .flag {
+    font-family: 'Anonymous Pro', monospace;
+    margin-left: 8px;
+  }
+  
+  .edge-status {
+    margin-top: 10px;
+  }
+  
+  .status-indicator {
+    display: inline-block;
+    margin-right: 8px;
+    padding: 4px 8px;
+    border-radius: 12px;
+    background-color: #f0f0f0;
+    font-family: 'Anonymous Pro', monospace;
+    font-size: 0.8em;
+    color: #000;
+  }
+  
+  .status-indicator.mobile {
+    background-color: #50c8d8;
+  }
+  
+  .status-indicator.proxy {
+    background-color: #face8b;
+  }
+  
+  .status-indicator.hosting {
+    background-color: #abf557;
+  }
+  

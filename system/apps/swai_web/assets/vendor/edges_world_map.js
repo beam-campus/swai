@@ -1,5 +1,6 @@
 import * as d3 from 'd3';
 import * as topojson from 'topojson-client';
+import {GeoUtils} from 'geo_utils.js';
 
 const maps_url = 'https://unpkg.com/world-atlas@1/world/50m.json';
 const topojson_url = 'https://unpkg.com/topojson@3.0.2/dist/topojson.min.js';
@@ -225,7 +226,8 @@ function createCurvedLines(a_svg, data, projection) {
     }
   }
 
-  const lineGenerator = d3.linkHorizontal()
+  const lineGenerator = d3.linkRadial()
+      // .linkHorizontal()
     .x(d => projection([d.lon, d.lat])[0])
     .y(d => projection([d.lon, d.lat])[1]);
 

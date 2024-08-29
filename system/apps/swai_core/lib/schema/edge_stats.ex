@@ -30,6 +30,11 @@ defmodule Schema.EdgeStats do
     field(:nbr_of_particles, :integer)
   end
 
+
+  def changeset(seed, struct)
+      when is_struct(struct),
+      do: changeset(seed, Map.from_struct(struct))
+
   def changeset(edge_stats, args)
       when is_map(args) do
     edge_stats
@@ -37,17 +42,15 @@ defmodule Schema.EdgeStats do
     |> validate_required(@required_fields)
   end
 
-  def from_map(map) when is_map(map) do
-    case(changeset(%EdgeStats{}, map)) do
+
+
+  def from_map(seed, map) do
+    case(changeset(seed, map)) do
       %{valid?: true} = changeset ->
-        edge_stats =
-          changeset
-          |> Ecto.Changeset.apply_changes()
+        {:ok, apply_changes(changeset)}
 
-        {:ok, edge_stats}
-
-      _ ->
-        {:error, :invalid_edge_stats}
+      changeset ->
+        {:error, changeset}
     end
   end
 

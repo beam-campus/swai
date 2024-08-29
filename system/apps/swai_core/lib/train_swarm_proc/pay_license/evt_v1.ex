@@ -1,10 +1,11 @@
 defmodule TrainSwarmProc.PayLicense.EvtV1 do
+  @moduledoc false
   use Ecto.Schema
 
   import Ecto.Changeset
 
   alias TrainSwarmProc.PayLicense.EvtV1, as: LicensePaid
-  alias TrainSwarmProc.PayLicense.PayloadV1, as: Payment
+  alias Schema.SwarmLicense, as: Payment
 
   require Jason.Encoder
   require Logger

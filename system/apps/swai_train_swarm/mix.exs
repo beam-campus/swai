@@ -26,11 +26,6 @@ defmodule TrainSwarm.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:dialyze, "~> 0.2.0", only: [:dev]},
-      {:dialyxir, "~> 1.0", only: [:dev], runtime: false},
-      {:credo, "~> 1.6", only: [:dev, :test], runtime: false},
-      {:mix_test_watch, "~> 1.1", only: [:dev, :test], runtime: false},
-      {:ex_doc, "~> 0.27", only: [:dev], runtime: false},
       {:ecto, "~> 3.11.2"},
       {:elixir_uuid, "~> 1.2", override: true},
       {:commanded, "~> 1.4"},

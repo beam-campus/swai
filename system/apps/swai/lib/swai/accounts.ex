@@ -255,6 +255,7 @@ defmodule Swai.Accounts do
 
   ### User Budget
   def decrease_user_budget(user_id, amount) do
+    Logger.warning("Decreasing user budget for user_id: #{user_id} by amount: #{amount}")
     user = get_user!(user_id)
     user
     |> User.budget_changeset(%{budget: user.budget - amount})

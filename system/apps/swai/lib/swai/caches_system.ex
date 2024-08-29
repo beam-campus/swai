@@ -9,15 +9,13 @@ defmodule Swai.CachesSystem do
 
   require Cachex
 
+  @swarm_licenses_cache "/tmp/swarm_licenses.cache"
+
   defp start_caches() do
     Logger.info("Starting caches")
     :edges_cache |> Cachex.start()
     :scapes_cache |> Cachex.start()
-    :regions_cache |> Cachex.start()
-    :farms_cache |> Cachex.start()
-    :lives_cache |> Cachex.start()
-    :nature_cache |> Cachex.start()
-    :workspaces_cache |> Cachex.start()
+    # :workspaces_cache |> Cachex.start()
     :swarm_licenses_cache |> Cachex.start()
   end
 
@@ -29,12 +27,8 @@ defmodule Swai.CachesSystem do
     children = [
       Edges.Service,
       Scapes.Service,
-      Regions.Service,
-      Farms.Service,
-      Lives.Service,
-      Nature.Service,
-      Workspaces.Service,
-      SwarmLicenses.Service
+      # Workspaces.Service,
+      {SwarmLicenses.Service, %{cache_file: @swarm_licenses_cache}}
     ]
 
     Supervisor.start_link(

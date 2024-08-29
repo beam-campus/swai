@@ -12,13 +12,13 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
   alias Schema.SwarmLicense, as: SwarmLicense
   alias Swai.Workspace, as: MyWorkspace
 
-  alias TrainSwarmProc.Initialize.EvtV1, as: Initialized
-  alias TrainSwarmProc.Configure.EvtV1, as: Configured
+  alias TrainSwarmProc.InitializeLicense.EvtV1, as: Initialized
+  alias TrainSwarmProc.ConfigureLicense.EvtV1, as: Configured
   alias TrainSwarmProc.PayLicense.EvtV1, as: LicensePaid
   alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
 
-  alias TrainSwarmProc.Activate.EvtV1, as: LicenseActivated
-  alias TrainSwarmProc.QueueScape.EvtV1, as: ScapeQueued
+  alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
+  alias TrainSwarmProc.QueueLicense.EvtV1, as: ScapeQueued
 
   alias Schema.SwarmLicense.Status, as: Status
 
@@ -87,14 +87,17 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
         } = evt,
         _metadata
       ) do
-    Logger.debug("Handling LicensePaid event => #{inspect(evt)}")
-    st = MyWorkspace.get_swarm_license!(agg_id)
+    Logger.alert("Handling LicensePaid event => #{inspect(evt)}")
 
-    case SwarmLicense.from_map(st, payload) do
-      {:ok, st} ->
-        new_st = %{st | status: @license_paid_status}
+    sl = MyWorkspace.get_swarm_license!(agg_id)
 
-        new_st
+    Logger.alert("Payload => #{inspect(payload)}")
+
+    case SwarmLicense.from_map(sl, payload) do
+      {:ok, sl} ->
+        sl = %{sl | status: @license_paid_status}
+
+        sl
         |> MyWorkspace.update_swarm_license(payload)
 
         Accounts.decrease_user_budget(payload.user_id, payload.cost_in_tokens)
@@ -160,7 +163,6 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
         {:error, "Invalid license request params #{inspect(changeset)}"}
     end
   end
-
 
   ############################ LICENSE BLOCKED ############################
   @impl true

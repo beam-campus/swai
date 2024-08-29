@@ -9,7 +9,7 @@ defmodule Swai.TrainSwarm.Application do
     children = [
       TrainSwarmProc.CommandedApp,
       TrainSwarmProc.Policies,
-      TrainSwarmProc.ToPostgresDoc.V1,
+      # TrainSwarmProc.ToPostgresDoc.V1,
       TrainSwarmProc.ToPubSubV1
     ]
 

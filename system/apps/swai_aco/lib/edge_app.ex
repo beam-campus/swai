@@ -47,7 +47,8 @@ defmodule SwaiAco.EdgeApp do
     children = [
       {Swai.Registry, name: Edge.Registry},
       {Phoenix.PubSub, name: Edge.PubSub},
-      {Edge.Client, edge_init}
+      {Edge.Client, edge_init},
+      {Edge.Server, edge_init}
     ]
 
     Supervisor.start_link(
@@ -68,14 +69,5 @@ defmodule SwaiAco.EdgeApp do
       id: __MODULE__,
       start: {__MODULE__, :start, []}
     }
-  end
-
-  def start_scape(edge_id) do
-    scape_init = ScapeInit.from_environment(edge_id)
-
-    Supervisor.start_child(
-      __MODULE__,
-      {Scape.System, scape_init}
-    )
   end
 end

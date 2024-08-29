@@ -3,7 +3,20 @@ defmodule Flags do
 
   # def set(target, flag), do: bor(target, flag)
   def set(target, flag), do: target ||| flag
-  def unset(target, flag), do: bxor(target, flag)
+  # def unset(target, flag), do: bxor(target, flag)
+  def unset(target, flag), do: target &&& bnot(flag)
+
+  def set_all(target, flags) do
+    Enum.reduce(flags, target, fn flag, acc ->
+      acc ||| flag
+    end)
+  end
+
+  def unset_all(target, flags) do
+    Enum.reduce(flags, target, fn flag, acc ->
+      acc &&& bnot(flag)
+    end)
+  end
 
   def has?(target, flag), do: (target &&& flag) == flag
   def has_not?(target, flag), do: (target &&& flag) != flag
@@ -33,6 +46,14 @@ defmodule Flags do
     head
   end
 
+  def has_all?(status, flags) do
+    flags |> Enum.all?(fn flag -> has?(status, flag) end)
+  end
+
+  def has_any?(status, flags) do
+    flags |> Enum.any?(fn flag -> has?(status, flag) end)
+  end
+
   def lowest(n, flag_map) do
     [head | _] =
       to_list(n, flag_map)
@@ -43,6 +64,19 @@ defmodule Flags do
   def to_string(n, flag_map) do
     to_list(n, flag_map)
     |> Enum.join(", ")
+  end
+
+  def decompose(target) when target > 0 do
+    decompose(target, 1, [])
+  end
+
+  defp decompose(0, _, acc), do: Enum.reverse(acc)
+  defp decompose(target, power, acc) do
+    if Bitwise.band(target, power) != 0 do
+      decompose(target - power, power <<< 1, [power | acc])
+    else
+      decompose(target, power <<< 1, acc)
+    end
   end
 
 

@@ -5,6 +5,8 @@ defmodule Schema.SwarmLicense do
   use Ecto.Schema
   import Ecto.Changeset
 
+  alias Schema.Vector, as: Vector
+
   defmodule Status do
     @moduledoc """
     The status flags for the swarm licenses.
@@ -19,11 +21,18 @@ defmodule Schema.SwarmLicense do
     def license_paid, do: 16
     def license_blocked, do: 32
 
+    def license_status_reserved_1, do: 64
+
+    def license_status_reserved_2, do: 128
+
     def scape_queued, do: 256
     def scape_started, do: 512
     def scape_paused, do: 1024
     def scape_cancelled, do: 2048
     def scape_completed, do: 4096
+    def scape_detached, do: 8192
+    def scape_initializing, do: 16384
+    def scape_initialized, do: 32768
 
     def map,
       do: %{
@@ -38,32 +47,38 @@ defmodule Schema.SwarmLicense do
         scape_started() => "started",
         scape_paused() => "paused",
         scape_cancelled() => "cancelled",
-        scape_completed() => "completed"
+        scape_completed() => "completed",
+        scape_detached() => "detached"
       }
 
     def style,
       do: %{
         unknown() => "bg-gray-500 text-white",
-        license_initialized() => "bg-green-500 text-white",
-        license_configured() => "bg-blue-500 text-white",
-        license_paid() => "bg-blue-500 text-white",
-        license_blocked() => "bg-red-500 text-white",
-        scape_queued() => "bg-blue-500 text-white",
+        license_initialized() => "bg-yellow-500 text-white",
+        license_configured() => "bg-green-200 text-white",
+        license_paid() => "bg-green-500 text-white",
+        license_blocked() => "bg-orange-500 text-white",
+        scape_queued() => "bg-blue-200 text-white",
         scape_started() => "bg-blue-500 text-white",
-        scape_paused() => "bg-orange-500 text-white",
+        scape_paused() => "bg-orange-200 text-white",
         scape_cancelled() => "bg-red-500 text-white",
-        scape_completed() => "bg-blue-500 text-white"
+        scape_completed() => "bg-blue-800 text-white",
+        scape_detached() => "bg-orange-800 text-white"
       }
 
     def to_list(status), do: Flags.to_list(status, map())
     def highest(status), do: Flags.highest(status, map())
     def lowest(status), do: Flags.lowest(status, map())
     def to_string(status), do: Flags.to_string(status, map())
+
+    def decompose(status), do: Flags.decompose(status)
   end
 
+  alias Schema.Vector
   alias Schema.SwarmLicense, as: SwarmLicense
 
   alias Schema.SwarmLicense.Status, as: Status
+  alias Edge.Init, as: EdgeInit
 
   @all_fields [
     :license_id,
@@ -75,6 +90,9 @@ defmodule Schema.SwarmLicense do
     :algorithm_acronym,
     :biotope_id,
     :biotope_name,
+    :image_url,
+    :theme,
+    :tags,
     :swarm_id,
     :swarm_name,
     :swarm_size,
@@ -83,7 +101,43 @@ defmodule Schema.SwarmLicense do
     :tokens_used,
     :run_time_sec,
     :available_tokens,
-    :tokens_balance
+    :tokens_balance,
+    :reason,
+    :additional_info,
+    :instructions,
+    :dimensions,
+    :scape_id,
+    :edge_id,
+    :edge
+  ]
+
+  @flat_fields [
+    :license_id,
+    :status,
+    :status_string,
+    :user_id,
+    :algorithm_id,
+    :algorithm_name,
+    :algorithm_acronym,
+    :biotope_id,
+    :biotope_name,
+    :image_url,
+    :theme,
+    :tags,
+    :swarm_id,
+    :swarm_name,
+    :swarm_size,
+    :swarm_time_min,
+    :cost_in_tokens,
+    :tokens_used,
+    :run_time_sec,
+    :available_tokens,
+    :tokens_balance,
+    :reason,
+    :additional_info,
+    :instructions,
+    :scape_id,
+    :edge_id
   ]
 
   @id_fields [
@@ -96,7 +150,19 @@ defmodule Schema.SwarmLicense do
     :algorithm_acronym
   ]
 
+  @required_fields [
+    :license_id,
+    :user_id,
+    :biotope_id,
+    :biotope_name,
+    :algorithm_id,
+    :algorithm_name,
+    :algorithm_acronym,
+    :dimensions
+  ]
+
   @primary_key false
+  @derive {Jason.Encoder, only: @all_fields}
   schema "swarm_licenses" do
     field(:license_id, :binary_id, primary_key: true)
 
@@ -111,6 +177,10 @@ defmodule Schema.SwarmLicense do
     field(:biotope_id, :binary_id)
     field(:biotope_name, :string)
 
+    field(:image_url, :string)
+    field(:theme, :string)
+    field(:tags, :string)
+
     field(:swarm_id, :binary_id, default: UUID.uuid4())
 
     field(:swarm_name, :string,
@@ -118,19 +188,21 @@ defmodule Schema.SwarmLicense do
     )
 
     field(:swarm_size, :integer, default: 100)
-
     field(:swarm_time_min, :integer, default: 30)
-
     field(:cost_in_tokens, :integer, default: 3000)
-
     field(:tokens_used, :integer, default: 0)
-
     field(:run_time_sec, :integer, default: 0)
-
     field(:available_tokens, :integer, default: 0)
-
     field(:tokens_balance, :integer, default: 0)
 
+    field(:reason, :string, default: "")
+    field(:additional_info, :string, default: "")
+    field(:instructions, :string, default: "")
+
+    field(:scape_id, :binary_id)
+    field(:edge_id, :binary_id)
+    embeds_one(:dimensions, Vector, on_replace: :delete)
+    embeds_one(:edge, EdgeInit, on_replace: :delete)
     timestamps(type: :utc_datetime_usec)
   end
 
@@ -169,27 +241,37 @@ defmodule Schema.SwarmLicense do
     changeset
     |> validate_required([:swarm_name])
     |> validate_length(:swarm_name, min: 3, max: 50)
-    |> validate_format(:swarm_name, ~r/^[a-zA-Z0-9_]+$/,
+    |> validate_format(
+      :swarm_name,
+      ~r/^[a-zA-Z0-9_]+$/,
       message: "can only contain letters, numbers, and underscores"
     )
-    |> validate_format(:swarm_name, ~r/^\S+$/, message: "cannot be blank")
+    |> validate_format(
+      :swarm_name,
+      ~r/^\S+$/,
+      message: "cannot be blank"
+    )
   end
 
-  def changeset(swarm_license, map) when is_struct(map),
-    do: changeset(swarm_license, Map.from_struct(map))
+  def changeset(swarm_license, map)
+      when is_struct(map),
+      do: changeset(swarm_license, Map.from_struct(map))
 
-  def changeset(swarm_license, map) when is_map(map),
-    do:
-      swarm_license
-      |> cast(map, @all_fields)
-      |> validate_required(@id_fields)
-      |> validate_number(:swarm_size, greater_than: 4)
-      |> validate_number(:swarm_time_min, greater_than: 1)
-      |> validate_number(:available_tokens, greater_than: -1)
-      |> calculate_cost_in_tokens()
-      |> validate_number(:cost_in_tokens, greater_than: -1)
-      |> calculate_status_string()
-      |> validate_swarm_name()
+  def changeset(swarm_license, map)
+      when is_map(map),
+      do:
+        swarm_license
+        |> cast(map, @flat_fields)
+        |> cast_embed(:dimensions, with: &Vector.changeset/2)
+        |> cast_embed(:edge, with: &EdgeInit.changeset/2)
+        |> validate_required(@required_fields)
+        |> validate_number(:swarm_size, greater_than: 4)
+        |> validate_number(:swarm_time_min, greater_than: 1)
+        |> validate_number(:available_tokens, greater_than: -1)
+        |> calculate_cost_in_tokens()
+        |> validate_number(:cost_in_tokens, greater_than: -1)
+        |> calculate_status_string()
+        |> validate_swarm_name()
 
   def from_map(%SwarmLicense{} = seed, map) when is_struct(map),
     do: from_map(seed, Map.from_struct(map))

@@ -1,6 +1,9 @@
 defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
   use SwaiWeb, :live_component
 
+
+  alias Edge.Init, as: EdgeInit
+
   @impl true
   def update(assigns, socket) do
     {
@@ -10,39 +13,36 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
     }
   end
 
+  defp get_edge_by_id(edges, edge_id) do
+    case Enum.find(edges, fn edge -> edge.id == edge_id end) do
+      nil -> EdgeInit.default()
+      edge -> edge
+    end
+  end
 
-    @impl true
+
+
+  @impl true
   def render(assigns) do
     ~H"""
     <div id="workspace-trainings-section" class="mx-4">
-      <div class="header-section px-5 text-white">
+      <div class="px-5 text-white">
         <h2> <%= @section_title %> </h2>
         <p class="text-sm font-brand"> <%= @section_description %> </p>
       </div>
 
-
-      <div class="cards-section grid grid-cols-1 gap-4 mt-3">
+      <div class="grid grid-cols-1 gap-4 mt-3">
         <%= for swarm_license <- @swarm_licenses do %>
           <.live_component
             id={"swarm-training-card-#{swarm_license.license_id}"}
             module={SwaiWeb.MyWorkspaceLive.SwarmLicenseCard}
             swarm_license={swarm_license}
+            current_user={@current_user}
           />
         <% end %>
       </div>
-
-
     </div>
     """
-  end
-
-  defp status_class(status) do
-    case status do
-      :active -> "bg-green-500"
-      :inactive -> "bg-gray-500"
-      :completed -> "bg-blue-500"
-      _ -> "bg-red-500"
-    end
   end
 
 
