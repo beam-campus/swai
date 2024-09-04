@@ -1,4 +1,4 @@
-defmodule SwarmLicenses.Db do
+defmodule Licenses.Db do
   @moduledoc """
   The service wrapper module for the swarm trainings cache.
   """
@@ -17,8 +17,9 @@ defmodule SwarmLicenses.Db do
   alias TrainSwarmProc.PayLicense.EvtV1, as: Paid
   alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
   alias TrainSwarmProc.ActivateLicense.EvtV1, as: Activated
-  alias TrainSwarmProc.QueueLicense.EvtV1, as: ScapeQueued
+  alias TrainSwarmProc.QueueLicense.EvtV1, as: LicenseQueued
   alias Cachex, as: Cachex
+
 
   require Logger
 
@@ -27,8 +28,7 @@ defmodule SwarmLicenses.Db do
   @license_paid_status Status.license_paid()
   @licensed_activated_status Status.license_active()
   @license_blocked_status Status.license_blocked()
-
-  @scape_queued_status Status.scape_queued()
+  @license_queued_status Status.license_queued()
 
   @license_facts TrainSwarmProcFacts.license_facts()
   @swarm_license_cache_facts TrainSwarmProcFacts.cache_facts()
@@ -39,7 +39,7 @@ defmodule SwarmLicenses.Db do
   @swarm_license_blocked_v1 TrainSwarmProcFacts.license_blocked()
 
   @scape_facts ScapeFacts.scape_facts()
-  @scape_queued_v1 ScapeFacts.scape_queued_v1()
+  @license_queued_v1 ScapeFacts.license_queued_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
 
   @swarm_license_activated_v1 TrainSwarmProcFacts.license_activated()
@@ -75,6 +75,7 @@ defmodule SwarmLicenses.Db do
 
   ############ INTERNALS ###############
   defp notify_swarm_licenses_updated(cause) do
+
     res =
       Swai.PubSub
       |> PubSub.broadcast!(@swarm_license_cache_facts, cause)
@@ -113,7 +114,7 @@ defmodule SwarmLicenses.Db do
     {
       :reply,
       :swarm_licenses_db
-      |> :khepri.filter("*", fn st -> st.status |> Flags.has?(@scape_queued_status) end)
+      |> :khepri.filter("*", fn st -> st.status |> Flags.has?(@license_queued_status) end)
       |> Enum.to_list(),
       state
     }
@@ -273,7 +274,7 @@ defmodule SwarmLicenses.Db do
   ################### HANDLE_SCAPE_QUEUED ###################
   @impl true
   def handle_info(
-        {@scape_queued_v1, %ScapeQueued{agg_id: agg_id} = evt, _metadata},
+        {@license_queued_v1, %LicenseQueued{agg_id: agg_id} = evt, _metadata},
         state
       ) do
     Logger.alert("SCAPE QUEUED with event #{inspect(evt)}")
@@ -282,11 +283,11 @@ defmodule SwarmLicenses.Db do
       :swarm_licenses_cache
       |> Cachex.get!(agg_id)
 
-    license = %SwarmLicense{license | status: @scape_queued_status}
+    license = %SwarmLicense{license | status: @license_queued_status}
 
     if :swarm_licenses_cache
        |> Cachex.update!(agg_id, license) do
-      notify_swarm_licenses_updated({@scape_queued_v1, license})
+      notify_swarm_licenses_updated({@license_queued_v1, license})
     end
 
     {:noreply, state}

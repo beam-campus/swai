@@ -12,17 +12,12 @@ defmodule TrainSwarmProc.Aggregate do
   alias TrainSwarmProc.InitializeLicense.EvtV1, as: LicenseInitialized
 
   alias TrainSwarmProc.ConfigureLicense.EvtV1, as: Configured
-  alias Schema.SwarmLicense, as: Configuration
-
   alias TrainSwarmProc.PayLicense.EvtV1, as: LicensePaid
-  alias Schema.SwarmLicense, as: Payment
-  alias TrainSwarmProc.PayLicense.BudgetReachedV1, as: BudgetReached
-  alias TrainSwarmProc.PayLicense.BudgetInfoV1, as: BudgetInfo
 
   alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
   alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
 
-  alias TrainSwarmProc.QueueLicense.EvtV1, as: ScapeQueued
+  alias TrainSwarmProc.QueueLicense.EvtV1, as: LicenseQueued
   alias TrainSwarmProc.StartScape.EvtV1, as: ScapeStarted
   alias TrainSwarmProc.PauseScape.EvtV1, as: ScapePaused
   alias TrainSwarmProc.DetachScape.EvtV1, as: ScapeDetached
@@ -39,7 +34,7 @@ defmodule TrainSwarmProc.Aggregate do
   @license_active_status Status.license_active()
   @license_blocked_status Status.license_blocked()
 
-  @scape_queued_status Status.scape_queued()
+  @license_queued_status Status.license_queued()
   @scape_started_status Status.scape_started()
   @scape_paused_status Status.scape_paused()
   @scape_detached_status Status.scape_detached()
@@ -237,18 +232,18 @@ defmodule TrainSwarmProc.Aggregate do
   ####################### SCAPE QUEUED #######################
   def apply(
         %Aggregate{state: %Root{swarm_license: license} = root} = agg,
-        %ScapeQueued{payload: scape} = evt
+        %LicenseQueued{payload: scape} = evt
       ) do
     case SwarmLicense.from_map(license, scape) do
       {:ok, new_license} ->
         new_license = %SwarmLicense{
           new_license
-          | status: @scape_queued_status
+          | status: @license_queued_status
         }
 
         %Aggregate{
           agg
-          | status: agg.status |> Flags.set(@scape_queued_status),
+          | status: agg.status |> Flags.set(@license_queued_status),
             state: %Root{root | swarm_license: new_license}
         }
 
@@ -292,42 +287,15 @@ defmodule TrainSwarmProc.Aggregate do
 
   ############################ SCAPE DETACHED ############################
   def apply(
-        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
-        %ScapeDetached{payload: scape_init} = evt
+        %Aggregate{} = agg,
+        %ScapeDetached{} = _evt
       ) do
-    scape_init =
-      %ScapeInit{
-        scape_init
-        | id: scape_init.license_id
-      }
-
-    case SwarmLicense.from_map(license, scape_init) do
-      {:ok, new_license} ->
-        new_license = %SwarmLicense{
-          new_license
-          | status:
-              license.status
-              |> Flags.set(@scape_detached_status)
-        }
-
         %Aggregate{
           agg
           | status:
               agg.status
-              |> Flags.set(@scape_detached_status),
-            state: %Root{root | swarm_license: new_license}
+              |> Flags.set(@scape_detached_status)
         }
-
-      {:error, changeset} ->
-        Logger.error("invalid scape detached
-
-          event => #{inspect(evt)}
-
-          changeset => #{inspect(changeset)}
-
-          ")
-        {:error, "invalid scape detached"}
-    end
   end
 
   ########################### SCAPE PAUSED ###########################
@@ -344,7 +312,8 @@ defmodule TrainSwarmProc.Aggregate do
 
         %Aggregate{
           agg
-          | status: agg.status |> Flags.set(@scape_paused_status),
+          | status: agg.status
+          |> Flags.set(@scape_paused_status),
             state: %Root{root | swarm_license: new_license}
         }
 

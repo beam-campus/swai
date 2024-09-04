@@ -1,9 +1,14 @@
-<!DOCTYPE html> 
-<%!-- <html lang="en" class="[scrollbar-gutter:stable]"> --%>
+<!DOCTYPE html> <%!-- <html lang="en" class="[scrollbar-gutter:stable]"> --%>
 <html lang="en">
   <head>
-
-      <!-- Google Tag Manager -->
+    <!-- Google Adsense -->
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3657151812171977"
+      crossorigin="anonymous"
+    >
+    </script>
+    <!-- Google Tag Manager -->
     <script>
       (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
       new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -14,7 +19,8 @@
     <!-- End Google Tag Manager -->
 
     <!-- Google tag (gtag.js) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PZJ71LQ4GN"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PZJ71LQ4GN">
+    </script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -22,9 +28,6 @@
       gtag('config', 'G-PZJ71LQ4GN');
     </script>
     <!-- end Google tag (gtag.js) -->
-
-
-  
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="csrf-token" content={get_csrf_token()} />
@@ -33,22 +36,24 @@
     </.live_title>
 
     <%!-- Buy me a coffee widget --%>
-    <script 
-      data-name="BMC-Widget" 
-      data-cfasync="false" 
-      src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js" 
-      data-id="beamologist" 
+    <script
+      data-name="BMC-Widget"
+      data-cfasync="false"
+      src="https://cdnjs.buymeacoffee.com/1.0.0/widget.prod.min.js"
+      data-id="beamologist"
       data-description="Buy me a coffee!"
-      data-message="Hello and thank you for visiting. " 
-      data-color="#00A1FE" 
-      data-position="Right" 
-      data-x_margin="18" 
-      data-y_margin="18">
+      data-message="Hello and thank you for visiting. "
+      data-color="#00A1FE"
+      data-position="Right"
+      data-x_margin="18"
+      data-y_margin="18"
+    >
     </script>
 
     <link phx-track-static rel="stylesheet" href={~p"/assets/app.css"} />
-    <link rel="icon" type="image/x-icon" href={~p"/images/logo-img-only.png"} %>">
-    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}> </script>
+    <link rel="icon" type="image/x-icon" href={~p"/images/logo-img-only.png"} % />">
+    <script defer phx-track-static type="text/javascript" src={~p"/assets/app.js"}>
+    </script>
 
     <meta
       name="description"
@@ -108,14 +113,17 @@
   </head>
 
   <body class="antialiased  bg-ltDark-dark" id="root_body">
-      <!-- Google Tag Manager (noscript) -->
+    <!-- Google Tag Manager (noscript) -->
     <noscript>
-      <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-W2T9NFJ2"
-      height="0" width="0" style="display:none;visibility:hidden">
+      <iframe
+        src="https://www.googletagmanager.com/ns.html?id=GTM-W2T9NFJ2"
+        height="0"
+        width="0"
+        style="display:none;visibility:hidden"
+      >
       </iframe>
     </noscript>
     <!-- End Google Tag Manager (noscript) -->
     <%= @inner_content %>
   </body>
-
 </html>

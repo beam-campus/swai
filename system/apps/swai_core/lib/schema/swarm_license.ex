@@ -6,6 +6,9 @@ defmodule Schema.SwarmLicense do
   import Ecto.Changeset
 
   alias Schema.Vector, as: Vector
+  alias Swai.Limits, as: Limits
+
+  @standard_cost_in_tokens Limits.standard_cost_in_tokens()
 
   defmodule Status do
     @moduledoc """
@@ -20,12 +23,10 @@ defmodule Schema.SwarmLicense do
     def license_inactive, do: 8
     def license_paid, do: 16
     def license_blocked, do: 32
-
     def license_status_reserved_1, do: 64
-
     def license_status_reserved_2, do: 128
+    def license_queued, do: 256
 
-    def scape_queued, do: 256
     def scape_started, do: 512
     def scape_paused, do: 1024
     def scape_cancelled, do: 2048
@@ -43,7 +44,7 @@ defmodule Schema.SwarmLicense do
         license_inactive() => "inactive",
         license_paid() => "paid",
         license_blocked() => "blocked",
-        scape_queued() => "queued",
+        license_queued() => "queued",
         scape_started() => "started",
         scape_paused() => "paused",
         scape_cancelled() => "cancelled",
@@ -58,7 +59,7 @@ defmodule Schema.SwarmLicense do
         license_configured() => "bg-green-200 text-white",
         license_paid() => "bg-green-500 text-white",
         license_blocked() => "bg-orange-500 text-white",
-        scape_queued() => "bg-blue-200 text-white",
+        license_queued() => "bg-blue-200 text-white",
         scape_started() => "bg-blue-500 text-white",
         scape_paused() => "bg-orange-200 text-white",
         scape_cancelled() => "bg-red-500 text-white",
@@ -79,6 +80,7 @@ defmodule Schema.SwarmLicense do
 
   alias Schema.SwarmLicense.Status, as: Status
   alias Edge.Init, as: EdgeInit
+  alias Scape.Boundaries, as: ScapeBoundaries
 
   @all_fields [
     :license_id,
@@ -93,22 +95,14 @@ defmodule Schema.SwarmLicense do
     :image_url,
     :theme,
     :tags,
-    :swarm_id,
     :swarm_name,
-    :swarm_size,
-    :swarm_time_min,
     :cost_in_tokens,
-    :tokens_used,
-    :run_time_sec,
     :available_tokens,
-    :tokens_balance,
-    :reason,
-    :additional_info,
-    :instructions,
-    :dimensions,
     :scape_id,
+    :scape_name,
     :edge_id,
-    :edge
+    :hive_id,
+    :hive_no
   ]
 
   @flat_fields [
@@ -124,30 +118,14 @@ defmodule Schema.SwarmLicense do
     :image_url,
     :theme,
     :tags,
-    :swarm_id,
     :swarm_name,
-    :swarm_size,
-    :swarm_time_min,
     :cost_in_tokens,
-    :tokens_used,
-    :run_time_sec,
     :available_tokens,
-    :tokens_balance,
-    :reason,
-    :additional_info,
-    :instructions,
     :scape_id,
-    :edge_id
-  ]
-
-  @id_fields [
-    :license_id,
-    :user_id,
-    :biotope_id,
-    :biotope_name,
-    :algorithm_id,
-    :algorithm_name,
-    :algorithm_acronym
+    :scape_name,
+    :edge_id,
+    :hive_id,
+    :hive_no
   ]
 
   @required_fields [
@@ -157,8 +135,7 @@ defmodule Schema.SwarmLicense do
     :biotope_name,
     :algorithm_id,
     :algorithm_name,
-    :algorithm_acronym,
-    :dimensions
+    :algorithm_acronym
   ]
 
   @primary_key false
@@ -181,39 +158,26 @@ defmodule Schema.SwarmLicense do
     field(:theme, :string)
     field(:tags, :string)
 
-    field(:swarm_id, :binary_id, default: UUID.uuid4())
-
     field(:swarm_name, :string,
       default: MnemonicSlugs.generate_slug(3) |> String.replace("-", "_")
     )
 
-    field(:swarm_size, :integer, default: 100)
-    field(:swarm_time_min, :integer, default: 30)
-    field(:cost_in_tokens, :integer, default: 3000)
-    field(:tokens_used, :integer, default: 0)
-    field(:run_time_sec, :integer, default: 0)
+    field(:cost_in_tokens, :integer, default: @standard_cost_in_tokens)
     field(:available_tokens, :integer, default: 0)
-    field(:tokens_balance, :integer, default: 0)
 
-    field(:reason, :string, default: "")
-    field(:additional_info, :string, default: "")
-    field(:instructions, :string, default: "")
-
-    field(:scape_id, :binary_id)
-    field(:edge_id, :binary_id)
-    embeds_one(:dimensions, Vector, on_replace: :delete)
-    embeds_one(:edge, EdgeInit, on_replace: :delete)
-    timestamps(type: :utc_datetime_usec)
+    field(:scape_id, :string)
+    field(:scape_name, :string)
+    field(:edge_id, :string)
+    field(:hive_id, :string)
+    field(:hive_no, :integer)
   end
 
   defp calculate_cost_in_tokens(%Ecto.Changeset{} = changeset) do
-    new_training =
+    new_license =
       changeset
       |> apply_changes()
 
-    new_cost =
-      new_training.swarm_size *
-        new_training.swarm_time_min
+    new_cost = @standard_cost_in_tokens
 
     new_changeset =
       changeset
@@ -262,22 +226,19 @@ defmodule Schema.SwarmLicense do
       do:
         swarm_license
         |> cast(map, @flat_fields)
-        |> cast_embed(:dimensions, with: &Vector.changeset/2)
-        |> cast_embed(:edge, with: &EdgeInit.changeset/2)
         |> validate_required(@required_fields)
-        |> validate_number(:swarm_size, greater_than: 4)
-        |> validate_number(:swarm_time_min, greater_than: 1)
-        |> validate_number(:available_tokens, greater_than: -1)
         |> calculate_cost_in_tokens()
         |> validate_number(:cost_in_tokens, greater_than: -1)
         |> calculate_status_string()
         |> validate_swarm_name()
 
-  def from_map(%SwarmLicense{} = seed, map) when is_struct(map),
-    do: from_map(seed, Map.from_struct(map))
+  def from_map(%SwarmLicense{} = seed, map)
+      when is_struct(map),
+      do: from_map(seed, Map.from_struct(map))
 
-  def from_map(%SwarmLicense{} = seed, map) when is_map(map) do
-    case changeset(seed, map) do
+  def from_map(%SwarmLicense{} = seed, map)
+      when is_map(map) do
+    case(changeset(seed, map)) do
       %{valid?: true} = changeset ->
         {:ok, apply_changes(changeset)}
 

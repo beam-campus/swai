@@ -3,6 +3,7 @@ defmodule Schema.User do
   use Ecto.Schema
 
   import Ecto.Changeset
+  alias Swai.Limits, as: Limits
 
   @all_fields [
     :email,
@@ -34,9 +35,10 @@ defmodule Schema.User do
     field(:user_alias, :string)
     field(:bio, :string)
     field(:image_url, :string)
-    field(:budget, :integer, default: 36_000)
+    field(:budget, :integer, default: 6_000)
     field(:wants_notifications?, :boolean, default: true)
     field(:has_accepted_terms?, :boolean, default: true)
+    field(:last_seen, :utc_datetime_usec)
     timestamps()
   end
 

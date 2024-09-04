@@ -1,4 +1,6 @@
 defmodule SwaiWeb.MarketplaceLive.Index do
+  alias Swai.Limits
+  alias Schema.SwarmLicense.Status
   use SwaiWeb, :live_view
 
   @moduledoc """
@@ -7,11 +9,18 @@ defmodule SwaiWeb.MarketplaceLive.Index do
 
   alias Edges.Service, as: Edges
   alias Swai.Biotopes, as: Biotopes
-
-  alias Schema.SwarmLicense,
-    as: SwarmLicense
+  alias Schema.SwarmLicense, as: SwarmLicense
+  alias TrainSwarmProc, as: TrainSwarmProc
+  alias Swai.Limits, as: Limits
 
   require Logger
+
+  defp get_swarm_name(user_alias, biotope_name) do
+    "#{user_alias}_#{biotope_name}_#{MnemonicSlugs.generate_slug(2)}"
+    |> String.replace(" ", "_")
+    |> String.replace("-", "_")
+    |> String.downcase()
+  end
 
   @impl true
   def mount(_params, _session, socket) do
@@ -69,25 +78,61 @@ defmodule SwaiWeb.MarketplaceLive.Index do
   end
 
   defp apply_action(socket, :start_swarm, params) do
-    # Logger.debug("Applying Act :start_swarm #{inspect(params)}")
-    current_biotope =
+    Logger.debug("Applying Action :start_swarm => #{inspect(params)}")
+
+    %{
+      id: biotope_id,
+      name: biotope_name
+    } =
+      current_biotope =
       socket.assigns.active_models
       |> Enum.find(fn it -> it.id == params["biotope_id"] end)
 
-    current_user = socket.assigns.current_user
+    %{
+      id: user_id,
+      user_alias: user_alias,
+      budget: available_tokens
+    } = socket.assigns.current_user
 
-    socket
-    |> assign(
-      page_title: "Request a License to Swarm",
-      swarm_license: %SwarmLicense{},
-      biotope: current_biotope
-    )
+    seed = %SwarmLicense{
+      license_id: UUID.uuid4(),
+      status: Status.unknown(),
+      user_id: user_id,
+      cost_in_tokens: Limits.standard_cost_in_tokens(),
+      available_tokens: available_tokens,
+      swarm_name: get_swarm_name(user_alias, biotope_name),
+      biotope_id: biotope_id,
+      biotope_name: biotope_name
+    }
+
+    case SwarmLicense.from_map(seed, current_biotope) do
+      {:ok, license} ->
+        case TrainSwarmProc.initialize(license) do
+          :ok ->
+            socket
+            |> assign(
+              page_title: "Start a Swarm",
+              swarm_license: license,
+              biotope: current_biotope,
+              live_action: :overview
+            )
+            |> redirect(to: ~p"/my_workspace")
+            |> put_flash(:info, "Swarm Started")
+
+          _msg ->
+            socket
+        end
+
+      {:error, changeset} ->
+        Logger.error("Error creating swarm license: #{inspect(changeset)}")
+        socket
+    end
   end
 
   @impl true
   def handle_info(
         {SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm,
-         {:swarm_license_submitted, license_request}},
+         {:swarm_license_submitted, _license_request}},
         socket
       ) do
     {:noreply,
@@ -97,7 +142,22 @@ defmodule SwaiWeb.MarketplaceLive.Index do
      |> put_flash(:info, "License Request Submitted")}
   end
 
-  
+  @impl true
+  def handle_info({:present_license, license}, socket) do
+    case TrainSwarmProc.initialize(license) do
+      :ok ->
+        {
+          :noreply,
+          socket
+          |> assign(:swarm_license, license)
+          |> assign(:live_action, :overview)
+        }
+
+      _msg ->
+        {:noreply, socket}
+    end
+  end
+
   @impl true
   def handle_info({:no_user}, socket) do
     {
@@ -108,14 +168,11 @@ defmodule SwaiWeb.MarketplaceLive.Index do
     }
   end
 
-
-
   @impl true
   def handle_info(msg, socket) do
     Logger.debug("MarketplaceLive.Index.handle_info: #{inspect(msg)}")
     {:noreply, socket}
   end
-
 
   @impl true
   def render(assigns) do
@@ -123,16 +180,16 @@ defmodule SwaiWeb.MarketplaceLive.Index do
     <div id="marketplace-view" class="flex flex-col h-full">
       <section class="mt-11">
         <.live_component
-            id="active-models-section"
-            current_user={@current_user}
-            live_action={@live_action}
-            module={SwaiWeb.MarketplaceLive.ModelsSection}
-            edges={@edges}
-            biotopes={@active_models}
-            now={@now}
-            section_title="Available Ecosystems"
-            section_description="
-            Please do keep in mind that right now, only one swarm can be trained on the free plan."
+          id="active-models-section"
+          current_user={@current_user}
+          live_action={@live_action}
+          module={SwaiWeb.MarketplaceLive.ModelsSection}
+          edges={@edges}
+          biotopes={@active_models}
+          now={@now}
+          section_title="Available Ecosystems"
+          section_description="
+          Please do keep in mind that right now, only one swarm can be trained on the free plan."
         />
       </section>
       <section class="mt-20">
@@ -151,21 +208,20 @@ defmodule SwaiWeb.MarketplaceLive.Index do
         />
       </section>
       <section id="dummy-section" class="pt-15" style="height: 100px;">
-       <div class="flex justify-center items-center" style="height: 150px;">
-         <p class="text-lg text-gray-500"></p>
-         </div>
+        <div class="flex justify-center items-center" style="height: 150px;">
+          <p class="text-lg text-gray-500"></p>
+        </div>
       </section>
     </div>
-
-    <.modal
+    <!-- .modal
       :if={@live_action in [:start_swarm, :request_license, :new]}
       id="request-license-modal-dialog"
       show
       on_cancel={JS.patch(~p"/marketplace")}
-      >
+    >
       <.live_component
         module={SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm}
-        id={"request-license-modal-dialog"}
+        id="request-license-modal-dialog"
         title={"Request a License to Swarm for: #{@biotope.name}"}
         action={@live_action}
         biotope={@biotope}
@@ -173,8 +229,8 @@ defmodule SwaiWeb.MarketplaceLive.Index do
         patch={~p"/swarm_licenses"}
         edges={@edges}
         swarm_license={@swarm_license}
-    />
-    </.modal>
+      />
+    </.modal -->
     """
   end
 end

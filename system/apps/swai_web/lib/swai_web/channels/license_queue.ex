@@ -4,69 +4,51 @@ defmodule SwaiWeb.LicenseQueue do
   """
   use GenServer
 
-  alias SwaiWeb.EdgeChannel
-  alias Scape.Init, as: ScapeInit
-  alias Edges.Service, as: Edges
-  alias SwarmLicenses.Service, as: Licenses
+  require Logger
 
+  alias SwaiWeb.EdgeChannel
+  alias Edges.Service, as: Edges
+  alias Licenses.Service, as: Licenses
 
   require Logger
+  require Colors
 
   ################# INIT ##########################
   @impl true
   def init(_init_args \\ []) do
+    Logger.debug("LicenseQueue is up: #{Colors.server_theme(self())}")
     Process.send_after(self(), :pop_queue, 1_000)
     {:ok, []}
   end
 
-  defp try_start_scape(license) do
-    case Edges.get_candidates_for_biotope(license.biotope_id) do
-      [] ->
-        "no candidates"
+  defp try_present_license(license) do
+    Logger.warning("
+      ***** WARNING *****
+      Automatic License presentation is disabled!
+      The mechanism has changed.
+      Implement edge/backend logic first!
+      ***** WARNING *****
 
-      edges ->
-        the_edge =
-          edges
-          |> Enum.random()
+      License:
 
-        scape_init = %ScapeInit{
-          id: UUID.uuid4(),
-          biotope_id: license.biotope_id,
-          biotope_name: license.biotope_name,
-          image_url: license.image_url,
-          tags: license.tags,
-          license_id: license.license_id,
-          edge_id: the_edge.id,
-          user_id: license.user_id,
-          algorithm_acronym: license.algorithm_acronym,
-          algorithm_id: license.algorithm_id,
-          algorithm_name: license.algorithm_name,
-          dimensions: license.dimensions,
-          swarm_id: license.swarm_id,
-          swarm_name: license.swarm_name,
-          swarm_size: license.swarm_size,
-          swarm_time_min: license.swarm_time_min
-        }
+      #{inspect(license)}
 
-        Logger.warning("
+      ***** WARNING *****")
 
-        TRY STARTING SCAPE
-
-          with SCAPE: #{inspect(scape_init)}
-
-          on EDGE: #{inspect(the_edge)}
-
-          ")
-
-        EdgeChannel.start_scape(the_edge, scape_init)
-    end
+    #    case Edges.get_candidates_for_biotope(license.biotope_id) do
+    #      [] ->
+    #        "no candidates"
+    #
+    #      edges ->
+    #          edges
+    #          |> Enum.random()
+    #          |> EdgeChannel.queue_license(license)
+    #    end
   end
 
   ################# POP_QUEUE #####################
   @impl true
   def handle_info(:pop_queue, state) do
-    Process.send_after(self(), :pop_queue, 10_000)
-
     state =
       case Licenses.get_all_queued_or_paused() do
         [] ->
@@ -74,10 +56,10 @@ defmodule SwaiWeb.LicenseQueue do
 
         queued ->
           queued
-          |> Enum.map(&try_start_scape/1)
-          |> Enum.map(&Logger.info("\n\n Queued: #{inspect(&1)} \n\n"))
+          |> Enum.map(&try_present_license/1)
       end
 
+    #    Process.send_after(self(), :pop_queue, 10_000)
     {:noreply, state}
   end
 

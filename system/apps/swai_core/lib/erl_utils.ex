@@ -1,15 +1,19 @@
 defmodule ErlUtils do
-
   def count_messages do
-      :erlang.processes()
-      |> Enum.reduce(0,
-      fn(pid, acc) ->
-      {_, message_queue} =
-        :erlang.process_info(pid, :message_queue_len)
-      acc + message_queue + 1
-    end)
-  end
+    :erlang.processes()
+    |> Enum.reduce(
+      0,
+      fn pid, acc ->
+        case :erlang.process_info(pid, :message_queue_len) do
+          {:message_queue_len, queue_len} ->
+            acc + queue_len + 1
 
+          _ ->
+            acc
+        end
+      end
+    )
+  end
 
   def total_messages do
     :erlang.processes()
@@ -21,5 +25,8 @@ defmodule ErlUtils do
     |> Enum.sum()
   end
 
-
+  def total_processes do
+    :erlang.processes()
+    |> Enum.count()
+  end
 end

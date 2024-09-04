@@ -2,7 +2,7 @@ defmodule SwaiWeb.Channels.Repl do
   @moduledoc """
   This module is used to send messages to the edge clients.
   """
-  alias Schema.Vector
+  alias Schema.Vector, as: Vector
   alias Edges.Service, as: Edges
   alias SwaiWeb.EdgeChannel, as: EdgeChannel
   alias Scape.Init, as: ScapeInit
@@ -50,11 +50,7 @@ defmodule SwaiWeb.Channels.Repl do
   defp random_license(%EdgeInit{} = edge_init) do
     %SwarmLicense{
       license_id: UUID.uuid4(),
-      swarm_id: UUID.uuid4(),
       swarm_name: "Random Swarm",
-      swarm_size: 100,
-      swarm_time_min: 10,
-      available_tokens: 1000,
       user_id: UUID.uuid4(),
       biotope_id: edge_init.biotope_id,
       algorithm_id: "some_algorithm_id",
@@ -66,22 +62,19 @@ defmodule SwaiWeb.Channels.Repl do
 
   defp random_scape_init(%SwarmLicense{} = swarm_license) do
     %ScapeInit{
-      id: UUID.uuid4(),
-      name: "Random Scape",
-      license_id: swarm_license.license_id,
-      swarm_id: swarm_license.swarm_id,
-      swarm_name: swarm_license.swarm_name,
-      swarm_size: 10,
-      swarm_time_min: 10,
-      user_id: swarm_license.user_id,
+      scape_id: "scape-#{UUID.uuid4()}",
+      edge_id: swarm_license.edge_id,
+      scape_status: LicenseStatus.license_paid(),
+      hives_cap: 100,
+      particles_cap: 1000,
       biotope_id: swarm_license.biotope_id,
+      biotope_name: swarm_license.biotope_name,
+      image_url: "https://some_image_url",
+      theme: "some_theme",
+      tags: ["tag1", "tag2"],
       algorithm_id: swarm_license.algorithm_id,
-      algorithm_acronym: swarm_license.algorithm_acronym,
-      dimensions: %Vector{
-        x: 100,
-        y: 100,
-        z: 0
-      }
+      algorithm_name: swarm_license.algorithm_name,
+      algorithm_acronym: swarm_license.algorithm_acronym
     }
   end
 end

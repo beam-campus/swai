@@ -9,13 +9,25 @@ defmodule SwaiAco.EdgeApp do
   require Logger
 
   alias Edge.Init, as: EdgeInit
-  alias Scape.Init, as: ScapeInit
+  alias Schema.AlgorithmId, as: AlgorithmId
 
   @planet_of_ants_id "b105f59e-42ce-4e85-833e-d123e36ce943"
   @biotope_id @planet_of_ants_id
 
   @biotope_name "Planet of Ants"
   @algorithm_acronym "ACO"
+  @algorithm_id AlgorithmId.aco_algorithm_id()
+
+  @scapes_cap 2
+  @hives_cap 4
+  @particles_cap 1_000
+
+  def start_edge(edge_init) do
+    Supervisor.start_child(
+      __MODULE__,
+      {Edge.System, edge_init}
+    )
+  end
 
   @impl Application
   def start(_type, _args) do
@@ -26,7 +38,11 @@ defmodule SwaiAco.EdgeApp do
         edge_init
         | biotope_id: @biotope_id,
           biotope_name: @biotope_name,
-          algorithm_acronym: @algorithm_acronym
+          algorithm_acronym: @algorithm_acronym,
+          algorithm_id: @algorithm_id,
+          scapes_cap: @scapes_cap,
+          hives_cap: @hives_cap,
+          particles_cap: @particles_cap
       }
 
     IO.puts("\n\n\n
@@ -34,21 +50,21 @@ defmodule SwaiAco.EdgeApp do
     |           ANT COLONY OPTIMIZATION            |
     +----------------------------------------------+
 
-    edge_id:\t#{edge_init.id}
-    biotope_name:\t#{edge_init.biotope_name}
-    algorithm_acronym:\t#{edge_init.algorithm_acronym}
-    api_key:\t#{edge_init.api_key}
-    country:\t#{edge_init.country}
+    edge_id:\t\t#{edge_init.edge_id}
+    biotope_name:\t\t#{edge_init.biotope_name}
+    algorithm_acronym:\t\t#{edge_init.algorithm_acronym}
+    api_key:\t\t#{edge_init.api_key}
+    country:\t\t#{edge_init.country}
+
 
     \n\n\n")
 
     Process.sleep(2_000)
 
     children = [
-      {Swai.Registry, name: Edge.Registry},
-      {Phoenix.PubSub, name: Edge.PubSub},
-      {Edge.Client, edge_init},
-      {Edge.Server, edge_init}
+      {Swai.Registry, name: EdgeRegistry},
+      {Phoenix.PubSub, name: EdgePubSub},
+      {Edge.Client, edge_init}
     ]
 
     Supervisor.start_link(
@@ -59,8 +75,14 @@ defmodule SwaiAco.EdgeApp do
   end
 
   @impl Application
+  def init(_args) do
+    Logger.info("Starting Swai ACO Edge Application")
+    {:ok, nil}
+  end
+
+  @impl Application
   def stop(scape_init) do
-    Scape.System.terminate(:normal, scape_init)
+    Edge.System.terminate(:normal, scape_init)
     Supervisor.stop(__MODULE__)
   end
 

@@ -7,7 +7,6 @@ defmodule TrainSwarmProc.ActivateLicense.CmdV1 do
 
   alias TrainSwarmProc.ActivateLicense.CmdV1, as: Activate
   alias Schema.SwarmLicense, as: Activation
-  alias Schema.SwarmLicense, as: SwarmLicense
 
   require Logger
   require Jason.Encoder

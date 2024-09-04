@@ -18,7 +18,7 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
   alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
 
   alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
-  alias TrainSwarmProc.QueueLicense.EvtV1, as: ScapeQueued
+  alias TrainSwarmProc.QueueLicense.EvtV1, as: LicenseQueued
 
   alias Schema.SwarmLicense.Status, as: Status
 
@@ -30,7 +30,7 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
   @license_blocked_status Status.license_blocked()
   @license_activated_status Status.license_active()
 
-  @scape_queued_status Status.scape_queued()
+  @license_queued_status Status.license_queued()
 
   ####################### INITIALIZED #######################
   @impl true
@@ -95,8 +95,8 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
 
     case SwarmLicense.from_map(sl, payload) do
       {:ok, sl} ->
-        sl = %{sl | status: @license_paid_status}
 
+        sl = %{sl | status: @license_paid_status}
         sl
         |> MyWorkspace.update_swarm_license(payload)
 
@@ -140,18 +140,18 @@ defmodule TrainSwarmProc.ToPostgresDoc.V1 do
   ############################# SCAPE QUEUED #############################
   @impl true
   def handle(
-        %ScapeQueued{
+        %LicenseQueued{
           agg_id: agg_id,
           payload: payload
         } = evt,
         _metadata
       ) do
-    Logger.debug("Handling ScapeQueued event => #{inspect(evt)}")
+    Logger.debug("Handling LicenseQueued event => #{inspect(evt)}")
     st = MyWorkspace.get_swarm_license!(agg_id)
 
     case SwarmLicense.from_map(st, payload) do
       {:ok, st} ->
-        new_st = %{st | status: @scape_queued_status}
+        new_st = %{st | status: @license_queued_status}
 
         new_st
         |> MyWorkspace.update_swarm_license(payload)

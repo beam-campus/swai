@@ -69,15 +69,15 @@ defmodule SwaiWeb.MixProject do
         compile: false,
         depth: 1
       },
-      {:apis, in_umbrella: true},
-      {:swai_core, in_umbrella: true},
-      {:swai, in_umbrella: true},
-      {:swai_train_swarm, in_umbrella: true},
       {:httpoison, "~> 1.8"},
       {:tesla, "~> 1.4"},
       {:cors_plug, "~> 3.0"},
       {:heroicons_liveview, "~> 0.5.0"},
-      {:hpax, "~> 0.1.1", override: true}
+      {:hpax, "~> 0.1.1", override: true},
+      {:apis, in_umbrella: true},
+      {:swai_core, in_umbrella: true},
+      {:swai, in_umbrella: true},
+      {:swai_train_swarm, in_umbrella: true}
     ]
   end
 

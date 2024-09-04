@@ -1,4 +1,9 @@
 defmodule Swai.Limits do
+  @moduledoc """
+  Swai.Limits is the module that contains the limits for the Life Subsystem
+  """
+  def standard_cost_in_tokens, do: 3_000
+
   defstruct [
     :ticks_per_year,
     :min_area,
@@ -18,10 +23,6 @@ defmodule Swai.Limits do
 
   require Config
   alias Swai.Limits, as: Limits
-
-  @moduledoc """
-  Swai.Limits is the module that contains the limits for the Life Subsystem
-  """
 
   @defaults [
     ticks_per_year: 20,
@@ -54,7 +55,7 @@ defmodule Swai.Limits do
           max_weight: integer,
           max_robots: integer,
           min_robots: integer,
-          select_from: String.t
+          select_from: String.t()
         }
 
   def default_map,

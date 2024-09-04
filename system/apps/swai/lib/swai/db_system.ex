@@ -33,7 +33,7 @@ defmodule Swai.DbSystem do
 
 
     children = [
-      SwarmLicenses.Db
+      Licenses.Db
     ]
 
     Supervisor.start_link(

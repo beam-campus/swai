@@ -2,7 +2,7 @@ defmodule TrainSwarmProc.QueueLicense.Evaluator do
   @behaviour Commanded.Commands.Handler
 
   alias TrainSwarmProc.QueueLicense.CmdV1, as: QueueLicense
-  alias TrainSwarmProc.QueueLicense.EvtV1, as: ScapeQueued
+  alias TrainSwarmProc.QueueLicense.EvtV1, as: LicenseQueued
   alias Scape.Init, as: ScapeInit
 
   alias TrainSwarmProc.Aggregate, as: Aggregate
@@ -24,7 +24,7 @@ defmodule TrainSwarmProc.QueueLicense.Evaluator do
   end
 
   defp raise_queued(%QueueLicense{} = cmd) do
-    case ScapeQueued.from_map(%ScapeQueued{}, cmd) do
+    case LicenseQueued.from_map(%LicenseQueued{}, cmd) do
       {:ok, evt} ->
         evt
 

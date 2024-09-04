@@ -79,10 +79,10 @@ defmodule Colors do
   def cell_theme(pid),
     do: "#{white_on_blue()}#{inspect(pid)}#{reset()}"
 
-  def born2died_theme(pid),
+  def particle_theme(pid),
     do: "#{white_on_magenta()}#{inspect(pid)}#{reset()}"
 
-  def workspace_theme(pid),
+  def server_theme(pid),
     do: "#{yellow_on_black()}#{inspect(pid)}#{reset()}"
 
   def swarm_theme(pid),

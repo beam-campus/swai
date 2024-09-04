@@ -9,15 +9,17 @@ defmodule SwaiWeb.EdgeChannel do
 
   alias Schema.SwarmLicense
   alias SwaiWeb.EdgePresence, as: EdgePresence
-  alias SwaiWeb.Dispatch.EdgeHandler, as: EdgeHandler
+  alias SwaiWeb.EdgeDispatcher, as: EdgeDispatcher
 
-  alias SwaiWeb.Dispatch.ScapeHandler
+  alias SwaiWeb.ScapeDispatcher, as: ScapeDispatcher
   alias SwaiWeb.Dispatch.ChannelWatcher
+  alias SwaiWeb.HiveDispatcher, as: HiveDispatcher
 
   alias Edge.Facts, as: EdgeFacts
   alias Edge.Hopes, as: EdgeHopes
 
   alias Scape.Facts, as: ScapeFacts
+  alias Hive.Facts, as: HiveFacts
 
   alias Edge.Init, as: EdgeInit
   alias Scape.Init, as: ScapeInit
@@ -28,26 +30,29 @@ defmodule SwaiWeb.EdgeChannel do
   @hope_join_edge "join_edge"
 
   # @scape_attached_v1 Facts.scape_attached_v1()
-
   @edge_attached_v1 EdgeFacts.edge_attached_v1()
-  @edge_detached_v1 EdgeFacts.edge_detached_v1()
 
   @start_scape_v1 EdgeHopes.start_scape_v1()
+  @present_license_v1 EdgeHopes.present_license_v1()
 
   @initializing_scape_v1 ScapeFacts.initializing_scape_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
   @scape_started_v1 ScapeFacts.scape_started_v1()
   @scape_detached_v1 ScapeFacts.scape_detached_v1()
 
+  @hive_initialized_v1 HiveFacts.hive_initialized_v1()
+  @hive_occupied_v1 HiveFacts.hive_occupied_v1()
+  @hive_vacated_v1 HiveFacts.hive_vacated_v1()
+  @hive_arena_initialized_v1 HiveFacts.hive_arena_initialized_v1()
 
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
   @edge_lobby "edge:lobby"
 
-  def start_scape(%EdgeInit{} = edge_init, %ScapeInit{} = scape_init) do
-    Logger.info("EdgeChannel.start_scape: #{inspect(edge_init)} #{inspect(scape_init)}")
+  def queue_license(%EdgeInit{socket: edge_socket}, %SwarmLicense{} = license) do
+    Logger.info("EdgeChannel.present_license: #{inspect(license)}")
 
-    edge_init.socket
-    |> push(@start_scape_v1, scape_init)
+    edge_socket
+    |> push(@present_license_v1, license)
   end
 
   ################ CALLBACKS ################
@@ -58,7 +63,7 @@ defmodule SwaiWeb.EdgeChannel do
     ChannelWatcher.monitor(
       @edge_lobby,
       self(),
-      {EdgeHandler, :pub_edge_detached, [%{"edge_init" => edge_init}]}
+      {EdgeDispatcher, :pub_edge_detached, [%{"edge_init" => edge_init}]}
     )
 
     {:ok, socket}
@@ -66,7 +71,7 @@ defmodule SwaiWeb.EdgeChannel do
 
   ####################### AFTER JOIN #######################
   @impl true
-  def handle_info({:after_join, %{"id" => edge_id}}, socket) do
+  def handle_info({:after_join, %{"edge_id" => edge_id}}, socket) do
     Logger.info(":after_join #{inspect(socket)}")
 
     {:ok, _} =
@@ -85,7 +90,8 @@ defmodule SwaiWeb.EdgeChannel do
   @impl true
   def handle_in("hello", payload, socket) do
     socket
-     |> broadcast!("hello", payload)
+    |> broadcast!("hello", payload)
+
     {:reply, {:ok, payload}, socket}
   end
 
@@ -120,33 +126,70 @@ defmodule SwaiWeb.EdgeChannel do
   #################### IN EDGE ATTACHED ###########################
   @impl true
   def handle_in(@edge_attached_v1, payload, socket) do
-    EdgeHandler.pub_edge_attached(payload, socket)
-
+    EdgeDispatcher.pub_edge_attached(payload, socket)
+    {:noreply, socket}
   end
-
 
   ################### IN INITIALIZING SCAPE #######################
   @impl true
   def handle_in(@initializing_scape_v1, payload, socket) do
-    ScapeHandler.pub_initializing_scape_v1(payload, socket)
+    ScapeDispatcher.pub_initializing_scape(payload, socket)
+    {:noreply, socket}
   end
 
   ##################### IN SCAPE INITIALIZED #######################
   @impl true
   def handle_in(@scape_initialized_v1, payload, socket) do
-    ScapeHandler.pub_scape_initialized_v1(payload, socket)
+    ScapeDispatcher.pub_scape_initialized(payload, socket)
+    {:noreply, socket}
   end
 
   #################### IN SCAPE STARTED ###########################
   @impl true
   def handle_in(@scape_started_v1, payload, socket) do
-    ScapeHandler.pub_scape_started_v1(payload, socket)
+    ScapeDispatcher.pub_scape_started(payload, socket)
+    {:noreply, socket}
   end
 
   ##################### IN SCAPE DETACHED ##########################
   @impl true
   def handle_in(@scape_detached_v1, payload, socket) do
-    ScapeHandler.pub_scape_detached_v1(payload, socket)
+    ScapeDispatcher.pub_scape_detached(payload, socket)
+    {:noreply, socket}
+  end
+
+  ##################### IN HIVE INITIALIZED ########################
+  @impl true
+  def handle_in(@hive_initialized_v1, payload, socket) do
+    HiveDispatcher.pub_hive_initialized(payload, socket)
+    {:noreply, socket}
+  end
+
+  #################### IN HIVE OCCUPIED ###########################
+  @impl true
+  def handle_in(@hive_occupied_v1, payload, socket) do
+    HiveDispatcher.pub_hive_occupied(payload, socket)
+    {:noreply, socket}
+  end
+
+  ################### HIVE VACATED ###############################
+  @impl true
+  def handle_in(@hive_vacated_v1, payload, socket) do
+    HiveDispatcher.pub_hive_vacated(payload, socket)
+    {:noreply, socket}
+  end
+
+  ########## IN HIVE ARENA INITIALIZED ##########################
+  @impl true
+  def handle_in(@hive_arena_initialized_v1, payload, socket) do
+    HiveDispatcher.pub_hive_arena_initialized(payload, socket)
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_in(_, payload, socket) do
+    Logger.info("EdgeChannel.handle_in: #{inspect(payload)}")
+    {:noreply, socket}
   end
 
   # ################ INTERNALS ################

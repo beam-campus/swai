@@ -8,7 +8,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
   alias Edges.Service, as: Edges
   alias Phoenix.PubSub, as: PubSub
   alias TrainSwarmProc.Facts, as: TrainSwarmProcFacts
-  alias SwarmLicenses.Service, as: Licenses
+  alias Licenses.Service, as: Licenses
 
 
   alias Schema.SwarmLicense, as: SwarmLicense

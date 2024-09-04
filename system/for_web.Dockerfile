@@ -96,7 +96,7 @@ RUN apt-get update -y && \
 # Set the locale
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && locale-gen
 
-RUN echo ${SWAI_DB_URL}
+RUN mkdir /volume/caches/
 
 ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
@@ -106,7 +106,13 @@ WORKDIR /system
 
 # USER root
 
+VOLUME /volume/caches/
+
+RUN echo ${SWAI_DB_URL}
+
+
 RUN chown nobody /system
+RUN chown nobody /volume/caches/
 
 
 COPY --from=builder --chown=nobody /build_space/_build/prod/rel/for_web .

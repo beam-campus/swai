@@ -10,13 +10,14 @@ defmodule TrainSwarmProc.ToPubSubV1 do
 
   alias Swai.Accounts
   alias Commanded.PubSub
+  alias Schema.User
 
   alias TrainSwarmProc.InitializeLicense.EvtV1, as: InitializedV1
   alias TrainSwarmProc.ConfigureLicense.EvtV1, as: ConfiguredV1
   alias TrainSwarmProc.PayLicense.EvtV1, as: LicensePaid
 
   alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
-  alias TrainSwarmProc.QueueLicense.EvtV1, as: ScapeQueued
+  alias TrainSwarmProc.QueueLicense.EvtV1, as: LicenseQueued
   alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
 
   alias TrainSwarmProc.InitializeLicenseScape.EvtV1, as: ScapeInitialized
@@ -39,13 +40,13 @@ defmodule TrainSwarmProc.ToPubSubV1 do
   @license_blocked Facts.license_blocked()
 
   @scape_facts ScapeFacts.scape_facts()
-  @scape_queued_v1 ScapeFacts.scape_queued_v1()
+  @license_queued_v1 ScapeFacts.license_queued_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
   @scape_started_v1 ScapeFacts.scape_started_v1()
   @scape_paused_v1 ScapeFacts.scape_paused_v1()
   @scape_cancelled_v1 ScapeFacts.scape_cancelled_v1()
 
-  ###################### INITIALIZED #######################
+  # Event: License INITIALIZED 
   @impl true
   def handle(%InitializedV1{} = evt, metadata) do
     Logger.debug("INITIALIZED SWARM LICENSE with event #{inspect(evt)}")
@@ -69,10 +70,18 @@ defmodule TrainSwarmProc.ToPubSubV1 do
 
   ########################### LICENSE PAID ############################
   @impl true
-  def handle(%LicensePaid{payload: %{} = payment} = evt, metadata) do
+  def handle(%LicensePaid{payload: %{user_id: user_id} = payment} = evt, metadata) do
     Logger.debug("LICENSE PAID with event #{inspect(evt)}")
 
-    Accounts.decrease_user_budget(payment.user_id, payment.cost_in_tokens)
+    %User{email: user_email} = Accounts.get_user!(user_id)
+
+    case String.contains?(user_email, "@discomco.pl") do
+      true ->
+        Logger.debug("User with email #{user_email} is from DisComCo and may swarm for free")
+
+      false ->
+        Accounts.decrease_user_budget(user_id, payment.cost_in_tokens)
+    end
 
     Swai.PubSub
     |> PubSub.broadcast!(@license_facts, {@license_paid, evt, metadata})
@@ -104,11 +113,11 @@ defmodule TrainSwarmProc.ToPubSubV1 do
 
   ############################ SCAPE QUEUED ############################
   @impl true
-  def handle(%ScapeQueued{} = evt, metadata) do
+  def handle(%LicenseQueued{} = evt, metadata) do
     Logger.debug("SCAPE QUEUED with event #{inspect(evt)}")
 
     Swai.PubSub
-    |> PubSub.broadcast!(@scape_facts, {@scape_queued_v1, evt, metadata})
+    |> PubSub.broadcast!(@scape_facts, {@license_queued_v1, evt, metadata})
 
     :ok
   end

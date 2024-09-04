@@ -11,14 +11,14 @@ defmodule TrainSwarmProc.StartScape.Evaluator do
   alias Schema.SwarmLicense.Status, as: Status
 
   @scape_paused Status.scape_paused()
-  @scape_queued Status.scape_queued()
+  @license_queued Status.license_queued()
 
 
   import Flags
 
   @impl Commanded.Commands.Handler
   def handle(%Agg{status: status}, %StartScape{} = cmd) do
-    if status |> has_any?([@scape_paused, @scape_queued]) do
+    if status |> has_any?([@scape_paused, @license_queued]) do
       raise_scape_started(cmd)
     else
       {:error, "A Scape must be paused or queued to start it."}

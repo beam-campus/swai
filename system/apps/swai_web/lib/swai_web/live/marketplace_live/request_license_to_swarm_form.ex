@@ -1,4 +1,5 @@
 defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
+  alias Scape.Boundaries
   alias Schema.Vector
   use SwaiWeb, :live_component
 
@@ -6,7 +7,7 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
 
   alias MnemonicSlugs, as: MnemonicSlugs
   alias TrainSwarmProc, as: TrainSwarmProc
-  alias Schema.Swarm, as: Swarm
+  alias Scape.Boundaries, as: Boundaries
 
   require Logger
 
@@ -32,7 +33,14 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
     :run_time_sec,
     :available_tokens,
     :tokens_balance,
-    :dimensions
+    :reason,
+    :additional_info,
+    :instructions,
+    :scape_id,
+    :edge_id,
+    :dimensions,
+    :edge,
+    :boundaries
   ]
 
   @agg_id "agg_id"
@@ -60,7 +68,7 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
   @available_tokens "available_tokens"
   @tokens_balance "tokens_balance"
   @dimensions "dimensions"
-
+  @boundaries "boundaries"
 
   defp generate_swarm_name(prefix, nbr_of_slugs) do
     "#{prefix}_#{MnemonicSlugs.generate_slug(nbr_of_slugs)}"
@@ -86,7 +94,9 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
       @algorithm_name => assigns.biotope.algorithm_name,
       @swarm_id => UUID.uuid4(),
       @swarm_name => generate_swarm_name(prefix, 2),
-      @available_tokens => assigns.current_user.budget
+      @available_tokens => assigns.current_user.budget,
+      @dimensions => Vector.default_map_dimensions(),
+      @boundaries => %Boundaries{}
     }
 
     lr_changes =
@@ -126,6 +136,9 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
       Vector.default_map_dimensions()
       |> Map.from_struct()
 
+    boundararies =
+      Map.from_struct(%Boundaries{})
+
     enriched_params =
       source
       |> Map.put(@agg_id, agg_id)
@@ -142,6 +155,7 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
       |> Map.put(@algorithm_name, socket.assigns.biotope.algorithm_name)
       |> Map.put(@available_tokens, socket.assigns.current_user.budget)
       |> Map.put(@dimensions, dimensions)
+      |> Map.put(@boundaries, boundararies)
 
     case TrainSwarmProc.initialize(enriched_params) do
       :ok ->
@@ -184,61 +198,61 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
   def render(assigns) do
     ~H"""
     <div>
-    <.header>
-    <%= @title %>
-    <:subtitle>
-      A 'License to Swarm' represents a reservation for a slot to evolve your swarm.
-      It is automatically activated when your budget (<strong><%= @current_user.budget %>👾</strong>) allows it.
-      <br />
-      <%= if @current_user.budget - @form[:cost_in_tokens].value < 0  do %>
-        <strong class="text-red-500">The cost of a license for this configuration is <%= @form[:cost_in_tokens].value %>👾</strong>.
-      <% else %>
-        <strong class="text-green-500">The cost of a license for this configuration is <%= @form[:cost_in_tokens].value %>👾</strong>.
-      <% end %>
-    </:subtitle>
-    </.header>
-    <.simple_form
-    for={@form}
-    class="modal-content"
-    id="license_request_form"
-    phx-target={@myself}
-    phx-submit="submit_lr"
-    phx-change="validate_lr"
-    phx-trigger-action={@trigger_submit}
-    method="post"
-    >
-    <.input
-      class="form-control"
-      label="Swarm Name"
-      type="text"
-      field={@form[:swarm_name]}
-      required
-    />
-    <.input
-      class="form-control"
-      label="Swarm Size"
-      type="number"
-      pattern="\\d*"
-      step="1"
-      field={@form[:swarm_size]}
-      required
-      readonly
-    />
-    <.input
-      class="form-control"
-      label="Swarming Time in Minutes"
-      type="number"
-      pattern="\\d*"
-      step="1"
-      field={@form[:swarm_time_min]}
-      required
-      readonly
-    />
-    <div class="mt-3">
-      <.button phx-disable-with="Requesting License...">Submit your License Request</.button>
-    </div>
-    </.simple_form>
-    <button class="modal-close is-large" aria-label="close" phx-click="close_modal"></button>
+      <.header>
+        <%= @title %>
+        <:subtitle>
+          A 'License to Swarm' represents a reservation for a slot to evolve your swarm.
+          It is automatically activated when your budget (<strong><%= @current_user.budget %>👾</strong>) allows it.
+          <br />
+          <%= if @current_user.budget - @form[:cost_in_tokens].value < 0  do %>
+            <strong class="text-red-500">The cost of a license for this configuration is <%= @form[:cost_in_tokens].value %>👾</strong>.
+          <% else %>
+            <strong class="text-green-500">The cost of a license for this configuration is <%= @form[:cost_in_tokens].value %>👾</strong>.
+          <% end %>
+        </:subtitle>
+      </.header>
+      <.simple_form
+        for={@form}
+        class="modal-content"
+        id="license_request_form"
+        phx-target={@myself}
+        phx-submit="submit_lr"
+        phx-change="validate_lr"
+        phx-trigger-action={@trigger_submit}
+        method="post"
+      >
+        <.input
+          class="form-control"
+          label="Swarm Name"
+          type="text"
+          field={@form[:swarm_name]}
+          required
+        />
+        <.input
+          class="form-control"
+          label="Swarm Size"
+          type="number"
+          pattern="\\d*"
+          step="1"
+          field={@form[:swarm_size]}
+          required
+          readonly
+        />
+        <.input
+          class="form-control"
+          label="Swarming Time in Minutes"
+          type="number"
+          pattern="\\d*"
+          step="1"
+          field={@form[:swarm_time_min]}
+          required
+          readonly
+        />
+        <div class="mt-3">
+          <.button phx-disable-with="Requesting License...">Submit your License Request</.button>
+        </div>
+      </.simple_form>
+      <button class="modal-close is-large" aria-label="close" phx-click="close_modal"></button>
     </div>
     """
   end

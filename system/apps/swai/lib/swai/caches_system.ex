@@ -2,21 +2,28 @@ defmodule Swai.CachesSystem do
   use GenServer
 
   @moduledoc """
-  Swai.MngFarms.System is a GenServer that manages the MngFarms cache system.
+  Swai.CachesSystem is a GenServer that manages the cache system.
   """
 
   require Logger
 
   require Cachex
 
-  @swarm_licenses_cache "/tmp/swarm_licenses.cache"
+  alias Caches
+
+  @licenses_cache "/volume/caches/swai_licenses.cache"
+  @hives_cache "/volume/caches/swai_hives.cache"
+  @arenas_cache "/volume/caches/swai_arenas.cache"
 
   defp start_caches() do
     Logger.info("Starting caches")
-    :edges_cache |> Cachex.start()
-    :scapes_cache |> Cachex.start()
-    # :workspaces_cache |> Cachex.start()
-    :swarm_licenses_cache |> Cachex.start()
+    Caches.edges() |> Cachex.start()
+    Caches.scapes() |> Cachex.start()
+    # Caches.arenas() |> Cachex.start()
+    Caches.hives() |> Cachex.start()
+    Caches.licenses() |> Cachex.start()
+    # Caches.swarms() |> Cachex.start()
+    # Caches.particles() |> Cachex.start()
   end
 
   ################## CALLBACKS ############
@@ -27,8 +34,9 @@ defmodule Swai.CachesSystem do
     children = [
       Edges.Service,
       Scapes.Service,
-      # Workspaces.Service,
-      {SwarmLicenses.Service, %{cache_file: @swarm_licenses_cache}}
+      {Licenses.Service, %{cache_file: @licenses_cache}},
+      {Hives.Service, %{cache_file: @hives_cache}}
+      #  {Arenas.Service, %{cache_file: @arenas_cache}}
     ]
 
     Supervisor.start_link(

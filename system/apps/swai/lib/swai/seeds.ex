@@ -15,14 +15,16 @@ defmodule Swai.Seeds do
   """
   alias Swai.Repo, as: Repo
   alias Schema.Biotope, as: Biotope
+  alias Schema.Algorithm, as: Algorithm
+  alias Schema.AlgorithmId, as: AlgorithmId
 
-  @aco_algorithm_id "c8487bb2-b69a-4c38-84c4-f9426606e73d"
-  @bfo_algorithm_id "4eeef8e1-12e7-45fb-b141-656ffe594baf"
-  @neat_algorithm_id "d5e90faa-98d6-4c79-8ba4-3db0fe41f9d5"
-  @bso_algorithm_id "c0d60f91-3042-4949-b0ca-beaf72922d40"
-  @pso_algorithm_id "d7eee4a9-214c-4eda-bdb6-6c5ad2e08bcb"
-  @cuso_algorithm_id "1d9de2ce-6283-46b2-a473-87a30af77821"
-  @caho_algorithm_id "46cf8a3d-df4f-4f9d-b6a6-6e5f1221d4a6"
+  @aco_algorithm_id AlgorithmId.aco_algorithm_id
+  @bfo_algorithm_id AlgorithmId.bfo_algorithm_id
+  @neat_algorithm_id AlgorithmId.neat_algorithm_id
+  @bso_algorithm_id AlgorithmId.bso_algorithm_id
+  @pso_algorithm_id AlgorithmId.pso_algorithm_id
+  @cuso_algorithm_id AlgorithmId.cuso_algorithm_id
+  @caho_algorithm_id AlgorithmId.caho_algorithm_id
 
 
   @planet_of_ants_id "b105f59e-42ce-4e85-833e-d123e36ce943"
@@ -65,11 +67,11 @@ defmodule Swai.Seeds do
       acronym: "BFO",
       name: "Bacterial Foraging Optimization",
       description:
-        "Bacterial Foraging Optimization (BFO) is a metaheuristic optimization algorithm inspired by the foraging behavior of bacteria. 
+        "Bacterial Foraging Optimization (BFO) is a metaheuristic optimization algorithm inspired by the foraging behavior of bacteria.
         BFO is used to solve optimization problems.",
       image_url: "/images/bfo.jpg",
       definition:
-        "Bacterial Foraging Optimization (BFO) is a metaheuristic optimization algorithm inspired by the foraging behavior of bacteria. 
+        "Bacterial Foraging Optimization (BFO) is a metaheuristic optimization algorithm inspired by the foraging behavior of bacteria.
         BFO is used to solve optimization problems.",
       tags: "optimization, bacteria, foraging"
     },
@@ -157,8 +159,8 @@ defmodule Swai.Seeds do
       algorithm_name: "Ant Colony Optimization",
       name: "Planet of Ants",
       description:
-        "Planet of Ants is a simulation of an ant colony. 
-        The ecosystem is fed by weather data and the ants can forage for food and reproduce. 
+        "Planet of Ants is a simulation of an ant colony.
+        The ecosystem is fed by weather data and the ants can forage for food and reproduce.
         Each virtual colony generates a stream of foraging data that can be used for downstream applications.",
       image_url: "/images/planet_of_ants.jpg",
       theme: "nature",
@@ -176,7 +178,7 @@ defmodule Swai.Seeds do
       algorithm_name: "Cattle Herding Optimization",
       name: "The Milk Factory",
       description:
-        "The Milk Factory is a simulation of a dairy farm. 
+        "The Milk Factory is a simulation of a dairy farm.
         The ecosystem is fed by weather data and the cows can be milked and reproduce.
         Each virtual farm generates a stream of milking data that can be used for downstream applications.",
       image_url: "/images/dairy_wars1.jpg",
@@ -190,7 +192,7 @@ defmodule Swai.Seeds do
       is_realistic?: true
     }
   ]
-  
+
 
   def run do
     seed_algorithms()
@@ -217,7 +219,7 @@ defmodule Swai.Seeds do
 
   def seed_biotopes do
     @biotopes
-    |> Enum.each(&seed_biotope/1)    
+    |> Enum.each(&seed_biotope/1)
   end
 
   defp seed_biotope(%Biotope{} = biotope) do

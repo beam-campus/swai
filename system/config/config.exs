@@ -27,9 +27,7 @@ config :logger, :console,
 config :swai_aco,
   scape_id: "5693504a-89d6-4af3-bb70-2c2914913dc9"
 
-
-config :swai_train_swarm, TrainSwarmProc.CommandedApp,
-  log_level: :info
+config :swai_train_swarm, TrainSwarmProc.CommandedApp, log_level: :info
 
 config :swai_train_swarm, TrainSwarmProc.CommandedApp,
   snapshotting: %{

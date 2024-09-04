@@ -37,9 +37,7 @@ defmodule TrainSwarmProc.Policies do
   alias Schema.SwarmLicense, as: BlockInfo
   alias TrainSwarmProc.PauseScape.CmdV1, as: PauseScape
   alias TrainSwarmProc.DetachScape.EvtV1, as: ScapeDetached
-
-
-
+  alias Schema.SwarmLicense, as: License
 
   require Logger
 
@@ -53,7 +51,7 @@ defmodule TrainSwarmProc.Policies do
 
   #################### HANDLE INCOMING EVENTS AND THROW THE COMMANDS ####################
 
-  #################### CONFIGURED TRIGGERS PAYMENT ####################
+  # POLICY: License CONFIGURATION triggers License PAYMENT
   def handle(
         %Policies{} = _policies,
         %LicenseConfigured{agg_id: agg_id, payload: configuration} = _event
@@ -68,7 +66,7 @@ defmodule TrainSwarmProc.Policies do
     end
   end
 
-  #################### PAYMENT TRIGGERS ACTIVATION ####################
+  # POLICY: License PAYMENT triggers License ACTIVATION 
   def handle(
         %Policies{} = _policies,
         %Paid{agg_id: agg_id, payload: payment} = _event
@@ -83,46 +81,25 @@ defmodule TrainSwarmProc.Policies do
     end
   end
 
-  #################### LICENSE ACTIVATION TRIGGERS SCAPE QUEUING ####################
+  # POLICY: License ACTIVATION triggers License QUEUING
   def handle(
         %Policies{} = _policies,
         %LicenseActivated{agg_id: agg_id, payload: activation} = _event
       ) do
     seed =
-      %ScapeInit{
-        dimensions: Vector.default_map_dimensions()
-      }
+      %License{}
 
-    case ScapeInit.from_map(seed, activation) do
-      {:ok, scape_init} ->
-        %QueueLicense{agg_id: agg_id, payload: scape_init}
+    case License.from_map(seed, activation) do
+      {:ok, license} ->
+        %QueueLicense{agg_id: agg_id, payload: license}
 
       {:error, changeset} ->
-        Logger.error("invalid activation for scape queuing\n #{inspect(changeset)}")
-        {:error, "invalid activation, cannot queue scape"}
+        Logger.error("invalid activation for license queuing\n #{inspect(changeset)}")
+        {:error, "invalid activation, cannot queue license"}
     end
   end
 
-  #################### BUDGET REACHED TRIGGERS BLOCKING ####################
-  def handle(
-        %Policies{} = _policies,
-        %BudgetReached{agg_id: agg_id, payload: budget_info} = _event
-      ) do
-    %BlockLicense{
-      agg_id: agg_id,
-      version: 1,
-      payload: %BlockInfo{
-        reason: "Budget reached",
-        additional_info:
-          "This is temporarily blocked because the budget has been reached.
-        Your current budget is #{budget_info.current_budget}👾 and the required budget is #{budget_info.required_budget}👾.",
-        instructions: "Please increase your budget to continue."
-      }
-    }
-  end
-
-
-  ######################## SCAPE DETACHED TRIGGERS PAUSE SCAPE ########################
+  # POLICY: Scape DETACHEMENT triggers License PAUSING ########################
   def handle(
         %Policies{} = _policies,
         %ScapeDetached{agg_id: agg_id, payload: scape_init} = _event
