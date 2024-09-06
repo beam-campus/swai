@@ -7,17 +7,18 @@ defmodule Edge.System do
   require Logger
 
   alias Swai.Registry, as: EdgeRegistry
-  alias Edge.Hopes, as: EdgeHopes
   alias Scape.Init, as: ScapeInit
   alias Scape.System, as: ScapeSystem
   alias Edge.Init, as: EdgeInit
   alias Schema.SwarmLicense, as: License
   alias Edge.Emitter, as: EdgeEmitter
+  alias Phoenix.PubSub, as: PubSub
+  alias Edge.Facts, as: EdgeFacts
 
-  @present_license_v1 EdgeHopes.present_license_v1()
+  @edge_facts EdgeFacts.edge_facts()
+  @edge_attached_v1 EdgeFacts.edge_attached_v1()
 
   ##################### PUBLIC API #####################
-
   def start(%EdgeInit{} = edge_init) do
     case start_link(edge_init) do
       {:ok, pid} ->
@@ -53,13 +54,6 @@ defmodule Edge.System do
         :get_scapes
       )
 
-  def present_license(%License{} = license),
-    do:
-      GenServer.cast(
-        __MODULE__,
-        {:present_license, license}
-      )
-
   defp start_scapes(%EdgeInit{scapes_cap: scapes_cap}) do
     Enum.each(1..scapes_cap, fn scape_no ->
       GenServer.cast(
@@ -74,52 +68,43 @@ defmodule Edge.System do
   def init(%{edge_id: edge_id} = edge_init) do
     Process.flag(:trap_exit, true)
 
-    Supervisor.start_link(
-      [],
-      name: via_sup(edge_id),
-      strategy: :one_for_one
-    )
+    #    EdgePubSub
+    # |> PubSub.subscribe(@edge_facts)
 
-    start_scapes(edge_init)
+    #    EdgeEmitter.emit_initializing_edge(edge_init)
 
-    EdgeEmitter.emit_edge_initialized(edge_init)
+    # start_scapes =
+    #   Task.async(fn ->
+    #     start_scapes(edge_init)
+    #   end)
+    #
+
+    case Supervisor.start_link(
+           [],
+           name: via_sup(edge_id),
+           strategy: :one_for_one
+         ) do
+      {:ok, pid} ->
+        #        Task.await(start_scapes, 10_000)
+        {:ok, pid}
+
+      {:error, reason} ->
+        Logger.error("Error starting edge system: #{inspect(reason)}")
+        {:stop, reason}
+    end
+
+    # EdgeEmitter.emit_edge_initialized(edge_init)
     {:ok, edge_init}
   end
 
-  ################### HANDLE CALL ###################
+  ## GET_SCAPES
   @impl true
-  def handle_call(:get_scapes, _from, state) do
-    scapes = Supervisor.which_children(EdgeServerSup)
+  def handle_call(:get_scapes, _from, %EdgeInit{edge_id: edge_id} = state) do
+    scapes = Supervisor.which_children(via_sup(edge_id))
     {:reply, scapes, state}
   end
 
-  ##################### PROCESS MESSAGE - PRESENT LICENSE #####################
-  @impl true
-  def handle_cast(
-        {:process_message, {_room, @present_license_v1, params}},
-        %EdgeInit{} = state
-      ) do
-    case License.from_map(%License{}, params) do
-      {:ok, license} ->
-        license
-        |> present_license()
-
-      {:error, reason} ->
-        Logger.error("Error queuing license: #{inspect(reason)}")
-    end
-
-    {:noreply, state}
-  end
-
-  ######################### PRESENT LICENSE ##############
-  @impl true
-  def handle_cast({:present_license, %License{} = license}, state) do
-    Logger.info("EdgeServer.present_license: #{inspect(license)}")
-
-    {:noreply, state}
-  end
-
-  ####################### START SCAPE #####################
+  ## CAST: Start Scape ############################
   @impl true
   def handle_cast({:start_scape, scape_no}, %EdgeInit{edge_id: edge_id} = state) do
     case ScapeInit.new(scape_no, state) do
@@ -131,25 +116,32 @@ defmodule Edge.System do
 
       {:error, reason} ->
         Logger.error("Error starting scape: #{inspect(reason)}")
+        {:error, reason}
     end
 
     {:noreply, state}
   end
 
-  ##################### HANDLE CAST FALLBACK #####################
+  ######### HANDLE CAST FALLBACK ###################
   @impl true
   def handle_cast(_msg, state) do
     {:noreply, state}
   end
 
-  ###################### HANDLE_INFO FALLBACK ######################
+  ## Edge Attached ############################
+  @impl true
+  def handle_info({:edge_attached, %{edge_id: edge_id}}, state) do
+    Logger.info("Edge attached: [#{edge_id}]")
+    {:noreply, state}
+  end
+
+  ## HANDLE_INFO FALLBACK #################
   @impl true
   def handle_info(_msg, state) do
     {:noreply, state}
   end
 
-  ########################## PLUMBING ############################
-
+  ## PLUMBING ############################
   def via(key),
     do: EdgeRegistry.via_tuple({:edge_system, to_name(key)})
 
@@ -157,19 +149,21 @@ defmodule Edge.System do
     do: EdgeRegistry.via_tuple({:edge_sup, to_name(key)})
 
   def to_name(key) when is_bitstring(key),
-    do: "edge.system.#{key}"
+    do: "edge.system:#{key}"
 
   def child_spec(%EdgeInit{} = state) do
     %{
       id: __MODULE__,
-      start: {__MODULE__, :start_link, [state]}
+      start: {__MODULE__, :start, [state]},
+      type: :supervisor,
+      restart: :transient
     }
   end
 
-  def start_link(%EdgeInit{} = state) do
+  def start_link(%EdgeInit{} = edge_init) do
     GenServer.start_link(
       __MODULE__,
-      state,
+      edge_init,
       name: __MODULE__
     )
   end

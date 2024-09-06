@@ -39,9 +39,9 @@ defmodule SwaiWeb.EdgeSocket do
   # performing token verification on connect.
   @impl true
   def connect(params, socket, connect_info) do
-    # Logger.debug("EdgeSocket connect params: #{inspect(params)}")
-    # Logger.debug("EdgeSocket connect socket: #{inspect(socket)}")
-    # Logger.debug("EdgeSocket connect connect_info: #{inspect(connect_info)}")
+    Logger.debug("edgesocket connect params: #{inspect(params)}")
+    Logger.debug("edgesocket connect socket: #{inspect(socket)}")
+    Logger.debug("edgesocket connect connect_info: #{inspect(connect_info)}")
     # assign(socket, :edge_id, params.edge_id)
     {:ok, socket}
   end
@@ -57,7 +57,7 @@ defmodule SwaiWeb.EdgeSocket do
   #
   # Returning `nil` makes this socket anonymous.
   @impl true
-  def id(socket) do
+  def id(_socket) do
     # Logger.debug("EdgeSocket id: #{inspect(socket)}")
     "edge_socket"
     # do: "edge_socket:#{socket.assigns.edge_id}"

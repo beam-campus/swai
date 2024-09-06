@@ -26,11 +26,10 @@ defmodule Licenses.Service do
   alias Edge.Init, as: EdgeInit
   alias Scape.Init, as: ScapeInit
   alias Caches, as: Caches
+  alias Hive.Init, as: HiveInit
 
   require Logger
   import Flags
-
-
 
   @license_initialized_status Status.license_initialized()
   @license_configured_status Status.license_configured()
@@ -74,7 +73,7 @@ defmodule Licenses.Service do
     Process.flag(:trap_exit, true)
 
     Logger.info(
-      "Starting SwarmLicense.Service with args #{inspect(args)} => #{Colors.scape_theme(self())}"
+      "Starting Licenses.Service with args #{inspect(args)} => #{Colors.scape_theme(self())}"
     )
 
     read_from_disk(path)
@@ -139,6 +138,13 @@ defmodule Licenses.Service do
     GenServer.cast(
       __MODULE__,
       {:read_from_disk, path}
+    )
+  end
+
+  def try_reserve_license(hive_init) do
+    GenServer.call(
+      __MODULE__,
+      {:try_reserve_license, hive_init}
     )
   end
 
@@ -219,6 +225,61 @@ defmodule Licenses.Service do
       |> Enum.map(fn {:entry, _key, _nil, _internal_id, st} -> st end),
       state
     }
+  end
+
+  #################### TRY RESERVE LICENSE ##################
+  @impl true
+  def handle_call(
+        {:try_reserve_license, %HiveInit{biotope_id: qry_biotope_id} = hive_init},
+        _from,
+        state
+      ) do
+    Logger.warning("TRY RESERVE LICENSE for Hive #{inspect(hive_init)}")
+
+    reply =
+      case :licenses_cache
+           |> Cachex.stream!()
+           |> Stream.filter(fn {:entry, _, _, _, license} ->
+             %{biotope_id: candidate_biotope_id, status: candidate_status} = license
+
+             qry_biotope_id == candidate_biotope_id and
+               candidate_biotope_id == qry_biotope_id &&
+               candidate_status |> has?(Status.license_queued())
+           end)
+           |> Enum.to_list() do
+        [] ->
+          Logger.warning("No Licenses Queued for Biotope [#{inspect(qry_biotope_id)}]")
+          nil
+
+        licenses ->
+          %{
+            license_id: license_id,
+            status: old_status
+          } =
+            license =
+            licenses
+            |> Enum.at(0)
+
+          license =
+            %SwarmLicense{
+              license
+              | status:
+                  old_status
+                  |> unset(Status.license_queued())
+                  |> set(Status.license_reserved())
+            }
+
+          if :licenses_cache
+             |> Cachex.update!(license_id, license) do
+            notify_swarm_licenses_updated({:license, :try_reserve_license, license})
+          end
+
+          Logger.warning("Reserved License #{inspect(license_id)}")
+
+          license
+      end
+
+    {:reply, reply, state}
   end
 
   #################### TERMINATE ##################

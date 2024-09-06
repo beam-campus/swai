@@ -6,9 +6,11 @@ defmodule Hive.Init do
   """
   import Ecto.Changeset
 
+  alias Arena.Hexa, as: Hexa
   alias Hive.Init, as: HiveInit
-  alias Schema.Vector, as: Vector
   alias Scape.Init, as: ScapeInit
+  alias Scape.Utils, as: ScapeUtils
+  alias Schema.SwarmLicense, as: License
 
   require Logger
   require Jason.Encoder
@@ -18,10 +20,12 @@ defmodule Hive.Init do
     :particles_cap,
     :edge_id,
     :scape_id,
+    :biotope_id,
     :hive_no,
     :license_id,
-    :location,
-    :scape_name
+    :scape_name,
+    :hexa,
+    :license
   ]
 
   @flat_fields [
@@ -29,6 +33,7 @@ defmodule Hive.Init do
     :particles_cap,
     :edge_id,
     :scape_id,
+    :biotope_id,
     :hive_no,
     :license_id,
     :scape_name
@@ -39,8 +44,9 @@ defmodule Hive.Init do
     :particles_cap,
     :edge_id,
     :scape_id,
+    :biotope_id,
     :hive_no,
-    :location
+    :hexa
   ]
 
   @primary_key false
@@ -51,10 +57,12 @@ defmodule Hive.Init do
     field(:particles_cap, :integer)
     field(:edge_id, :string)
     field(:scape_id, :string)
+    field(:biotope_id, :string)
     field(:hive_no, :integer)
     field(:license_id, :binary_id, default: nil)
     field(:scape_name, :string)
-    embeds_one(:location, Vector, on_replace: :delete)
+    embeds_one(:hexa, Hexa, on_replace: :delete)
+    embeds_one(:license, License, on_replace: :delete)
   end
 
   def changeset(seed, struct)
@@ -65,7 +73,8 @@ defmodule Hive.Init do
       when is_map(attrs) do
     seed
     |> cast(attrs, @flat_fields)
-    |> cast_embed(:location)
+    |> cast_embed(:license, with: &License.changeset/2)
+    |> cast_embed(:hexa, with: &Hexa.changeset/2)
     |> validate_required(@required_fields)
   end
 
@@ -81,26 +90,17 @@ defmodule Hive.Init do
   end
 
   def new(hive_no, %ScapeInit{} = scape_init) do
-    seed =
-      %HiveInit{
-        hive_id: "hive-#{UUID.uuid4()}",
-        hive_no: hive_no,
-        location: get_hive_location(hive_no)
-      }
-      |> from_map(scape_init)
+    %HiveInit{
+      hive_id: "hive-#{UUID.uuid4()}",
+      hive_no: hive_no,
+      hexa: ScapeUtils.get_hive_hexa(hive_no)
+    }
+    |> from_map(scape_init)
   end
 
-  def is_occupied?(%HiveInit{license_id: nil}), do: false
-  def is_occupied?(%HiveInit{license_id: _}), do: true
+  def occupied?(%HiveInit{license_id: nil}), do: false
+  def occupied?(%HiveInit{license_id: _}), do: true
 
-  def is_vacant?(%HiveInit{license_id: nil}), do: true
-  def is_vacant?(_), do: false
-
-  defp get_hive_location(1), do: %Vector{x: 100, y: 100, z: 0}
-  defp get_hive_location(2), do: %Vector{x: 800 - 100, y: 100, z: 0}
-  defp get_hive_location(3), do: %Vector{x: 800 - 100, y: 600 - 100, z: 0}
-  defp get_hive_location(4), do: %Vector{x: 100, y: 600 - 100, z: 0}
-  defp get_hive_location(5), do: %Vector{x: 100 + 300, y: 100, z: 0}
-  defp get_hive_location(6), do: %Vector{x: 100 + 300, y: 600 - 100, z: 0}
-  defp get_hive_location(_), do: nil
+  def vacant?(%HiveInit{license_id: nil}), do: true
+  def vacant?(_), do: false
 end

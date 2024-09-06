@@ -87,10 +87,10 @@ defmodule SwaiWeb.ScapesLive.Index do
     ~H"""
     <div class="flex flex-col w-screen py-1 font-mono justify-center items-center">
       <.live_component
-      module={SwaiWeb.ScapesLive.ScapesGrid}
-      id={@current_user.id <> "_scapes_grid"}
-      scapes={@scapes}
-      current_user={@current_user}
+        module={SwaiWeb.ScapesLive.ScapesGrid}
+        id={@current_user.id <> "_scapes_grid"}
+        scapes={@scapes}
+        current_user={@current_user}
       />
     </div>
     """

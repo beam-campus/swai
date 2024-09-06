@@ -67,17 +67,22 @@ defmodule SwaiAco.EdgeApp do
       {Edge.Client, edge_init}
     ]
 
-    Supervisor.start_link(
-      children,
-      name: __MODULE__,
-      strategy: :one_for_one
-    )
-  end
+    case Supervisor.start_link(
+           children,
+           name: __MODULE__,
+           strategy: :one_for_one
+         ) do
+      {:ok, pid} ->
+        start_edge(edge_init)
+        {:ok, pid}
 
-  @impl Application
-  def init(_args) do
-    Logger.info("Starting Swai ACO Edge Application")
-    {:ok, nil}
+      {:error, {:already_started, pid}} ->
+        {:ok, pid}
+
+      {:error, reason} ->
+        Logger.error("Failed to start Edge.Application: #{inspect(reason)}")
+        {:error, reason}
+    end
   end
 
   @impl Application

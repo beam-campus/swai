@@ -20,9 +20,9 @@ defmodule SwaiWeb.EdgeChannel do
 
   alias Scape.Facts, as: ScapeFacts
   alias Hive.Facts, as: HiveFacts
+  alias Hive.Hopes, as: HiveHopes
 
   alias Edge.Init, as: EdgeInit
-  alias Scape.Init, as: ScapeInit
   alias Schema.SwarmLicense, as: SwarmLicense
 
   @hope_shout "hope:shout"
@@ -32,13 +32,13 @@ defmodule SwaiWeb.EdgeChannel do
   # @scape_attached_v1 Facts.scape_attached_v1()
   @edge_attached_v1 EdgeFacts.edge_attached_v1()
 
-  @start_scape_v1 EdgeHopes.start_scape_v1()
   @present_license_v1 EdgeHopes.present_license_v1()
 
   @initializing_scape_v1 ScapeFacts.initializing_scape_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
   @scape_started_v1 ScapeFacts.scape_started_v1()
   @scape_detached_v1 ScapeFacts.scape_detached_v1()
+  @reserve_license_v1 HiveHopes.reserve_license_v1()
 
   @hive_initialized_v1 HiveFacts.hive_initialized_v1()
   @hive_occupied_v1 HiveFacts.hive_occupied_v1()
@@ -161,28 +161,40 @@ defmodule SwaiWeb.EdgeChannel do
   ##################### IN HIVE INITIALIZED ########################
   @impl true
   def handle_in(@hive_initialized_v1, payload, socket) do
-    HiveDispatcher.pub_hive_initialized(payload, socket)
+    HiveDispatcher.pub_hive_initialized(payload)
     {:noreply, socket}
   end
 
   #################### IN HIVE OCCUPIED ###########################
   @impl true
   def handle_in(@hive_occupied_v1, payload, socket) do
-    HiveDispatcher.pub_hive_occupied(payload, socket)
+    HiveDispatcher.pub_hive_occupied(payload)
     {:noreply, socket}
   end
 
   ################### HIVE VACATED ###############################
   @impl true
   def handle_in(@hive_vacated_v1, payload, socket) do
-    HiveDispatcher.pub_hive_vacated(payload, socket)
+    HiveDispatcher.pub_hive_vacated(payload)
     {:noreply, socket}
+  end
+
+  ################### IN RESERVE LICENSE ##########################
+  @impl true
+  def handle_in(@reserve_license_v1, payload, socket) do
+    license = HiveDispatcher.try_reserve_license(payload)
+
+    {
+      :reply,
+      license,
+      socket
+    }
   end
 
   ########## IN HIVE ARENA INITIALIZED ##########################
   @impl true
   def handle_in(@hive_arena_initialized_v1, payload, socket) do
-    HiveDispatcher.pub_hive_arena_initialized(payload, socket)
+    HiveDispatcher.pub_hive_arena_initialized(payload)
     {:noreply, socket}
   end
 

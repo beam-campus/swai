@@ -14,8 +14,13 @@ defmodule Arena.Init do
   alias Schema.Vector, as: Vector
   alias Scape.Init, as: ScapeInit
   alias Arena.ArenaMap, as: ArenaMap
+  alias Swai.Defaults, as: Defaults
 
-  @default_dimensions %Vector{x: 800, y: 600, z: 0}
+  @hexa_size Defaults.arena_hexa_size()
+  @map_width Defaults.arena_width()
+  @map_height Defaults.arena_height()
+
+  @maze_density Defaults.arena_maze_density()
 
   @all_fields [
     :arena_id,
@@ -82,12 +87,28 @@ defmodule Arena.Init do
     end
   end
 
-  def new(%ScapeInit{} = scape_init) do
-    %ArenaInit{
-      arena_id: "arena-#{UUID.uuid4()}",
-      arena_map: %{},
-      dimensions: @default_dimensions
-    }
+  def new(%ScapeInit{hives_cap: hives_cap} = scape_init) do
+    seed =
+      %ArenaInit{
+        arena_id: "arena-#{UUID.uuid4()}",
+        arena_map:
+          ArenaMap.generate(
+            @map_width,
+            @map_height,
+            @hexa_size,
+            @maze_density,
+            hives_cap
+          ),
+        dimensions: ArenaMap.default_dimensions()
+      }
+
+    Logger.debug("ArenaInit.new seed: 
+
+      #{inspect(seed)}
+
+      ")
+
+    seed
     |> from_map(scape_init)
   end
 end

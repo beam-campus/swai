@@ -4,7 +4,7 @@ defmodule SwaiWeb.MarketplaceLive.BiotopeCard do
   """
   use SwaiWeb, :live_component
   alias Schema.Biotope, as: Biotope
-  alias Swai.Limits, as: Limits
+  alias Swai.Defaults, as: Limits
 
   require Logger
 

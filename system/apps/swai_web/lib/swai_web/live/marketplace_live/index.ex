@@ -1,5 +1,5 @@
 defmodule SwaiWeb.MarketplaceLive.Index do
-  alias Swai.Limits
+  alias Swai.Defaults, as: Limits
   alias Schema.SwarmLicense.Status
   use SwaiWeb, :live_view
 
@@ -11,7 +11,6 @@ defmodule SwaiWeb.MarketplaceLive.Index do
   alias Swai.Biotopes, as: Biotopes
   alias Schema.SwarmLicense, as: SwarmLicense
   alias TrainSwarmProc, as: TrainSwarmProc
-  alias Swai.Limits, as: Limits
 
   require Logger
 

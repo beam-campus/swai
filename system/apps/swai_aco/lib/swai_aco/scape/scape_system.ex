@@ -6,6 +6,8 @@ defmodule Scape.System do
 
   require Logger
   require Colors
+  require Process
+  require Task
 
   alias Scape.Emitter, as: ScapeEmitter
   alias Scape.Init, as: ScapeInit
@@ -33,17 +35,32 @@ defmodule Scape.System do
       ) do
     Process.flag(:trap_exit, true)
     ScapeEmitter.emit_initializing_scape(scape_init)
+
+    start_hives =
+      Task.async(fn ->
+        start_hives(scape_init)
+      end)
+
     {:ok, arena_init} = ArenaInit.new(scape_init)
 
-    Supervisor.start_link(
-      [{Arena.System, arena_init}],
-      strategy: :one_for_one,
-      name: via_sup(scape_id)
-    )
+    case Supervisor.start_link(
+           [
+             {Arena.System, arena_init}
+           ],
+           strategy: :one_for_one,
+           name: via_sup(scape_id)
+         ) do
+      {:ok, _pid} ->
+        Task.await(start_hives)
+        Logger.debug("Arena.System started: #{Colors.scape_theme(self())}")
+        {:ok, scape_init}
 
-    start_hives(scape_init)
+      {:error, reason} ->
+        Logger.error("Failed to start Arena.System: #{reason}")
+    end
+
     ScapeEmitter.emit_scape_initialized(scape_init)
-    Logger.debug("scape.system is up: #{Colors.scape_theme(self())} e")
+    Logger.debug("scape.system is up: #{Colors.scape_theme(self())}")
     {:ok, scape_init}
   end
 
@@ -76,6 +93,7 @@ defmodule Scape.System do
   end
 
   ###### CALLBACKS ############
+
   @impl GenServer
   def handle_cast({:start_hive, hive_no}, %ScapeInit{scape_id: scape_id} = scape_init) do
     {:ok, hive_init} =
@@ -92,13 +110,11 @@ defmodule Scape.System do
   @impl GenServer
   def handle_info(
         {:EXIT, from_pid, reason},
-        %ScapeInit{edge_id: edge_id} = scape_init
+        %ScapeInit{} = scape_init
       ) do
-    Logger.error(
+    Logger.info(
       "#{Colors.red_on_black()}EXIT received from #{inspect(from_pid)} reason: #{inspect(reason)}#{Colors.reset()}"
     )
-
-    ScapeEmitter.emit_scape_detached(scape_init)
 
     {:noreply, scape_init}
   end
@@ -110,32 +126,28 @@ defmodule Scape.System do
   end
 
   @impl GenServer
-  def terminate(
-        reason,
-        %ScapeInit{edge_id: edge_id} = scape_init
-      ) do
-    Logger.error(
+  def terminate(reason, scape_init) do
+    Logger.warning(
       "#{Colors.red_on_black()}Terminating Scape.System with reason: #{inspect(reason)}#{Colors.reset()}"
     )
 
     ScapeEmitter.emit_scape_detached(scape_init)
-
     {:ok, scape_init}
   end
 
-  ################# PLUMBIMG #####################
+  ## PLUMBIMG 
   def via(key),
-    do: EdgeRegistry.via_tuple({:scape_system, to_name(key)})
+    do: EdgeRegistry.via_tuple({:scape_sys, to_name(key)})
 
   def via_sup(key),
     do: EdgeRegistry.via_tuple({:scape_sup, to_name(key)})
 
   def to_name(key) when is_bitstring(key),
-    do: "scape.system.#{key}"
+    do: "scape.system:#{key}"
 
   def child_spec(%ScapeInit{scape_id: scape_id} = scape_init),
     do: %{
-      id: via(scape_id),
+      id: to_name(scape_id),
       start: {__MODULE__, :start, [scape_init]},
       type: :supervisor,
       restart: :transient,

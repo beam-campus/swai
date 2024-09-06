@@ -9,6 +9,8 @@ defmodule TrainSwarmProc.Facts do
   def license_activated, do: "swarm_license_activated"
   def license_deactivated, do: "swarm_license_deactivated"
   def license_blocked, do: "swarm_license_blocked"
+  def license_presented, do: "license_presented"
+
   def cache_facts, do: "swarm_licenses_cache_facts"
   def cache_updated_v1, do: "swarm_licenses_cache_updated_v1"
 end

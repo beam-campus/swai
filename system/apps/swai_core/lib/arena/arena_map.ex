@@ -8,31 +8,39 @@ defmodule Arena.ArenaMap do
 
   alias Arena.ArenaMap, as: ArenaMap
   alias Arena.Hexa, as: Hexa
+  alias Schema.Vector, as: Vector
+  alias Swai.Defaults, as: Defaults
+  alias Scape.Utils, as: ScapeUtils
 
-  @width 800
-  @height 600
-  @hexa_size 4
+  @map_width Defaults.arena_width()
+  @map_height Defaults.arena_height()
+  @map_hexa_size Defaults.arena_hexa_size()
+  @maze_density Defaults.arena_maze_density()
 
   @all_fields [
     :width,
     :height,
     :hexa_size,
+    :maze_density,
     :maze,
     :collectibles,
     :particles,
-    :threats
+    :threats,
+    :hives
   ]
 
   @primary_key false
   @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
-    field(:width, :integer, default: @width)
-    field(:height, :integer, default: @height)
-    field(:hexa_size, :integer, default: @hexa_size)
+    field(:width, :integer, default: @map_width)
+    field(:height, :integer, default: @map_height)
+    field(:hexa_size, :integer, default: @map_hexa_size)
+    field(:maze_density, :integer, default: @maze_density)
     field(:maze, :map, default: %{})
     field(:collectibles, :map, default: %{})
     field(:particles, :map, default: %{})
     field(:threats, :map, default: %{})
+    field(:hives, :map, default: %{})
   end
 
   def changeset(arena_map, attrs)
@@ -42,23 +50,51 @@ defmodule Arena.ArenaMap do
     |> validate_required(@all_fields)
   end
 
-  def generate(width, height, hexa_size, density) do
+  def generate(width, height, hexa_size, maze_density, hives_cap) do
     %ArenaMap{
       width: width,
       height: height,
-      hexa_size: hexa_size
+      hexa_size: hexa_size,
+      maze_density: maze_density
     }
-    |> initialize_map(density)
+    |> initialize_map(maze_density)
+    |> initialize_hives(hives_cap)
   end
 
-  def initialize_map(
-        %ArenaMap{
-          width: width,
-          height: height,
-          hexa_size: hexa_size
-        } = map,
-        density
-      ) do
+  defp initialize_hives(
+         %ArenaMap{} = map,
+         hives_cap
+       ) do
+    %ArenaMap{
+      map
+      | hives: generate_hives(hives_cap)
+    }
+  end
+
+  defp generate_hives(hives_cap) do
+    1..hives_cap
+    |> Enum.reduce(%{}, fn hive_no, acc ->
+      hexa = ScapeUtils.get_hive_hexa(hive_no)
+
+      acc
+      |> Map.put(
+        hexa,
+        %{
+          type: :hive,
+          color: :red
+        }
+      )
+    end)
+  end
+
+  defp initialize_map(
+         %ArenaMap{
+           width: width,
+           height: height,
+           hexa_size: hexa_size
+         } = map,
+         density
+       ) do
     %ArenaMap{
       map
       | maze: generate_maze(width, height, hexa_size, density)
@@ -83,7 +119,9 @@ defmodule Arena.ArenaMap do
     end
   end
 
-  def generate_maze(width, height, hexa_size, density) do
+  def default_dimensions, do: %Vector{x: 800, y: 600, z: 0}
+
+  defp generate_maze(width, height, hexa_size, density) do
     q_range = 0..div(width, hexa_size)
     r_range = 0..div(height, hexa_size)
 

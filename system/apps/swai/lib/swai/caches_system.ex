@@ -19,7 +19,7 @@ defmodule Swai.CachesSystem do
     Logger.info("Starting caches")
     Caches.edges() |> Cachex.start()
     Caches.scapes() |> Cachex.start()
-    # Caches.arenas() |> Cachex.start()
+    Caches.arenas() |> Cachex.start()
     Caches.hives() |> Cachex.start()
     Caches.licenses() |> Cachex.start()
     # Caches.swarms() |> Cachex.start()
@@ -35,8 +35,8 @@ defmodule Swai.CachesSystem do
       Edges.Service,
       Scapes.Service,
       {Licenses.Service, %{cache_file: @licenses_cache}},
-      {Hives.Service, %{cache_file: @hives_cache}}
-      #  {Arenas.Service, %{cache_file: @arenas_cache}}
+      {Hives.Service, %{cache_file: @hives_cache}},
+      {Arenas.Service, %{cache_file: @arenas_cache}}
     ]
 
     Supervisor.start_link(

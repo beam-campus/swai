@@ -47,8 +47,6 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
   @form_data "swarm_license"
 
   @license_id "license_id"
-  @status "status"
-  @status_string "status_string"
   @user_id "user_id"
   @algorithm_id "algorithm_id"
   @algorithm_name "algorithm_name"
@@ -60,13 +58,7 @@ defmodule SwaiWeb.MarketplaceLive.RequestLicenseToSwarmForm do
   @tags "tags"
   @swarm_id "swarm_id"
   @swarm_name "swarm_name"
-  @swarm_size "swarm_size"
-  @swarm_time_min "swarm_time_min"
-  @cost_in_tokens "cost_in_tokens"
-  @tokens_used "tokens_used"
-  @run_time_sec "run_time_sec"
   @available_tokens "available_tokens"
-  @tokens_balance "tokens_balance"
   @dimensions "dimensions"
   @boundaries "boundaries"
 

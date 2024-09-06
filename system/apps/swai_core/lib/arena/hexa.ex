@@ -7,6 +7,9 @@ defmodule Arena.Hexa do
 
   alias Arena.Hexa, as: Hexa
 
+  require Logger
+  require Jason.Encoder
+
   @directions %{
     west: {-1, 0},
     northwest: {0, -1},
@@ -18,8 +21,10 @@ defmodule Arena.Hexa do
     southwest: {-1, 0}
   }
 
+  @all_fields [:q, :r]
+
   @primary_key false
-  @derive {Jason.Encoder, only: [:q, :r]}
+  @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
     field(:q, :integer)
     field(:r, :integer)
@@ -28,8 +33,8 @@ defmodule Arena.Hexa do
   def changeset(hexa, attrs)
       when is_map(attrs) do
     hexa
-    |> cast(attrs, [:q, :r])
-    |> validate_required([:q, :r])
+    |> cast(attrs, @all_fields)
+    |> validate_required(@all_fields)
   end
 
   def changeset(hexa, attrs)
@@ -49,6 +54,8 @@ defmodule Arena.Hexa do
   def new(q, r) do
     %Hexa{q: q, r: r}
   end
+
+  def cartesian_to_axial(nil, _), do: nil
 
   @doc """
   Converts Cartesian coordinates (x, y) to axial coordinates (q, r).
@@ -73,6 +80,8 @@ defmodule Arena.Hexa do
 
     %{q: round(q), r: round(r)}
   end
+
+  def axial_to_cartesian(nil), do: nil
 
   @doc """
   Converts axial coordinates (q, r) to Cartesian coordinates (x, y).

@@ -1,6 +1,6 @@
 defmodule Swai.Registry do
   @moduledoc """
-  Registry is a simple key-value store that allows processes to be registered
+  Swai.Registry is a simple key-value store that allows processes to be registered
   """
   ############ INTERFACE ###########
   def register(key, pid),

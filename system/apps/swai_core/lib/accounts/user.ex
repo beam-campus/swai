@@ -3,7 +3,7 @@ defmodule Schema.User do
   use Ecto.Schema
 
   import Ecto.Changeset
-  alias Swai.Limits, as: Limits
+  alias Swai.Defaults, as: Limits
 
   @all_fields [
     :email,

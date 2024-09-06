@@ -1,6 +1,5 @@
 defmodule SwaiWeb.HiveDispatcher do
   @moduledoc false
-  alias SwaiWeb.HiveDispatcher
   alias Commanded.PubSub
 
   require Logger
@@ -9,6 +8,7 @@ defmodule SwaiWeb.HiveDispatcher do
   alias Hive.Facts, as: HiveFacts
   alias Swai.PubSub, as: SwaiPubSub
   alias Hive.Init, as: HiveInit
+  alias Licenses.Service, as: Licenses
 
   @hive_facts HiveFacts.hive_facts()
   @hive_initialized_v1 HiveFacts.hive_initialized_v1()
@@ -16,8 +16,20 @@ defmodule SwaiWeb.HiveDispatcher do
   @hive_vacated_v1 HiveFacts.hive_vacated_v1()
   @hive_arena_initialized_v1 HiveFacts.hive_arena_initialized_v1()
 
+  ## Reserve a license for a hive
+  def try_reserve_license(envelope) do
+    case HiveInit.from_map(%HiveInit{}, envelope["hive_init"]) do
+      {:ok, hive_init} ->
+        Licenses.try_reserve_license(hive_init)
+
+      {:error, changeset} ->
+        Logger.error("invalid envelope, reason: #{inspect(changeset)}")
+        {:error, changeset}
+    end
+  end
+
   ######## HIVE INITIALIZED ########
-  def pub_hive_initialized(envelope, socket) do
+  def pub_hive_initialized(envelope) do
     case HiveInit.from_map(%HiveInit{}, envelope["hive_init"]) do
       {:ok, hive_init} ->
         SwaiPubSub
@@ -30,7 +42,7 @@ defmodule SwaiWeb.HiveDispatcher do
   end
 
   ######## HIVE OCCUPIED ########
-  def pub_hive_occupied(envelope, socket) do
+  def pub_hive_occupied(envelope) do
     case HiveInit.from_map(%HiveInit{}, envelope["hive_init"]) do
       {:ok, hive_init} ->
         SwaiPubSub
@@ -43,7 +55,7 @@ defmodule SwaiWeb.HiveDispatcher do
   end
 
   ######## HIVE VACATED ########
-  def pub_hive_vacated(envelope, socket) do
+  def pub_hive_vacated(envelope) do
     case HiveInit.from_map(%HiveInit{}, envelope["hive_init"]) do
       {:ok, hive_init} ->
         SwaiPubSub
@@ -56,7 +68,7 @@ defmodule SwaiWeb.HiveDispatcher do
   end
 
   ######## HIVE ARENA INITIALIZED ########
-  def pub_hive_arena_initialized(envelope, socket) do
+  def pub_hive_arena_initialized(envelope) do
     case HiveInit.from_map(%HiveInit{}, envelope["hive_init"]) do
       {:ok, hive_init} ->
         SwaiPubSub

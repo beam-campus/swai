@@ -34,33 +34,18 @@ defmodule Arena.System do
   @impl true
   def init(
         %ArenaInit{
-          scape_id: scape_id,
           scape_name: scape_name
         } = arena_init
       ) do
     Process.flag(:trap_exit, true)
 
-    GenServer.cast(
-      via(scape_id),
-      {:build_arena, arena_init}
-    )
-
     Process.send_after(self(), :TICK, round(1_000 / @freq_hz))
 
     ArenaEmitter.emit_arena_initialized(arena_init)
 
-    Logger.debug("Arena for [#{scape_name}] is up => #{Colors.arena_theme(self())}")
+    Logger.debug("Arena for Scape [#{scape_name}] is up => #{Colors.arena_theme(self())}")
 
     {:ok, arena_init}
-  end
-
-  ####################### BUILD ARENA #######################
-  @impl true
-  def handle_cast({:build_arena, %ArenaInit{scape_id: scape_id} = arena_init}, state) do
-    Logger.warning("TODO: Implement Arena Building logic...")
-    # TODO: Build the arena
-
-    {:noreply, state}
   end
 
   ####################### HEARTBEAT #######################
@@ -78,10 +63,10 @@ defmodule Arena.System do
 
   ################### PLUMBING ###################
   def to_name(key),
-    do: "#{__MODULE__}.#{key}"
+    do: "arena.system:#{key}"
 
   def via(key),
-    do: SwaiRegistry.via_tuple({__MODULE__, to_name(key)})
+    do: SwaiRegistry.via_tuple({:arena, to_name(key)})
 
   def via_sup(key),
     do: SwaiRegistry.via_tuple({:arena_sup, to_name(key)})

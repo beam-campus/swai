@@ -1,0 +1,24 @@
+defmodule Scape.Utils do
+  @moduledoc """
+  ScapeUtils contains utility functions for the Scape subsystem.
+  """
+  alias Schema.Vector, as: Vector
+  alias Arena.Hexa, as: Hexa
+  alias Swai.Defaults, as: Defaults
+
+  @width Defaults.arena_width()
+  @height Defaults.arena_height()
+  @offset Defaults.arena_hive_offset()
+  @hexa_size Defaults.arena_hexa_size()
+
+  def get_hive_location(1), do: %Vector{x: @offset, y: @offset, z: 0}
+  def get_hive_location(2), do: %Vector{x: @width - @offset, y: @offset, z: 0}
+  def get_hive_location(3), do: %Vector{x: @width - @offset, y: @height - @offset, z: 0}
+  def get_hive_location(4), do: %Vector{x: @offset, y: @height - @offset, z: 0}
+  def get_hive_location(5), do: %Vector{x: round(@width / 2), y: @offset, z: 0}
+  def get_hive_location(6), do: %Vector{x: round(@width / 2), y: @height - @offset, z: 0}
+  def get_hive_location(_), do: nil
+
+  def get_hive_hexa(n),
+    do: Hexa.cartesian_to_axial(get_hive_location(n), @hexa_size)
+end

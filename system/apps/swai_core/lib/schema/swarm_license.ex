@@ -6,9 +6,9 @@ defmodule Schema.SwarmLicense do
   import Ecto.Changeset
 
   alias Schema.Vector, as: Vector
-  alias Swai.Limits, as: Limits
+  alias Swai.Defaults, as: Defaults
 
-  @standard_cost_in_tokens Limits.standard_cost_in_tokens()
+  @standard_cost_in_tokens Defaults.standard_cost_in_tokens()
 
   defmodule Status do
     @moduledoc """
@@ -23,7 +23,7 @@ defmodule Schema.SwarmLicense do
     def license_inactive, do: 8
     def license_paid, do: 16
     def license_blocked, do: 32
-    def license_status_reserved_1, do: 64
+    def license_reserved, do: 64
     def license_status_reserved_2, do: 128
     def license_queued, do: 256
 
@@ -32,8 +32,8 @@ defmodule Schema.SwarmLicense do
     def scape_cancelled, do: 2048
     def scape_completed, do: 4096
     def scape_detached, do: 8192
-    def scape_initializing, do: 16384
-    def scape_initialized, do: 32768
+    def scape_initializing, do: 16_384
+    def scape_initialized, do: 32_768
 
     def map,
       do: %{
@@ -45,6 +45,7 @@ defmodule Schema.SwarmLicense do
         license_paid() => "paid",
         license_blocked() => "blocked",
         license_queued() => "queued",
+        license_reserved() => "reserved",
         scape_started() => "started",
         scape_paused() => "paused",
         scape_cancelled() => "cancelled",
@@ -60,6 +61,7 @@ defmodule Schema.SwarmLicense do
         license_paid() => "bg-green-500 text-white",
         license_blocked() => "bg-orange-500 text-white",
         license_queued() => "bg-blue-200 text-white",
+        license_reserved() => "bg-orange-500 text-white",
         scape_started() => "bg-blue-500 text-white",
         scape_paused() => "bg-orange-200 text-white",
         scape_cancelled() => "bg-red-500 text-white",
@@ -75,12 +77,8 @@ defmodule Schema.SwarmLicense do
     def decompose(status), do: Flags.decompose(status)
   end
 
-  alias Schema.Vector
   alias Schema.SwarmLicense, as: SwarmLicense
-
   alias Schema.SwarmLicense.Status, as: Status
-  alias Edge.Init, as: EdgeInit
-  alias Scape.Boundaries, as: ScapeBoundaries
 
   @all_fields [
     :license_id,
@@ -173,9 +171,9 @@ defmodule Schema.SwarmLicense do
   end
 
   defp calculate_cost_in_tokens(%Ecto.Changeset{} = changeset) do
-    new_license =
-      changeset
-      |> apply_changes()
+    #    new_license =
+    #  changeset
+    #  |> apply_changes()
 
     new_cost = @standard_cost_in_tokens
 
