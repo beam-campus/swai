@@ -10,9 +10,6 @@ defmodule Feature.Init do
   require Logger
   require Jason.Encoder
 
-  alias Feature.Init, as: FeatureInit
-  alias Schema.Vector, as: Vector
-
   @all_fields [
     :id,
     :name,
@@ -26,25 +23,12 @@ defmodule Feature.Init do
     :opacity,
     :size,
     :shape,
-    :position,
     :features
   ]
 
-  @flat_fields [
-    :id,
-    :name,
-    :description,
+  @required_fields [
     :type,
-    :tags,
-    :image_url,
-    :orientation,
-    :scale,
-    :color,
-    :opacity,
-    :size,
-    :shape,
-    :material,
-    :texture
+    :color
   ]
 
   @primary_key false
@@ -62,20 +46,18 @@ defmodule Feature.Init do
     field(:opacity, :float)
     field(:size, :float)
     field(:shape, :string)
-    embeds_many(:features, FeatureInit)
-    embeds_one(:position, Vector)
+    field(:features, :map, default: %{})
   end
 
   def changeset(seed, struct)
       when is_struct(struct),
       do: changeset(seed, Map.from_struct(struct))
 
-  def changeset(feature, args)
+  def changeset(seed, args)
       when is_map(args) do
-    feature
+    seed
     |> cast(args, @all_fields)
-    |> cast_embed(:position, with: &Vector.changeset/2)
-    |> cast_embed(:features, with: &FeatureInit.changeset/2)
+    |> validate_required(@required_fields)
   end
 
   def from_map(seed, struct)

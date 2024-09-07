@@ -6,6 +6,8 @@ defmodule Scape.Utils do
   alias Arena.Hexa, as: Hexa
   alias Swai.Defaults, as: Defaults
 
+  require Logger
+
   @width Defaults.arena_width()
   @height Defaults.arena_height()
   @offset Defaults.arena_hive_offset()
@@ -19,6 +21,16 @@ defmodule Scape.Utils do
   def get_hive_location(6), do: %Vector{x: round(@width / 2), y: @height - @offset, z: 0}
   def get_hive_location(_), do: nil
 
-  def get_hive_hexa(n),
-    do: Hexa.cartesian_to_axial(get_hive_location(n), @hexa_size)
+  def get_hive_hexa(n) do
+    map = Hexa.cartesian_to_axial(get_hive_location(n), @hexa_size)
+
+    case Hexa.from_map(%Hexa{}, map) do
+      {:ok, hexa} ->
+        hexa
+
+      {:error, changeset} ->
+        Logger.error("Failed to get hive hexa: #{inspect(changeset)}")
+        nil
+    end
+  end
 end

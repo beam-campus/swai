@@ -68,16 +68,10 @@ defmodule Edge.System do
   def init(%{edge_id: edge_id} = edge_init) do
     Process.flag(:trap_exit, true)
 
-    #    EdgePubSub
-    # |> PubSub.subscribe(@edge_facts)
+    EdgePubSub
+    |> PubSub.subscribe(@edge_facts)
 
-    #    EdgeEmitter.emit_initializing_edge(edge_init)
-
-    # start_scapes =
-    #   Task.async(fn ->
-    #     start_scapes(edge_init)
-    #   end)
-    #
+    EdgeEmitter.emit_initializing_edge(edge_init)
 
     case Supervisor.start_link(
            [],
@@ -85,7 +79,7 @@ defmodule Edge.System do
            strategy: :one_for_one
          ) do
       {:ok, pid} ->
-        #        Task.await(start_scapes, 10_000)
+        start_scapes(edge_init)
         {:ok, pid}
 
       {:error, reason} ->
@@ -93,7 +87,7 @@ defmodule Edge.System do
         {:stop, reason}
     end
 
-    # EdgeEmitter.emit_edge_initialized(edge_init)
+    EdgeEmitter.emit_edge_initialized(edge_init)
     {:ok, edge_init}
   end
 

@@ -11,7 +11,6 @@ defmodule Scape.System do
 
   alias Scape.Emitter, as: ScapeEmitter
   alias Scape.Init, as: ScapeInit
-  alias Swai.Registry, as: EdgeRegistry
   alias Arena.Init, as: ArenaInit
   alias Hive.Init, as: HiveInit
 
@@ -137,10 +136,10 @@ defmodule Scape.System do
 
   ## PLUMBIMG 
   def via(key),
-    do: EdgeRegistry.via_tuple({:scape_sys, to_name(key)})
+    do: Swai.Registry.via_tuple({:scape_sys, to_name(key)})
 
   def via_sup(key),
-    do: EdgeRegistry.via_tuple({:scape_sup, to_name(key)})
+    do: Swai.Registry.via_tuple({:scape_sup, to_name(key)})
 
   def to_name(key) when is_bitstring(key),
     do: "scape.system:#{key}"

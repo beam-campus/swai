@@ -135,6 +135,8 @@ defmodule Edge.Client do
 
     edge_init = socket.assigns.edge_init
 
+    SwaiAco.EdgeApp.start_edge(edge_init)
+
     # socket
     # |> push!(@edge_lobby, @edge_attached_v1, %{edge_init: edge_init})
     #

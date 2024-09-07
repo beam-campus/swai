@@ -11,6 +11,7 @@ defmodule Arena.ArenaMap do
   alias Schema.Vector, as: Vector
   alias Swai.Defaults, as: Defaults
   alias Scape.Utils, as: ScapeUtils
+  alias Feature.Init, as: Feature
 
   @map_width Defaults.arena_width()
   @map_height Defaults.arena_height()
@@ -36,11 +37,11 @@ defmodule Arena.ArenaMap do
     field(:height, :integer, default: @map_height)
     field(:hexa_size, :integer, default: @map_hexa_size)
     field(:maze_density, :integer, default: @maze_density)
-    field(:maze, :map, default: %{})
-    field(:collectibles, :map, default: %{})
-    field(:particles, :map, default: %{})
-    field(:threats, :map, default: %{})
-    field(:hives, :map, default: %{})
+    field(:maze, {:array, :map}, default: [])
+    field(:collectibles, {:array, :map}, default: [])
+    field(:particles, {:array, :map}, default: [])
+    field(:threats, {:array, :map}, default: [])
+    field(:hives, {:array, :map}, default: [])
   end
 
   def changeset(arena_map, attrs)
@@ -73,17 +74,17 @@ defmodule Arena.ArenaMap do
 
   defp generate_hives(hives_cap) do
     1..hives_cap
-    |> Enum.reduce(%{}, fn hive_no, acc ->
+    |> Enum.reduce([], fn hive_no, acc ->
       hexa = ScapeUtils.get_hive_hexa(hive_no)
 
-      acc
-      |> Map.put(
-        hexa,
-        %{
-          type: :hive,
-          color: :red
-        }
-      )
+      acc =
+        acc ++
+          %{
+            hexa => %Feature{
+              type: "hive",
+              color: "red"
+            }
+          }
     end)
   end
 
@@ -109,13 +110,16 @@ defmodule Arena.ArenaMap do
     circ_rand = :rand.uniform(2 * (width + height))
 
     if rem(area, circ_rand) < density do
-      acc
-      |> Map.put(hexa, %{
-        type: :wall,
-        color: :black
-      })
-    else
-      acc
+      new_acc =
+        acc ++
+          %{
+            hexa => %Feature{
+              type: "wall",
+              color: "black"
+            }
+          }
+
+      new_acc
     end
   end
 
@@ -125,7 +129,7 @@ defmodule Arena.ArenaMap do
     q_range = 0..div(width, hexa_size)
     r_range = 0..div(height, hexa_size)
 
-    Enum.reduce(q_range, %{}, fn q, acc ->
+    Enum.reduce(q_range, [], fn q, acc ->
       Enum.reduce(r_range, acc, fn r, acc_inner ->
         hexa = Hexa.new(q, r)
 

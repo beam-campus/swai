@@ -73,7 +73,7 @@ defmodule SwaiAco.EdgeApp do
            strategy: :one_for_one
          ) do
       {:ok, pid} ->
-        start_edge(edge_init)
+        #        start_edge(edge_init)
         {:ok, pid}
 
       {:error, {:already_started, pid}} ->
