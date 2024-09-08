@@ -13,7 +13,14 @@ defmodule Hive.System do
   require Logger
   require Colors
 
-  @freq_hz Settings.model_frequency_hz() / 10
+  @freq_hz Settings.model_frequency_hz() / 30
+
+  def accept_license(hive_id, license) do
+    GenServer.cast(
+      via(hive_id),
+      {:accept_license, license}
+    )
+  end
 
   ## Get the swarm of particles
   def get_particles(hive_id) do
@@ -64,13 +71,48 @@ defmodule Hive.System do
       strategy: :one_for_one
     )
 
-    Process.send_after(self(), :TICK, round(1_000 / @freq_hz))
     Logger.debug("hive[#{scape_name}][#{hive_no}] is up => #{Colors.particle_theme(self())}")
 
     HiveEmitter.emit_hive_initialized(hive_init)
 
+    Process.send_after(self(), :TICK, round(1_000 / @freq_hz))
+
     {:ok, hive_init}
   end
+
+  #################### HANDLE CAST ####################
+  ## Accept License
+  @impl true
+  def handle_cast(
+        {:accept_license,
+         %License{
+           license_id: license_id
+         } = license},
+        %HiveInit{
+          hive_id: hive_id,
+          license_id: nil,
+          license: nil
+        } = state
+      ) do
+    Logger.info("Accepting license: #{inspect(license)}")
+
+    new_state = %HiveInit{
+      state
+      | license_id: license_id,
+        license: license
+    }
+
+    HiveEmitter.emit_hive_occupied(state)
+    {:noreply, state}
+  end
+
+  ## Handle Cast Fallthrough
+  @impl true
+  def handle_cast(_, state) do
+    {:noreply, state}
+  end
+
+  #################### HANDLE INFO ####################
 
   ## SPAWN PARTICLES
 
@@ -78,33 +120,16 @@ defmodule Hive.System do
 
   ################### TICK   ##############################
   @impl true
-  def handle_info(:TICK, %HiveInit{license_id: nil} = state) do
-    new_state =
-      case HiveEmitter.try_reserve_license(state) do
-        %License{license_id: license_id} = license ->
-          new_state =
-            %HiveInit{
-              state
-              | license_id: license_id,
-                license: Map.from_struct(license)
-            }
-
-          HiveEmitter.emit_hive_occupied(new_state)
-          new_state
-
-        _ ->
-          state
-      end
-
+  def handle_info(:TICK, %HiveInit{license_id: nil, license: nil} = state) do
+    HiveEmitter.emit_hive_vacated(state)
     Process.send_after(self(), :TICK, round(1_000 / @freq_hz))
-    {:noreply, new_state}
+    {:noreply, state}
   end
 
   @impl true
   def handle_info(:TICK, %HiveInit{hive_id: hive_id} = state) do
     new_state =
-      if count_particles(hive_id) == 0 do
-        HiveEmitter.emit_hive_vacated(state)
+      if count_particles(hive_id) <= 0 do
         %HiveInit{state | license_id: nil, license: nil}
       else
         state

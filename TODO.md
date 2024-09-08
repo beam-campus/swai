@@ -1,5 +1,15 @@
 # Swarm Wars TO DO List
 
+
+## Shared (Swai.Core)
+
+### Facts
+- [ ] LicenseReserved fact
+
+### Hopes
+- [ ] ReserveLicense hope
+
+
 ## Backend
 
 ### Edges Service
@@ -18,6 +28,8 @@
 ### License Service
 - [ ] Refactor licenses_service into smaller services (it is getting too big)
 
+### TrainSwarm Process
+- [ ] Implement ReserveLicense command
 
 
 ## Edge

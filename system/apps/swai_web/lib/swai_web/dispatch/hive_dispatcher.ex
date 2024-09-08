@@ -14,17 +14,18 @@ defmodule SwaiWeb.HiveDispatcher do
   @hive_initialized_v1 HiveFacts.hive_initialized_v1()
   @hive_occupied_v1 HiveFacts.hive_occupied_v1()
   @hive_vacated_v1 HiveFacts.hive_vacated_v1()
-  @hive_arena_initialized_v1 HiveFacts.hive_arena_initialized_v1()
 
   ## Reserve a license for a hive
   def try_reserve_license(envelope) do
+    Logger.alert("HiveDispatcher.try_reserve_license: #{inspect(envelope)}")
+
     case HiveInit.from_map(%HiveInit{}, envelope["hive_init"]) do
       {:ok, hive_init} ->
         Licenses.try_reserve_license(hive_init)
 
       {:error, changeset} ->
         Logger.error("invalid envelope, reason: #{inspect(changeset)}")
-        {:error, changeset}
+        nil
     end
   end
 
@@ -60,19 +61,6 @@ defmodule SwaiWeb.HiveDispatcher do
       {:ok, hive_init} ->
         SwaiPubSub
         |> PubSub.broadcast!(@hive_facts, {@hive_vacated_v1, hive_init})
-
-      {:error, changeset} ->
-        Logger.error("invalid envelope, reason: #{inspect(changeset)}")
-        {:error, changeset}
-    end
-  end
-
-  ######## HIVE ARENA INITIALIZED ########
-  def pub_hive_arena_initialized(envelope) do
-    case HiveInit.from_map(%HiveInit{}, envelope["hive_init"]) do
-      {:ok, hive_init} ->
-        SwaiPubSub
-        |> PubSub.broadcast!(@hive_facts, {@hive_arena_initialized_v1, hive_init})
 
       {:error, changeset} ->
         Logger.error("invalid envelope, reason: #{inspect(changeset)}")

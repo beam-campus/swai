@@ -102,12 +102,6 @@ defmodule Arena.Init do
         dimensions: ArenaMap.default_dimensions()
       }
 
-    Logger.debug("ArenaInit.new seed: 
-
-      #{inspect(seed)}
-
-      ")
-
     seed
     |> from_map(scape_init)
   end

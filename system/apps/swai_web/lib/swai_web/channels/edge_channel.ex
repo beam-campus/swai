@@ -14,6 +14,7 @@ defmodule SwaiWeb.EdgeChannel do
   alias SwaiWeb.ScapeDispatcher, as: ScapeDispatcher
   alias SwaiWeb.Dispatch.ChannelWatcher
   alias SwaiWeb.HiveDispatcher, as: HiveDispatcher
+  alias SwaiWeb.ArenaDispatcher, as: ArenaDispatcher
 
   alias Edge.Facts, as: EdgeFacts
   alias Edge.Hopes, as: EdgeHopes
@@ -21,6 +22,9 @@ defmodule SwaiWeb.EdgeChannel do
   alias Scape.Facts, as: ScapeFacts
   alias Hive.Facts, as: HiveFacts
   alias Hive.Hopes, as: HiveHopes
+  alias Hive.Init, as: HiveInit
+  alias Arena.Facts, as: ArenaFacts
+  alias Arena.Init, as: ArenaInit
 
   alias Edge.Init, as: EdgeInit
   alias Schema.SwarmLicense, as: SwarmLicense
@@ -43,16 +47,25 @@ defmodule SwaiWeb.EdgeChannel do
   @hive_initialized_v1 HiveFacts.hive_initialized_v1()
   @hive_occupied_v1 HiveFacts.hive_occupied_v1()
   @hive_vacated_v1 HiveFacts.hive_vacated_v1()
-  @hive_arena_initialized_v1 HiveFacts.hive_arena_initialized_v1()
+
+  @arena_initialized_v1 ArenaFacts.arena_initialized_v1()
 
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
   @edge_lobby "edge:lobby"
 
-  def queue_license(%EdgeInit{socket: edge_socket}, %SwarmLicense{} = license) do
-    Logger.info("EdgeChannel.present_license: #{inspect(license)}")
+  ################# QUEUE LICENSE  ################
+  def queue_license(
+        %SwarmLicense{} = license,
+        %EdgeInit{socket: edge_socket},
+        %HiveInit{hive_id: hive_id}
+      ) do
+    Logger.info("EdgeChannel.present_license: #{inspect(license)} to #{hive_id}")
 
     edge_socket
-    |> push(@present_license_v1, license)
+    |> push(@present_license_v1, %{
+      license: license,
+      hive_id: hive_id
+    })
   end
 
   ################ CALLBACKS ################
@@ -183,18 +196,13 @@ defmodule SwaiWeb.EdgeChannel do
   @impl true
   def handle_in(@reserve_license_v1, payload, socket) do
     license = HiveDispatcher.try_reserve_license(payload)
-
-    {
-      :reply,
-      license,
-      socket
-    }
+    {:reply, license, socket}
   end
 
   ########## IN HIVE ARENA INITIALIZED ##########################
   @impl true
-  def handle_in(@hive_arena_initialized_v1, payload, socket) do
-    HiveDispatcher.pub_hive_arena_initialized(payload)
+  def handle_in(@arena_initialized_v1, payload, socket) do
+    ArenaDispatcher.pub_arena_initialized(payload)
     {:noreply, socket}
   end
 

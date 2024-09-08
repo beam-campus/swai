@@ -12,7 +12,6 @@ defmodule Edge.Client do
   alias Swai.Registry, as: EdgeRegistry
   alias Edge.System, as: EdgeServer
   alias Edge.Init, as: EdgeInit
-  alias Edge.PubSub, as: EdgePubSub
   alias Phoenix.PubSub, as: PubSub
 
   @edge_lobby "edge:lobby"
@@ -26,7 +25,7 @@ defmodule Edge.Client do
 
   ############# API ################
   def publish(edge_id, event, payload) do
-    Logger.warning("Edge.Client publish:  #{inspect(event)}")
+    # Logger.warning("Edge.Client publish:  #{inspect(event)}")
 
     GenServer.cast(
       via(edge_id),
@@ -35,26 +34,36 @@ defmodule Edge.Client do
   end
 
   def request(edge_id, hope, payload) do
-    Logger.warning("Edge.Client request:  #{inspect(hope)}")
+    # Logger.warning("Edge.Client request:  #{inspect(hope)}")
 
-    GenServer.call(
-      via(edge_id),
-      {:request, @edge_lobby, hope, payload}
-    )
+    case GenServer.call(
+           via(edge_id),
+           {:request, @edge_lobby, hope, payload}
+         ) do
+      {:ok, reply} ->
+        {:ok, reply}
+
+      {:error, _reason} ->
+        {:ok, nil}
+    end
   end
 
   ############# CALLBACKS ################
   @impl Slipstream
   def handle_call({:request, topic, hope, payload}, _from, socket) do
-    Logger.warning("Edge.Client request:  #{inspect(hope)}")
-
-    {:ok, push_ref} =
-      socket
-      |> push!(topic, hope, payload)
-
     resp =
-      push_ref
-      |> await_reply!(1_000)
+      case socket
+           |> push!(topic, hope, payload) do
+        {:ok, push_ref} ->
+          push_ref
+          |> await_reply!(1_000)
+
+        {:error, reason} ->
+          {:error, reason}
+
+        _msg ->
+          {:error, :unknown}
+      end
 
     {:reply, resp, socket}
   end
@@ -68,26 +77,14 @@ defmodule Edge.Client do
   end
 
   @impl Slipstream
-  def init(
-        %{
-          edge_init: %{
-            edge_id: edge_id,
-            scapes_cap: scapes_cap,
-            hives_cap: hives_cap
-          }
-        } = args
-      ) do
+  def init(%{edge_init: edge_init, config: config}) do
     {:ok, socket} =
       new_socket()
-      |> assign(:edge_init, args.edge_init)
-      |> assign(:config, args.config)
-      |> connect(args.config)
+      |> assign(:edge_init, edge_init)
+      |> assign(:config, config)
+      |> connect(config)
 
-    Logger.warning("Edge.Client init: #{inspect(socket)}")
-
-    Logger.info(
-      "Edge.Client is up: edge_id #{edge_id}, scapes_cap #{scapes_cap}, hives_cap #{hives_cap}"
-    )
+    Logger.info("Edge.Client is up")
 
     {:ok, socket, {:continue, :start_ping}}
   end
@@ -105,11 +102,6 @@ defmodule Edge.Client do
 
   @impl Slipstream
   def handle_join(@edge_lobby, join_response, socket) do
-    Logger.debug("Edge.Client handle join: #{@edge_lobby} #{inspect(join_response)}")
-
-    # socket
-    # |> push(@edge_lobby, @edge_attached_v1, %{edge_init: socket.assigns.edge_init})
-
     Process.send_after(self(), {:after_join, join_response}, 1_000)
     {:ok, socket}
   end
@@ -137,39 +129,31 @@ defmodule Edge.Client do
 
     SwaiAco.EdgeApp.start_edge(edge_init)
 
-    # socket
-    # |> push!(@edge_lobby, @edge_attached_v1, %{edge_init: edge_init})
-    #
-    # EdgePubSub
-    # |> PubSub.broadcast(
-    #   @edge_facts,
-    #   {@edge_attached_v1, edge_init}
-    # )
+    socket
+    |> push!(@edge_lobby, @edge_attached_v1, %{edge_init: edge_init})
+
+    :edge_pubsub
+    |> PubSub.broadcast(@edge_facts, {@edge_attached_v1, edge_init})
 
     {:noreply, socket}
   end
 
   @impl Slipstream
   def handle_info({@presence_changed_v1, presence_list}, socket) do
-    Logger.debug("Edge.Client received: [#{@presence_changed_v1}] \n #{inspect(presence_list)}")
+    :edge_pubsub
+    |> PubSub.broadcast(@edge_facts, {@presence_changed_v1, presence_list})
+
     {:noreply, socket}
   end
 
   @impl Slipstream
   def handle_info(_msg, socket) do
-    # Logger.debug("Edge.Client received: #{inspect(msg)}")
     {:noreply, socket}
   end
 
   @impl Slipstream
   def handle_message(room, message, params, socket) do
-    # Logger.warning("Edge.Client received:
-    # room: #{inspect(room)}
-    # msg: #{inspect(message)}
-    # params: #{inspect(params)}")
-
     EdgeServer.process_message(room, {message, params})
-
     {:ok, socket}
   end
 

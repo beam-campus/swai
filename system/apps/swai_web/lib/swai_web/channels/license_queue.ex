@@ -22,60 +22,46 @@ defmodule SwaiWeb.LicenseQueue do
     {:ok, []}
   end
 
-  # defp try_present_license(license) do
-  #   Logger.warning("
-  #     ***** WARNING *****
-  #     Automatic License presentation is disabled!
-  #     The mechanism has changed.
-  #     Implement edge/backend logic first!
-  #     ***** WARNING *****
-  #
-  #     License:
-  #
-  #     #{inspect(license)}
-  #
-  #     ***** WARNING *****")
-  #
-  #   case Hives.get_candidates_for_license(license) do
-  #     [] ->
-  #       Logger.warning("No candidates for license: #{inspect(license)}")
-  #
-  #     candidates ->
-  #       Logger.debug("Candidates for license: #{inspect(candidates)}")
-  #
-  #       candidates
-  #       |> Enum.random()
-  #       |> EdgeChannel.queue_license(license)
-  #   end
-  #
-  #   #    case Edges.get_candidates_for_biotope(license.biotope_id) do
-  #   #      [] ->
-  #   #        "no candidates"
-  #   #
-  #   #      edges ->
-  #   #          edges
-  #   #          |> Enum.random()
-  #   #          |> EdgeChannel.queue_license(license)
-  #   #    end
-  # end
+  defp try_present_license(license) do
+    case Hives.get_candidates_for_license(license) do
+      [] ->
+        Logger.warning("No candidates for license: #{inspect(license)}")
+
+      candidates ->
+        Logger.debug("Candidates for license: #{inspect(candidates)}")
+
+        candidates
+        |> Enum.random()
+        |> EdgeChannel.queue_license(license)
+    end
+
+    #    case Edges.get_candidates_for_biotope(license.biotope_id) do
+    #      [] ->
+    #        "no candidates"
+    #
+    #      edges ->
+    #          edges
+    #          |> Enum.random()
+    #          |> EdgeChannel.queue_license(license)
+    #    end
+  end
 
   ################# POP_QUEUE #####################
-  # @impl true
-  # def handle_info(:pop_queue, state) do
-  #   state =
-  #     case Licenses.get_all_queued_or_paused() do
-  #       [] ->
-  #         state
-  #
-  #       queued ->
-  #         queued
-  #         |> Enum.map(&try_present_license/1)
-  #     end
-  #
-  #   #    Process.send_after(self(), :pop_queue, 10_000)
-  #   {:noreply, state}
-  # end
-  #
+  @impl true
+  def handle_info(:pop_queue, state) do
+    state =
+      case Licenses.get_all_queued_or_paused() do
+        [] ->
+          state
+
+        queued ->
+          queued
+          |> Enum.map(&try_present_license/1)
+      end
+
+    Process.send_after(self(), :pop_queue, 10_000)
+    {:noreply, state}
+  end
 
   @impl true
   def handle_info(_, state) do

@@ -21,11 +21,9 @@ defmodule Arena.System do
         {:ok, pid}
 
       {:error, {:already_started, pid}} ->
-        Logger.warning("Arena.System for [#{scape_id}] already started: #{pid}")
         {:ok, pid}
 
       {:error, reason} ->
-        Logger.error("Failed to start Arena.System: #{reason}")
         {:error, reason}
     end
   end

@@ -63,7 +63,7 @@ defmodule SwaiAco.EdgeApp do
 
     children = [
       {Swai.Registry, name: EdgeRegistry},
-      {Phoenix.PubSub, name: EdgePubSub},
+      {Phoenix.PubSub, name: :edge_pubsub},
       {Edge.Client, edge_init}
     ]
 

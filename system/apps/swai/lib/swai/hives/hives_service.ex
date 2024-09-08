@@ -15,28 +15,31 @@ defmodule Hives.Service do
   @hive_occupied_v1 HiveFacts.hive_occupied_v1()
   @hive_vacated_v1 HiveFacts.hive_vacated_v1()
 
-  def get_candidates_for_license(%License{} = license) do
-    :hives_cache
-    |> Cachex.stream!()
-
-    case :hives_cache |> Cachex.get!() do
-      nil ->
-        Logger.warning("Hive cache is empty")
-
-      cache ->
-        cache
-        |> Map.values()
-        |> Enum.filter(fn hive_init ->
-          hive_init.hive_id == license.hive_id
-        end)
-    end
-  end
+  def get_all(),
+    do:
+      GenServer.call(
+        __MODULE__,
+        :get_all
+      )
 
   defp notify_hives_cache_updated(cause),
     do:
       SwaiPubSub
       |> PubSub.broadcast(@hive_facts, cause)
 
+  ## Handle get_all
+  @impl true
+  def handle_call(:get_all, _from, state) do
+    reply =
+      :hives_cache
+      |> Cachex.stream!()
+      |> Stream.map(fn {:entry, _id, _internal, _nil, hive_init} -> hive_init end)
+      |> Enum.to_list()
+
+    {:reply, reply, state}
+  end
+
+  ############## SUBSCRIBED FACTS ##############
   ## Hive Vacated
   @impl true
   def handle_info(
@@ -45,7 +48,8 @@ defmodule Hives.Service do
       ) do
     case :hives_cache |> Cachex.get!(hive_id) do
       nil ->
-        Logger.warning("Hive not found in cache: #{inspect(hive_init)}")
+        :hives_cache
+        |> Cachex.put!(hive_id, hive_init)
 
       _ ->
         :hives_cache
@@ -65,7 +69,8 @@ defmodule Hives.Service do
       ) do
     case :hives_cache |> Cachex.get!(hive_id) do
       nil ->
-        Logger.warning("Hive not found in cache: #{inspect(hive_init)}")
+        :hives_cache
+        |> Cachex.put!(hive_id, hive_init)
 
       _ ->
         :hives_cache
@@ -98,8 +103,8 @@ defmodule Hives.Service do
     {:noreply, state}
   end
 
-  ## Falback function for unhandled messages
-
+  #### FALLTHROUGHS #########################
+  ## Handle Info Fallthrough
   @impl true
   def handle_info(msg, state) do
     Logger.warning("Unhandled Hive Fact: #{inspect(msg)}")

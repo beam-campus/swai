@@ -6,13 +6,15 @@ defmodule Arena.Emitter do
   alias Arena.Facts, as: ArenaFacts
   alias Arena.Init, as: ArenaInit
 
+  @arena_initialized_v1 ArenaFacts.arena_initialized_v1()
+
   require Logger
 
   def emit_arena_initialized(%ArenaInit{edge_id: edge_id} = arena_init),
     do:
       Client.publish(
         edge_id,
-        ArenaFacts.arena_initialized_v1(),
+        @arena_initialized_v1,
         %{arena_init: arena_init}
       )
 end

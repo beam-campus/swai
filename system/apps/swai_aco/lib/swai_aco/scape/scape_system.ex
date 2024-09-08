@@ -51,11 +51,11 @@ defmodule Scape.System do
          ) do
       {:ok, _pid} ->
         Task.await(start_hives)
-        Logger.debug("Arena.System started: #{Colors.scape_theme(self())}")
         {:ok, scape_init}
 
       {:error, reason} ->
         Logger.error("Failed to start Arena.System: #{reason}")
+        {:stop, reason}
     end
 
     ScapeEmitter.emit_scape_initialized(scape_init)

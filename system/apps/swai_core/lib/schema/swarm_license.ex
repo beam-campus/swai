@@ -5,7 +5,6 @@ defmodule Schema.SwarmLicense do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Schema.Vector, as: Vector
   alias Swai.Defaults, as: Defaults
 
   @standard_cost_in_tokens Defaults.standard_cost_in_tokens()
@@ -28,7 +27,9 @@ defmodule Schema.SwarmLicense do
     def license_queued, do: 256
 
     def scape_started, do: 512
+
     def scape_paused, do: 1024
+
     def scape_cancelled, do: 2048
     def scape_completed, do: 4096
     def scape_detached, do: 8192

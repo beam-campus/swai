@@ -63,12 +63,35 @@ defmodule Edges.Service do
       |> Stream.filter(fn {:entry, _, _, _, edge} -> edge.biotope_id == biotope_id end)
       |> Enum.to_list()
 
-  # def get_by_id(id),
-  #   do:
-  #     GenServer.call(
-  #       __MODULE__,
-  #       {:get_by_id, id}
-  #     )
+  defp get_edge(%{edge_id: edge_id} = _edge_init) do
+    case :edges_cache
+         |> Cachex.get!(edge_id) do
+      nil ->
+        nil
+
+      edge ->
+        edge
+
+      msg ->
+        Logger.alert("get_edge: unknown message: #{inspect(msg)}")
+    end
+  end
+
+  defp get_by_ip(%EdgeInit{ip_address: queried_address}),
+    do:
+      :edges_cache
+      |> Cachex.stream!()
+      |> Enum.find(fn {:entry, _, _, _, %EdgeInit{ip_address: candidate_address}} ->
+        candidate_address == queried_address
+      end)
+
+  defp get_by_id(%EdgeInit{edge_id: queried_id}),
+    do:
+      :edges_cache
+      |> Cachex.stream!()
+      |> Enum.find(fn {:entry, _, _, _, %EdgeInit{edge_id: candidate_id}} ->
+        candidate_id == queried_id
+      end)
 
   ############## CALLBACKS #########
   @impl GenServer
@@ -97,12 +120,16 @@ defmodule Edges.Service do
        |> Enum.map(fn {:entry, _key, _nil, _internal_key, edge} -> edge end), state}
 
   @impl GenServer
-  def handle_call({:get_by_id, edge_id}, _from, state),
-    do:
-      {:reply,
-       :edges_cache
-       |> Cachex.get!(edge_id)
-       |> Enum.map(& &1), state}
+  def handle_call({:get_by_id, edge_id}, _from, state) do
+    case :edges_cache
+         |> Cachex.get!(edge_id) do
+      {:ok, nil} ->
+        {:reply, nil, state}
+
+      {:ok, edge} ->
+        {:reply, edge, state}
+    end
+  end
 
   @impl GenServer
   def handle_call(:get_stats, _from, state),
@@ -139,27 +166,11 @@ defmodule Edges.Service do
     end
   end
 
-  def get_by_ip(%EdgeInit{ip_address: queried_address}),
-    do:
-      :edges_cache
-      |> Cachex.stream!()
-      |> Enum.find(fn {:entry, _, _, _, %EdgeInit{ip_address: candidate_address}} ->
-        candidate_address == queried_address
-      end)
-
-  def get_by_id(%EdgeInit{edge_id: queried_id}),
-    do:
-      :edges_cache
-      |> Cachex.stream!()
-      |> Enum.find(fn {:entry, _, _, _, %EdgeInit{edge_id: candidate_id}} ->
-        candidate_id == queried_id
-      end)
-
   # edge_attached ###################
   @impl GenServer
   def handle_info({@edge_attached_v1, %EdgeInit{edge_id: edge_id} = edge_init}, _state) do
     state =
-      case get_by_id(edge_init) do
+      case get_edge(edge_init) do
         nil ->
           new_edge = %EdgeInit{
             edge_init
@@ -171,7 +182,7 @@ defmodule Edges.Service do
           :edges_cache
           |> Cachex.put!(edge_id, new_edge)
 
-        {:entry, _, _, _, old} ->
+        old ->
           %{stats: %EdgeStats{} = old_stats} = old
 
           new_stats = %EdgeStats{

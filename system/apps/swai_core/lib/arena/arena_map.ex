@@ -6,6 +6,8 @@ defmodule Arena.ArenaMap do
   use Ecto.Schema
   import Ecto.Changeset
 
+  require Logger
+
   alias Arena.ArenaMap, as: ArenaMap
   alias Arena.Hexa, as: Hexa
   alias Schema.Vector, as: Vector
@@ -23,11 +25,19 @@ defmodule Arena.ArenaMap do
     :height,
     :hexa_size,
     :maze_density,
-    :maze,
-    :collectibles,
-    :particles,
-    :threats,
-    :hives
+    # :maze,
+    # :collectibles,
+    # :particles,
+    # :threats,
+    # :hives,
+    :elements
+  ]
+
+  @flat_fields [
+    :width,
+    :height,
+    :hexa_size,
+    :maze_density
   ]
 
   @primary_key false
@@ -37,17 +47,19 @@ defmodule Arena.ArenaMap do
     field(:height, :integer, default: @map_height)
     field(:hexa_size, :integer, default: @map_hexa_size)
     field(:maze_density, :integer, default: @maze_density)
-    field(:maze, {:array, :map}, default: [])
-    field(:collectibles, {:array, :map}, default: [])
-    field(:particles, {:array, :map}, default: [])
-    field(:threats, {:array, :map}, default: [])
-    field(:hives, {:array, :map}, default: [])
+    # field(:maze, {:array, :map}, default: [])
+    # field(:collectibles, {:array, :map}, default: [])
+    # field(:particles, {:array, :map}, default: [])
+    # field(:threats, {:array, :map}, default: [])
+    # field(:hives, {:array, :map}, default: [])
+    embeds_many(:elements, Arena.Element, on_replace: :delete)
   end
 
   def changeset(arena_map, attrs)
       when is_map(attrs) do
     arena_map
-    |> cast(attrs, @all_fields)
+    |> cast(attrs, @flat_fields)
+    |> cast_embed(:elements, with: &Arena.Element.changeset/2)
     |> validate_required(@all_fields)
   end
 
@@ -56,39 +68,41 @@ defmodule Arena.ArenaMap do
       width: width,
       height: height,
       hexa_size: hexa_size,
-      maze_density: maze_density
+      maze_density: maze_density,
+      elements: []
     }
-    |> initialize_map(maze_density)
+    |> initialize_maze(maze_density)
     |> initialize_hives(hives_cap)
+
+    #    |> initialize_hives(hives_cap)
   end
 
-  defp initialize_hives(
-         %ArenaMap{} = map,
-         hives_cap
-       ) do
+  defp initialize_hives(map, hives_cap) do
     %ArenaMap{
       map
-      | hives: generate_hives(hives_cap)
+      | elements: map.elements |> generate_hives(hives_cap)
     }
   end
 
-  defp generate_hives(hives_cap) do
+  def generate_hives(elements, hives_cap) do
     1..hives_cap
-    |> Enum.reduce([], fn hive_no, acc ->
+    |> Enum.reduce(elements, fn hive_no, acc ->
       hexa = ScapeUtils.get_hive_hexa(hive_no)
 
-      acc =
-        acc ++
-          %{
-            hexa => %Feature{
-              type: "hive",
-              color: "red"
-            }
+      [
+        %Arena.Element{
+          hexa: hexa,
+          feature: %Feature{
+            type: "hive",
+            color: "red"
           }
+        }
+        | acc
+      ]
     end)
   end
 
-  defp initialize_map(
+  defp initialize_maze(
          %ArenaMap{
            width: width,
            height: height,
@@ -98,38 +112,39 @@ defmodule Arena.ArenaMap do
        ) do
     %ArenaMap{
       map
-      | maze: generate_maze(width, height, hexa_size, density)
+      | elements:
+          map.elements
+          |> generate_maze(width, height, hexa_size, density)
     }
   end
 
   defp maybe_add_wall(acc, hexa, width, height, density) do
-    # Random number between 0 and width*height
-    #    area_rand = :rand.uniform(width * height)
-    area = width * height
-    # Random number between 1 and 3
-    circ_rand = :rand.uniform(2 * (width + height))
+    area_rand = :rand.uniform(width * height * :rand.uniform(7))
+    circ_rand = :rand.uniform(:rand.uniform(3) * (width + height))
 
-    if rem(area, circ_rand) < density do
-      new_acc =
-        acc ++
-          %{
-            hexa => %Feature{
-              type: "wall",
-              color: "black"
-            }
+    if rem(area_rand, circ_rand) < density do
+      [
+        %Arena.Element{
+          hexa: hexa,
+          feature: %Feature{
+            type: "wall",
+            color: "black"
           }
-
-      new_acc
+        }
+        | acc
+      ]
+    else
+      acc
     end
   end
 
   def default_dimensions, do: %Vector{x: 800, y: 600, z: 0}
 
-  defp generate_maze(width, height, hexa_size, density) do
+  def generate_maze(elements, width, height, hexa_size, density) do
     q_range = 0..div(width, hexa_size)
     r_range = 0..div(height, hexa_size)
 
-    Enum.reduce(q_range, [], fn q, acc ->
+    Enum.reduce(q_range, elements, fn q, acc ->
       Enum.reduce(r_range, acc, fn r, acc_inner ->
         hexa = Hexa.new(q, r)
 

@@ -21,6 +21,7 @@ defmodule Hive.Emitter do
            %{hive_init: hive_init}
          ) do
       {:ok, license} ->
+        Logger.info("Reserved license: #{inspect(license)}")
         license
 
       {:error, reason} ->

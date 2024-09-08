@@ -11,7 +11,6 @@ defmodule Feature.Init do
   require Jason.Encoder
 
   @all_fields [
-    :id,
     :name,
     :description,
     :type,
@@ -23,18 +22,18 @@ defmodule Feature.Init do
     :opacity,
     :size,
     :shape,
-    :features
+    :intensity
   ]
 
   @required_fields [
     :type,
-    :color
+    :color,
+    :intensity
   ]
 
   @primary_key false
   @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
-    field(:id, :binary_id, default: UUID.uuid4())
     field(:name, :string)
     field(:description, :string, default: "")
     field(:type, :string)
@@ -46,7 +45,7 @@ defmodule Feature.Init do
     field(:opacity, :float)
     field(:size, :float)
     field(:shape, :string)
-    field(:features, :map, default: %{})
+    field(:intensity, :float, default: 1.0)
   end
 
   def changeset(seed, struct)

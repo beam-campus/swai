@@ -68,9 +68,6 @@ defmodule Edge.System do
   def init(%{edge_id: edge_id} = edge_init) do
     Process.flag(:trap_exit, true)
 
-    EdgePubSub
-    |> PubSub.subscribe(@edge_facts)
-
     EdgeEmitter.emit_initializing_edge(edge_init)
 
     case Supervisor.start_link(
@@ -88,6 +85,10 @@ defmodule Edge.System do
     end
 
     EdgeEmitter.emit_edge_initialized(edge_init)
+
+    :edge_pubsub
+    |> PubSub.subscribe(@edge_facts)
+
     {:ok, edge_init}
   end
 
