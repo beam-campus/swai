@@ -10,56 +10,73 @@ defmodule SwaiWeb.LicenseQueue do
   # alias Edges.Service, as: Edges
   # alias Licenses.Service, as: Licenses
   # alias Hives.Service, as: Hives
-  #
+
+  alias Hive.Init, as: HiveInit
+  alias Schema.SwarmLicense, as: License
+  alias Hive.Facts, as: HiveFacts
+  alias Licenses.Service, as: Licenses
+  alias Phoenix.PubSub, as: PubSub
+  alias SwaiWeb.EdgeChannel, as: EdgeChannel
+
   require Logger
   require Colors
+
+  @hive_facts HiveFacts.hive_facts()
+  @hive_vacated_v1 HiveFacts.hive_vacated_v1()
+  @hive_occupied_v1 HiveFacts.hive_occupied_v1()
+
+  defp try_present_license(
+         %HiveInit{} = hive_init,
+         %License{biotope_id: biotope_id} = license
+       ) do
+  end
+
+  def start(init_args) do
+    case start_link(init_args) do
+      {:ok, pid} -> {:ok, pid}
+      {:error, {:already_started, pid}} -> {:ok, pid}
+      {:error, reason} -> {:error, reason}
+    end
+  end
 
   ################# INIT ##########################
   @impl true
   def init(_init_args \\ []) do
     Logger.debug("LicenseQueue is up: #{Colors.server_theme(self())}")
-    Process.send_after(self(), :pop_queue, 1_000)
+
+    Swai.PubSub
+    |> PubSub.subscribe(@hive_facts)
+
     {:ok, []}
   end
 
-  defp try_present_license(license) do
-    case Hives.get_candidates_for_license(license) do
+  ############## HIVE VACATED LISTENER ###########
+  @impl true
+  def handle_info(
+        {
+          @hive_vacated_v1,
+          %HiveInit{
+            biotope_id: biotope_id
+          } = hive_init
+        },
+        state
+      ) do
+    case Licenses.get_candidates(biotope_id) do
       [] ->
-        Logger.warning("No candidates for license: #{inspect(license)}")
+        Logger.info("No candidate licenses for biotope #{biotope_id}")
 
       candidates ->
-        Logger.debug("Candidates for license: #{inspect(candidates)}")
+        Logger.info("Candidates for biotope #{biotope_id} => #{inspect(candidates)}")
 
-        candidates
-        |> Enum.random()
-        |> EdgeChannel.queue_license(license)
+        license =
+          candidates
+          |> Enum.random()
+
+        Licenses.set_license_presented(license)
+
+        EdgeChannel.present_license(license, hive_init)
     end
 
-    #    case Edges.get_candidates_for_biotope(license.biotope_id) do
-    #      [] ->
-    #        "no candidates"
-    #
-    #      edges ->
-    #          edges
-    #          |> Enum.random()
-    #          |> EdgeChannel.queue_license(license)
-    #    end
-  end
-
-  ################# POP_QUEUE #####################
-  @impl true
-  def handle_info(:pop_queue, state) do
-    state =
-      case Licenses.get_all_queued_or_paused() do
-        [] ->
-          state
-
-        queued ->
-          queued
-          |> Enum.map(&try_present_license/1)
-      end
-
-    Process.send_after(self(), :pop_queue, 10_000)
     {:noreply, state}
   end
 
@@ -82,7 +99,7 @@ defmodule SwaiWeb.LicenseQueue do
       id: __MODULE__,
       start: {
         __MODULE__,
-        :start_link,
+        :start,
         [init_args]
       },
       type: :worker
@@ -95,5 +112,5 @@ defmodule SwaiWeb.LicenseQueue do
     do: Swai.Registry.via_tuple({:scape_queue_sup, to_name(key)})
 
   def to_name(key) when is_bitstring(key),
-    do: "scape.system.#{key}"
+    do: "license.queue.#{key}"
 end

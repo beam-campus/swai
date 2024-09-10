@@ -11,13 +11,17 @@ defmodule Hive.Init do
   alias Scape.Init, as: ScapeInit
   alias Scape.Utils, as: ScapeUtils
   alias Schema.SwarmLicense, as: License
+  alias Hive.Status, as: HiveStatus
 
   require Logger
   require Jason.Encoder
 
+  @hive_status_unknown HiveStatus.unknown()
+
   @all_fields [
     :hive_id,
     :particles_cap,
+    :status,
     :edge_id,
     :scape_id,
     :biotope_id,
@@ -54,6 +58,7 @@ defmodule Hive.Init do
   embedded_schema do
     # HiveInit ID
     field(:hive_id, :string, default: "hive-#{UUID.uuid4()}")
+    field(:status, :integer, default: @hive_status_unknown)
     field(:particles_cap, :integer)
     field(:edge_id, :string)
     field(:scape_id, :string)

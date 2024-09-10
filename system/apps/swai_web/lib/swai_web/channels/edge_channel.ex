@@ -7,7 +7,7 @@ defmodule SwaiWeb.EdgeChannel do
   require Logger
   require Phoenix.PubSub
 
-  alias Schema.SwarmLicense
+  alias Schema.SwarmLicense, as: License
   alias SwaiWeb.EdgePresence, as: EdgePresence
   alias SwaiWeb.EdgeDispatcher, as: EdgeDispatcher
 
@@ -18,16 +18,15 @@ defmodule SwaiWeb.EdgeChannel do
 
   alias Edge.Facts, as: EdgeFacts
   alias Edge.Hopes, as: EdgeHopes
+  alias Edges.Service, as: Edges
 
   alias Scape.Facts, as: ScapeFacts
   alias Hive.Facts, as: HiveFacts
   alias Hive.Hopes, as: HiveHopes
   alias Hive.Init, as: HiveInit
   alias Arena.Facts, as: ArenaFacts
-  alias Arena.Init, as: ArenaInit
 
   alias Edge.Init, as: EdgeInit
-  alias Schema.SwarmLicense, as: SwarmLicense
 
   @hope_shout "hope:shout"
   @hope_ping "ping"
@@ -42,7 +41,6 @@ defmodule SwaiWeb.EdgeChannel do
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
   @scape_started_v1 ScapeFacts.scape_started_v1()
   @scape_detached_v1 ScapeFacts.scape_detached_v1()
-  @reserve_license_v1 HiveHopes.reserve_license_v1()
 
   @hive_initialized_v1 HiveFacts.hive_initialized_v1()
   @hive_occupied_v1 HiveFacts.hive_occupied_v1()
@@ -52,20 +50,26 @@ defmodule SwaiWeb.EdgeChannel do
 
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
   @edge_lobby "edge:lobby"
+  @reserve_license_v1 HiveHopes.reserve_license_v1()
 
-  ################# QUEUE LICENSE  ################
-  def queue_license(
-        %SwarmLicense{} = license,
-        %EdgeInit{socket: edge_socket},
-        %HiveInit{hive_id: hive_id}
+  ################# PRESENT LICENSE  ################
+  def present_license(
+        %License{} = license,
+        %HiveInit{hive_id: hive_id, edge_id: edge_id}
       ) do
-    Logger.info("EdgeChannel.present_license: #{inspect(license)} to #{hive_id}")
+    case Edges.get_by_id(edge_id) do
+      nil ->
+        Logger.error("EdgeChannel.present_license: edge_id not found #{edge_id}")
 
-    edge_socket
-    |> push(@present_license_v1, %{
-      license: license,
-      hive_id: hive_id
-    })
+      edge ->
+        if edge.socket != nil do
+          edge.socket
+          |> push(@present_license_v1, %{
+            license: license,
+            hive_id: hive_id
+          })
+        end
+    end
   end
 
   ################ CALLBACKS ################
@@ -192,13 +196,6 @@ defmodule SwaiWeb.EdgeChannel do
     {:noreply, socket}
   end
 
-  ################### IN RESERVE LICENSE ##########################
-  @impl true
-  def handle_in(@reserve_license_v1, payload, socket) do
-    license = HiveDispatcher.try_reserve_license(payload)
-    {:reply, license, socket}
-  end
-
   ########## IN HIVE ARENA INITIALIZED ##########################
   @impl true
   def handle_in(@arena_initialized_v1, payload, socket) do
@@ -206,9 +203,22 @@ defmodule SwaiWeb.EdgeChannel do
     {:noreply, socket}
   end
 
+  ### IN RESERVE LICENSE #######################################
   @impl true
-  def handle_in(_, payload, socket) do
-    Logger.info("EdgeChannel.handle_in: #{inspect(payload)}")
+  def handle_in(@reserve_license_v1, payload, socket) do
+    Logger.info("EdgeChannel.handle_in(:reserve_license, #{inspect(payload)})")
+    reply = HiveDispatcher.try_reserve_license(payload)
+    {:reply, {:ok, reply}, socket}
+  end
+
+  @impl true
+  def handle_in(msg, payload, socket) do
+    Logger.info("
+      Unhandled Message: 
+      [#{msg}] 
+
+      Payload:
+      #{inspect(payload)}")
     {:noreply, socket}
   end
 

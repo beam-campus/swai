@@ -4,23 +4,24 @@ defmodule Hive.System do
   """
   use GenServer
 
-  alias Swai.Registry, as: SwaiRegistry
-  alias SwaiAco.Settings, as: Settings
-  alias Hive.Init, as: HiveInit
   alias Hive.Emitter, as: HiveEmitter
+  alias Hive.Init, as: HiveInit
+  alias Hive.Status, as: HiveStatus
   alias Schema.SwarmLicense, as: License
+  alias Swai.Registry, as: SwaiRegistry
 
   require Logger
   require Colors
 
-  @freq_hz Settings.model_frequency_hz() / 30
+  @hive_status_vacant HiveStatus.hive_vacant()
+  @hive_status_occupied HiveStatus.hive_occupied()
 
-  def accept_license(hive_id, license) do
-    GenServer.cast(
-      via(hive_id),
-      {:accept_license, license}
-    )
-  end
+  def present_license(hive_id, license),
+    do:
+      GenServer.cast(
+        via(hive_id),
+        {:present_license, license}
+      )
 
   ## Get the swarm of particles
   def get_particles(hive_id) do
@@ -75,35 +76,26 @@ defmodule Hive.System do
 
     HiveEmitter.emit_hive_initialized(hive_init)
 
-    Process.send_after(self(), :TICK, round(1_000 / @freq_hz))
+    #    Process.send_after(self(), :AUCTION_OPENED, 5_000)
 
-    {:ok, hive_init}
+    Process.send_after(self(), :RESERVE_LICENSE, 30_000)
+
+    {:ok, %{hive: hive_init, auction: []}}
   end
 
   #################### HANDLE CAST ####################
   ## Accept License
   @impl true
   def handle_cast(
-        {:accept_license,
-         %License{
-           license_id: license_id
-         } = license},
-        %HiveInit{
-          hive_id: hive_id,
-          license_id: nil,
-          license: nil
+        {:present_license, %{license_id: license_id} = license},
+        %{
+          hive: %{hive_id: hive_id, status: @hive_status_vacant},
+          auction: auction
         } = state
       ) do
-    Logger.info("Accepting license: #{inspect(license)}")
-
-    new_state = %HiveInit{
-      state
-      | license_id: license_id,
-        license: license
-    }
-
-    HiveEmitter.emit_hive_occupied(state)
-    {:noreply, state}
+    new_state = %{state | auction: [license | auction]}
+    Logger.alert("License #{license_id} was added to Hive Auction #{hive_id}")
+    {:noreply, new_state}
   end
 
   ## Handle Cast Fallthrough
@@ -118,26 +110,98 @@ defmodule Hive.System do
 
   ## GET PARTICLES
 
-  ################### TICK   ##############################
+  ################### VACATED ##############################
   @impl true
-  def handle_info(:TICK, %HiveInit{license_id: nil, license: nil} = state) do
-    HiveEmitter.emit_hive_vacated(state)
-    Process.send_after(self(), :TICK, round(1_000 / @freq_hz))
+  def handle_info(:AUCTION_OPENED, %{hive: hive} = state) do
+    new_hive = %HiveInit{
+      hive
+      | status: @hive_status_vacant,
+        license_id: nil,
+        license: nil
+    }
+
+    new_state = %{state | hive: new_hive, auction: []}
+    HiveEmitter.emit_hive_vacated(new_hive)
+    Process.send_after(self(), :AUCTION_CLOSED, 60_000)
+    {:noreply, new_state}
+  end
+
+  @impl true
+  def handle_info(:TICK, %{hive: %{hive_id: hive_id}} = state) do
+    if count_particles(hive_id) <= 0 do
+      Process.send_after(self(), :AUCTION_OPENED, 10_000)
+    end
+
+    Process.send_after(self(), :TICK, 30_000)
     {:noreply, state}
   end
 
+  ## AUCTION CLOSED
   @impl true
-  def handle_info(:TICK, %HiveInit{hive_id: hive_id} = state) do
+  def handle_info(
+        :AUCTION_CLOSED,
+        %{
+          hive: %{hive_id: hive_id} = hive,
+          auction: auction
+        } = state
+      ) do
     new_state =
-      if count_particles(hive_id) <= 0 do
-        %HiveInit{state | license_id: nil, license: nil}
-      else
-        state
+      case auction do
+        [] ->
+          Logger.info("No licenses in auction for hive #{hive_id}")
+          state
+
+        licenses ->
+          Logger.info("Auction closed for hive #{hive_id} => #{inspect(licenses)}")
+
+          %{license_id: license_id} =
+            license =
+            licenses
+            |> Enum.random()
+
+          new_state = %{
+            state
+            | hive: %HiveInit{
+                hive
+                | status: @hive_status_occupied,
+                  license_id: license_id,
+                  license: license
+              },
+              auction: []
+          }
+
+          HiveEmitter.emit_hive_occupied(new_state.hive)
       end
 
-    Process.send_after(self(), :TICK, round(1_000 / @freq_hz))
     {:noreply, new_state}
   end
+
+  ## CLAIM LICENSE
+  @impl true
+  def handle_info(:RESERVE_LICENSE, %{hive: hive} = state) do
+    new_state =
+    case HiveEmitter.try_reserve_license(hive) do
+      nil ->
+        Logger.error("Failed to claim license")
+          Process.send_after(self(), :RESERVE_LICENSE, 30_000)
+        state
+
+     license ->
+        Logger.info("License reserved : #{inspect(license)}")
+        new_state =
+            %{state |
+            hive: %{hive |
+              license: license,
+              license_id: license.license_id,
+              status: @hive_status_occupied
+            }
+          }
+        HiveEmitter.emit_hive_occupied(new_state.hive)
+        new_state
+    end
+     {:noreply, new_state}
+  end
+
 
   ################### PLUMBING ###################
   def to_name(key),

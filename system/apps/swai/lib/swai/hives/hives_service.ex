@@ -3,11 +3,14 @@ defmodule Hives.Service do
   use GenServer
 
   require Logger
+  import Flags
 
+  alias ElixirSense.Core.ReservedWords
   alias Swai.PubSub, as: SwaiPubSub
   alias Phoenix.PubSub, as: PubSub
   alias Hive.Facts, as: HiveFacts
   alias Hive.Init, as: HiveInit
+  alias Hive.Status, as: HiveStatus
   alias Schema.SwarmLicense, as: License
 
   @hive_facts HiveFacts.hive_facts()
@@ -39,7 +42,37 @@ defmodule Hives.Service do
     {:reply, reply, state}
   end
 
-  ############## SUBSCRIBED FACTS ##############
+  ############## SUBSCRIBED FACTS ###############################
+  ## Hive Reserved
+  @impl true
+  def handle_info(
+        {@hive_reserved_v1, %HiveInit{hive_id: hive_id} = hive_init} = cause,
+        state
+      ) do
+    case :hives_cache |> Cachex.get!(hive_id) do
+      nil ->
+        :hives_cache
+        |> Cachex.put!(hive_id, hive_init)
+
+      found_hive ->
+        hive_init =
+          %HiveInit{
+            found_hive
+            | status:
+                found_hive.status
+                |> unset(HiveStatus.hive_vacant())
+                |> set(HiveStatus.hive_reserved())
+          }
+
+        :hives_cache
+        |> Cachex.update!(hive_id, hive_init)
+    end
+
+    notify_hives_cache_updated(cause)
+
+    {:noreply, state}
+  end
+
   ## Hive Vacated
   @impl true
   def handle_info(
@@ -51,7 +84,16 @@ defmodule Hives.Service do
         :hives_cache
         |> Cachex.put!(hive_id, hive_init)
 
-      _ ->
+      found_hive ->
+        hive_init =
+          %HiveInit{
+            found_hive
+            | status:
+                found_hive.status
+                |> unset(HiveStatus.hive_occupied())
+                |> set(HiveStatus.hive_vacant())
+          }
+
         :hives_cache
         |> Cachex.update!(hive_id, hive_init)
     end
@@ -72,7 +114,16 @@ defmodule Hives.Service do
         :hives_cache
         |> Cachex.put!(hive_id, hive_init)
 
-      _ ->
+      found_hive ->
+        hive_init =
+          %HiveInit{
+            found_hive
+            | status:
+                found_hive.status
+                |> unset(HiveStatus.hive_vacant())
+                |> set(HiveStatus.hive_occupied())
+          }
+
         :hives_cache
         |> Cachex.update!(hive_id, hive_init)
     end
@@ -88,6 +139,12 @@ defmodule Hives.Service do
         {@hive_initialized_v1, %HiveInit{hive_id: hive_id} = hive_init} = cause,
         state
       ) do
+    hive_init =
+      %HiveInit{
+        hive_init
+        | status: HiveStatus.hive_initialized()
+      }
+
     case :hives_cache |> Cachex.get!(hive_id) do
       nil ->
         :hives_cache
@@ -103,7 +160,7 @@ defmodule Hives.Service do
     {:noreply, state}
   end
 
-  #### FALLTHROUGHS #########################
+  ########################### FALLTHROUGHS #########################
   ## Handle Info Fallthrough
   @impl true
   def handle_info(msg, state) do
@@ -111,7 +168,7 @@ defmodule Hives.Service do
     {:noreply, state}
   end
 
-  ##### PLUMBING #####
+  ######################### PLUMBING ################################
   @impl true
   def init(cache_file) do
     Logger.warning("Hives.Service is up =>  #{inspect(cache_file)}")

@@ -12,7 +12,8 @@ defmodule SwaiWeb.Application do
       SwaiWeb.EdgePresence,
       SwaiWeb.UserPresence,
       {SwaiWeb.Dispatch.ChannelWatcher, "edge:lobby"},
-      SwaiWeb.Endpoint
+      SwaiWeb.Endpoint,
+      SwaiWeb.LicenseQueue
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -52,19 +52,9 @@ defmodule Edge.Client do
   @impl Slipstream
   def handle_call({:request, topic, hope, payload}, _from, socket) do
     resp =
-      case socket
-           |> push!(topic, hope, payload) do
-        {:ok, push_ref} ->
-          push_ref
-          |> await_reply!(1_000)
-
-        {:error, reason} ->
-          {:error, reason}
-
-        _msg ->
-          {:error, :unknown}
-      end
-
+       socket
+          |> push!(topic, hope, payload)
+          |> await_reply!(2_000)
     {:reply, resp, socket}
   end
 

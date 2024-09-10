@@ -21,7 +21,7 @@ defmodule SwaiWeb.HiveDispatcher do
 
     case HiveInit.from_map(%HiveInit{}, envelope["hive_init"]) do
       {:ok, hive_init} ->
-        Licenses.try_reserve_license(hive_init)
+        Licenses.claim_license(hive_init)
 
       {:error, changeset} ->
         Logger.error("invalid envelope, reason: #{inspect(changeset)}")

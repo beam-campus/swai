@@ -14,9 +14,11 @@ defmodule Edge.System do
   alias Edge.Emitter, as: EdgeEmitter
   alias Phoenix.PubSub, as: PubSub
   alias Edge.Facts, as: EdgeFacts
+  alias Edge.Hopes, as: EdgeHopes
+  alias Hive.System, as: HiveSystem
 
   @edge_facts EdgeFacts.edge_facts()
-  @edge_attached_v1 EdgeFacts.edge_attached_v1()
+  @present_license_v1 EdgeHopes.present_license_v1()
 
   ##################### PUBLIC API #####################
   def start(%EdgeInit{} = edge_init) do
@@ -40,13 +42,6 @@ defmodule Edge.System do
         {:process_message, {room, message, params}}
       )
 
-  def select_scape(scapes, %License{} = license),
-    do:
-      GenServer.cast(
-        __MODULE__,
-        {:select_scape, {scapes, license}}
-      )
-
   def get_scapes(),
     do:
       GenServer.call(
@@ -54,12 +49,19 @@ defmodule Edge.System do
         :get_scapes
       )
 
-  defp start_scapes(%EdgeInit{scapes_cap: scapes_cap}) do
-    Enum.each(1..scapes_cap, fn scape_no ->
-      GenServer.cast(
-        __MODULE__,
-        {:start_scape, scape_no}
-      )
+  defp start_scapes(%EdgeInit{edge_id: edge_id, scapes_cap: scapes_cap} = edge_init) do
+    1..scapes_cap
+    |> Enum.each(fn scape_no ->
+      case ScapeInit.new(scape_no, edge_init) do
+        {:ok, scape_init} ->
+          Supervisor.start_child(
+            via_sup(edge_id),
+            {Scape.System, scape_init}
+          )
+
+        {:error, reason} ->
+          Logger.error("Error starting scape: #{inspect(reason)}")
+      end
     end)
   end
 
@@ -70,13 +72,16 @@ defmodule Edge.System do
 
     EdgeEmitter.emit_initializing_edge(edge_init)
 
+    start_scapes =
+      Task.async(fn -> start_scapes(edge_init) end)
+
     case Supervisor.start_link(
            [],
            name: via_sup(edge_id),
            strategy: :one_for_one
          ) do
       {:ok, pid} ->
-        start_scapes(edge_init)
+        Task.await(start_scapes)
         {:ok, pid}
 
       {:error, reason} ->
@@ -99,21 +104,27 @@ defmodule Edge.System do
     {:reply, scapes, state}
   end
 
-  ## CAST: Start Scape ############################
   @impl true
-  def handle_cast({:start_scape, scape_no}, %EdgeInit{edge_id: edge_id} = state) do
-    case ScapeInit.new(scape_no, state) do
-      {:ok, scape_init} ->
-        Supervisor.start_child(
-          via_sup(edge_id),
-          {ScapeSystem, scape_init}
-        )
+  def handle_cast(
+        {:process_message,
+         {_room, @present_license_v1, %{"license" => license_map, "hive_id" => hive_id}}},
+        state
+      ) do
+    case License.from_map(%License{}, license_map) do
+      {:ok, license} ->
+        HiveSystem.accept_license(hive_id, license)
 
       {:error, reason} ->
-        Logger.error("Error starting scape: #{inspect(reason)}")
-        {:error, reason}
+        Logger.error("Error processing license: #{inspect(reason)}")
     end
 
+    {:noreply, state}
+  end
+
+  ## PROCESS_MESSAGE
+  @impl true
+  def handle_cast({:process_message, {room, message, params}}, state) do
+    Logger.warning("EdgeSystem received message: #{inspect({room, message, params})}")
     {:noreply, state}
   end
 
@@ -123,7 +134,17 @@ defmodule Edge.System do
     {:noreply, state}
   end
 
-  ## Edge Attached ############################
+  ## EXIT of a child process ##################
+  @impl true
+  def handle_info({:EXIT, from_pid, reason}, state) do
+    Logger.info(
+      "#{Colors.red_on_black()}EXIT received from #{inspect(from_pid)} reason: #{inspect(reason)}#{Colors.reset()}"
+    )
+
+    {:noreply, state}
+  end
+
+  ## Edge Attached ############################  
   @impl true
   def handle_info({:edge_attached, %{edge_id: edge_id}}, state) do
     Logger.info("Edge attached: [#{edge_id}]")

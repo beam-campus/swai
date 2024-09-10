@@ -28,13 +28,6 @@ defmodule Edges.Service do
         :count
       )
 
-  def get_candidates_for_biotope(biotope_id),
-    do:
-      GenServer.call(
-        __MODULE__,
-        {:get_candidates_for_biotope, biotope_id}
-      )
-
   def get_all(),
     do:
       GenServer.call(
@@ -56,12 +49,12 @@ defmodule Edges.Service do
         {:get_edge_stats, edge_id}
       )
 
-  def get_by_biotope_id(biotope_id),
+  def get_by_id(edge_id),
     do:
-      :edges_cache
-      |> Cachex.stream!()
-      |> Stream.filter(fn {:entry, _, _, _, edge} -> edge.biotope_id == biotope_id end)
-      |> Enum.to_list()
+      GenServer.call(
+        __MODULE__,
+        {:get_by_id, edge_id}
+      )
 
   defp get_edge(%{edge_id: edge_id} = _edge_init) do
     case :edges_cache
@@ -71,27 +64,8 @@ defmodule Edges.Service do
 
       edge ->
         edge
-
-      msg ->
-        Logger.alert("get_edge: unknown message: #{inspect(msg)}")
     end
   end
-
-  defp get_by_ip(%EdgeInit{ip_address: queried_address}),
-    do:
-      :edges_cache
-      |> Cachex.stream!()
-      |> Enum.find(fn {:entry, _, _, _, %EdgeInit{ip_address: candidate_address}} ->
-        candidate_address == queried_address
-      end)
-
-  defp get_by_id(%EdgeInit{edge_id: queried_id}),
-    do:
-      :edges_cache
-      |> Cachex.stream!()
-      |> Enum.find(fn {:entry, _, _, _, %EdgeInit{edge_id: candidate_id}} ->
-        candidate_id == queried_id
-      end)
 
   ############## CALLBACKS #########
   @impl GenServer
@@ -123,10 +97,10 @@ defmodule Edges.Service do
   def handle_call({:get_by_id, edge_id}, _from, state) do
     case :edges_cache
          |> Cachex.get!(edge_id) do
-      {:ok, nil} ->
+      nil ->
         {:reply, nil, state}
 
-      {:ok, edge} ->
+      edge ->
         {:reply, edge, state}
     end
   end
@@ -137,17 +111,6 @@ defmodule Edges.Service do
       {:reply,
        :edges_cache
        |> Cachex.stats!(), state}
-
-  def handle_call({:get_candidates_for_biotope, biotope_id}, _from, state),
-    do: {
-      :reply,
-      :edges_cache
-      |> Cachex.stream!()
-      |> Stream.filter(fn {:entry, _, _, _, edge} -> edge.biotope_id == biotope_id end)
-      |> Stream.map(fn {:entry, _, _, _, edge} -> edge end)
-      |> Enum.to_list(),
-      state
-    }
 
   @impl GenServer
   def handle_call({:get_edge_stats, edge_id}, _from, state) do
@@ -212,11 +175,11 @@ defmodule Edges.Service do
     ######################################################################
     # Logger.debug("Edge detached: #{inspect(edge_init)}")
     state =
-      case get_by_id(%{edge_id: edge_id} = edge_init) do
+      case get_edge(%EdgeInit{edge_id: edge_id} = edge_init) do
         nil ->
           "nothing to detach"
 
-        {:entry, _, _, _, old_edge} ->
+        old_edge ->
           %{stats: %EdgeStats{} = old_stats} = old_edge
 
           new_stats = %EdgeStats{

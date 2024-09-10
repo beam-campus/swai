@@ -4,7 +4,6 @@ defmodule Licenses.Service do
   """
   use GenServer
 
-  alias SwaiWeb.EdgeChannel
   alias Colors, as: Colors
   alias Phoenix.PubSub, as: PubSub
   alias Schema.SwarmLicense, as: SwarmLicense
@@ -12,7 +11,6 @@ defmodule Licenses.Service do
 
   alias TrainSwarmProc.Facts, as: TrainSwarmProcFacts
   alias Scape.Facts, as: ScapeFacts
-  alias Hive.Facts, as: HiveFacts
 
   alias TrainSwarmProc.InitializeLicense.EvtV1, as: Initialized
   alias TrainSwarmProc.ConfigureLicense.EvtV1, as: Configured
@@ -28,8 +26,6 @@ defmodule Licenses.Service do
   alias Edge.Init, as: EdgeInit
   alias Scape.Init, as: ScapeInit
   alias Caches, as: Caches
-  alias Hive.Init, as: HiveInit
-  alias Edges.Service, as: Edges
 
   require Logger
   import Flags
@@ -39,8 +35,8 @@ defmodule Licenses.Service do
   @license_paid_status Status.license_paid()
   @licensed_activated_status Status.license_active()
   @license_blocked_status Status.license_blocked()
-  @license_reserved_status Status.license_reserved()
   @license_queued_status Status.license_queued()
+  @license_reserved_status Status.license_reserved()
 
   @scape_started_status Status.scape_started()
   @scape_paused_status Status.scape_paused()
@@ -50,11 +46,6 @@ defmodule Licenses.Service do
   @license_cache_updated_v1 TrainSwarmProcFacts.cache_updated_v1()
   # @swarm_license_cache_facts TrainSwarmProcFacts.cache_facts()
 
-  @hive_facts HiveFacts.hive_facts()
-  @hive_initialized_v1 HiveFacts.hive_initialized_v1()
-  @hive_occupied_v1 HiveFacts.hive_occupied_v1()
-  @hive_vacated_v1 HiveFacts.hive_vacated_v1()
-
   @swarm_license_initialized_v1 TrainSwarmProcFacts.license_initialized()
   @swarm_license_configured_v1 TrainSwarmProcFacts.license_configured()
   @swarm_license_paid_v1 TrainSwarmProcFacts.license_paid()
@@ -63,7 +54,6 @@ defmodule Licenses.Service do
 
   @scape_facts ScapeFacts.scape_facts()
   @license_queued_v1 ScapeFacts.license_queued_v1()
-  @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
   @scape_started_v1 ScapeFacts.scape_started_v1()
   @scape_detached_v1 ScapeFacts.scape_detached_v1()
   @scape_paused_v1 ScapeFacts.scape_paused_v1()
@@ -97,14 +87,21 @@ defmodule Licenses.Service do
   end
 
   ################## API ##################
-  def count(),
+  def count,
     do:
       GenServer.call(
         __MODULE__,
         :count
       )
 
-  def get_all(),
+  def claim_license(hive),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:claim_license, hive}
+      )
+
+  def get_all,
     do:
       GenServer.call(
         __MODULE__,
@@ -118,22 +115,26 @@ defmodule Licenses.Service do
         {:get_all_for_user, user_id}
       )
 
-  def get_all_queued_or_paused(biotope_id),
+  def get_candidates(biotope_id),
     do:
       GenServer.call(
         __MODULE__,
-        {:get_all_queued_or_paused, biotope_id}
+        {:get_candidates, biotope_id}
       )
 
-  def present_license_to_mesh(
-        %SwarmLicense{} = license,
-        %HiveInit{edge_id: edge_id} = hive_init
-      ) do
-    edge_init = Edges.get_by_id(edge_id)
+  def set_license_reserved(license),
+    do:
+      GenServer.cast(
+        __MODULE__,
+        {:set_license_reserved, license}
+      )
 
-    license
-    |> EdgeChannel.queue_license(edge_init, hive_init)
-  end
+  def set_license_presented(license),
+    do:
+      GenServer.cast(
+        __MODULE__,
+        {:set_license_presented, license}
+      )
 
   ############ INTERNALS ###############
   defp notify_swarm_licenses_updated(cause) do
@@ -146,7 +147,7 @@ defmodule Licenses.Service do
     Logger.warning("Notified SwarmLicense Cache Updated #{inspect(cause)} => #{inspect(res)}")
   end
 
-  def save_to_disk() do
+  def save_to_disk do
     GenServer.cast(
       __MODULE__,
       {:save_to_disk}
@@ -160,11 +161,23 @@ defmodule Licenses.Service do
     )
   end
 
-  def try_reserve_license(hive_init) do
-    GenServer.call(
-      __MODULE__,
-      {:try_reserve_license, hive_init}
-    )
+  ################# SET_LICENSE_RESERVED #######
+  @impl true
+  def handle_cast({:set_license_reserved, %SwarmLicense{} = license}, state) do
+    license = %SwarmLicense{
+      license
+      | status:
+          license.status
+          |> unset_all([@license_queued_status, @scape_paused_status])
+          |> set(@license_reserved_status)
+    }
+
+    if :licenses_cache
+       |> Cachex.update!(license.license_id, license) do
+      notify_swarm_licenses_updated({:license, :set_license_reserved, license})
+    end
+
+    {:noreply, state}
   end
 
   ################# READ_FROM_DISK ##############
@@ -194,6 +207,22 @@ defmodule Licenses.Service do
     {:noreply, state}
   end
 
+  ################# GET_CANDIDATES ##############
+  @impl true
+  def handle_call({:get_candidates, biotope_id}, _from, state) do
+    {
+      :reply,
+      :licenses_cache
+      |> Cachex.stream!()
+      |> Stream.filter(fn {:entry, _key, _nil, _internal_id, lic} ->
+        check_queued_or_paused(lic) && lic.biotope_id == biotope_id
+      end)
+      |> Stream.map(fn {:entry, _key, _nil, _internal_id, lic} -> lic end)
+      |> Enum.to_list(),
+      state
+    }
+  end
+
   ################# COUNT ##############
   @impl true
   def handle_call(:count, _from, state) do
@@ -205,18 +234,39 @@ defmodule Licenses.Service do
     }
   end
 
-  ################# GET_ALL_QUEUED ##############
+  ################# CLAIM_LICENSE ##############
   @impl true
-  def handle_call({:get_all_queued_or_paused, biotope_id}, _from, state) do
-    {
-      :reply,
-      :licenses_cache
-      |> Cachex.stream!()
-      |> Stream.map(fn {:entry, _key, _nil, _internal_id, st} -> st end)
-      |> Stream.filter(&(check_queued_or_paused(&1) && &1.biotope_id == biotope_id))
-      |> Enum.to_list(),
-      state
-    }
+  def handle_call({:claim_license, %{biotope_id: qry_biotope_id} = _hive}, _from, state) do
+    claimed_license =
+      case :licenses_cache
+           |> Cachex.stream!()
+           |> Stream.filter(fn {:entry, _key, _nil, _internal_id,
+                                %{biotope_id: found_biotope_id} = lic} ->
+             qry_biotope_id == found_biotope_id && check_queued_or_paused(lic)
+           end)
+           |> Stream.map(fn {:entry, _key, _nil, _internal_id, lic} -> lic end)
+           |> Enum.random() do
+        nil ->
+          nil
+
+        license ->
+          claimed =
+            %SwarmLicense{
+              license
+              | status:
+                  license.status
+                  |> unset_all([@license_queued_status, @scape_paused_status])
+                  |> set(@license_reserved_status)
+            }
+
+          :licenses_cache
+          |> Cachex.update!(license.license_id, license)
+
+          notify_swarm_licenses_updated({:license, :claim_license, license})
+          claimed
+      end
+
+    {:reply, claimed_license, state}
   end
 
   ################# GET_ALL ##############
@@ -238,10 +288,10 @@ defmodule Licenses.Service do
       :reply,
       :licenses_cache
       |> Cachex.stream!()
-      |> Enum.filter(fn {:entry, _key, _nil, _internal_id, st} ->
-        st.user_id == user_id
+      |> Enum.filter(fn {:entry, _key, _nil, _internal_id, lic} ->
+        lic.user_id == user_id
       end)
-      |> Enum.map(fn {:entry, _key, _nil, _internal_id, st} -> st end),
+      |> Enum.map(fn {:entry, _key, _nil, _internal_id, lic} -> lic end),
       state
     }
   end
@@ -257,12 +307,6 @@ defmodule Licenses.Service do
 
     "Dumped SwarmLicense Cache to [#{path}] => #{inspect(res)}"
     :ok
-  end
-
-  ################## SCAPE_INITIALIZED ###########
-  @impl true
-  def handle_info({@scape_initialized_v1, _scape}, state) do
-    {:noreply, state}
   end
 
   ################# LICENSE_INITIALIZED ###########
@@ -554,7 +598,7 @@ defmodule Licenses.Service do
 
   ## Handle Info Falltrhough
   @impl true
-  def handle_info(msg, state) do
+  def handle_info(_msg, state) do
     {:noreply, state}
   end
 

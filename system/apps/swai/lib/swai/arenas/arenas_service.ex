@@ -27,10 +27,6 @@ defmodule Arenas.Service do
 
       {:error, {:already_started, pid}} ->
         {:ok, pid}
-
-      {:errer, reason} ->
-        Logger.error("Failed to start #{__MODULE__}: #{inspect(reason)}")
-        {:error, reason}
     end
   end
 
