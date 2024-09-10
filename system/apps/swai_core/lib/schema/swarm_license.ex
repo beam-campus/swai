@@ -231,6 +231,9 @@ defmodule Schema.SwarmLicense do
         |> calculate_status_string()
         |> validate_swarm_name()
 
+  def from_map(_seed, nil),
+    do: {:ok, nil}
+
   def from_map(%SwarmLicense{} = seed, map)
       when is_struct(map),
       do: from_map(seed, Map.from_struct(map))

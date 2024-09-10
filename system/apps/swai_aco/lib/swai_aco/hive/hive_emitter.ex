@@ -2,10 +2,10 @@ defmodule Hive.Emitter do
   @moduledoc """
   This module is responsible for emitting events to the edge.
   """
-  alias Hive.Facts, as: HiveFacts
-  alias Hive.Init, as: HiveInit
   alias Edge.Client, as: Client
+  alias Hive.Facts, as: HiveFacts
   alias Hive.Hopes, as: HiveHopes
+  alias Hive.Init, as: HiveInit
   alias Schema.SwarmLicense, as: License
 
   require Logger
@@ -24,23 +24,20 @@ defmodule Hive.Emitter do
       {:ok, license} ->
         license =
           case License.from_map(%License{}, license) do
-            {:ok, %{license_id: license_id, user_id: user_id} = license} ->
-              Logger.info("Reserved [license: #{inspect(license_id)}] from [user: #{user_id}]")
+            {:ok, nil} ->
+              nil
+
+            {:ok, license} ->
               license
 
             {:error, changeset} ->
-              Logger.error("Bad License Map Returned: #{inspect(changeset)}")
+              Logger.alert("Bad License Map Returned: #{inspect(changeset)}")
               nil
           end
 
         license
 
-      {:error, reason} ->
-        Logger.error("Failed to reserve license: #{inspect(reason)}")
-        nil
-
-      result ->
-        Logger.error("Unexpected result: #{inspect(result)}")
+      _ ->
         nil
     end
   end

@@ -237,19 +237,25 @@ defmodule Licenses.Service do
   ################# CLAIM_LICENSE ##############
   @impl true
   def handle_call({:claim_license, %{biotope_id: qry_biotope_id} = _hive}, _from, state) do
+    candidates =
+      :licenses_cache
+      |> Cachex.stream!()
+      |> Stream.filter(fn {:entry, _key, _nil, _internal_id, lic} ->
+        check_queued_or_paused(lic) && lic.biotope_id == qry_biotope_id
+      end)
+      |> Stream.map(fn {:entry, _key, _nil, _internal_id, lic} -> lic end)
+      |> Enum.to_list()
+
     claimed_license =
-      case :licenses_cache
-           |> Cachex.stream!()
-           |> Stream.filter(fn {:entry, _key, _nil, _internal_id,
-                                %{biotope_id: found_biotope_id} = lic} ->
-             qry_biotope_id == found_biotope_id && check_queued_or_paused(lic)
-           end)
-           |> Stream.map(fn {:entry, _key, _nil, _internal_id, lic} -> lic end)
-           |> Enum.random() do
-        nil ->
+      case Enum.any?(candidates) do
+        false ->
           nil
 
-        license ->
+        true ->
+          %{license_id: license_id} =
+            license =
+            Enum.random(candidates)
+
           claimed =
             %SwarmLicense{
               license
@@ -260,7 +266,7 @@ defmodule Licenses.Service do
             }
 
           :licenses_cache
-          |> Cachex.update!(license.license_id, license)
+          |> Cachex.update!(license_id, claimed)
 
           notify_swarm_licenses_updated({:license, :claim_license, license})
           claimed

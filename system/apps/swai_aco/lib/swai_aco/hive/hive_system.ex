@@ -7,7 +7,6 @@ defmodule Hive.System do
   alias Hive.Emitter, as: HiveEmitter
   alias Hive.Init, as: HiveInit
   alias Hive.Status, as: HiveStatus
-  alias Schema.SwarmLicense, as: License
   alias Swai.Registry, as: SwaiRegistry
 
   require Logger
@@ -25,14 +24,7 @@ defmodule Hive.System do
 
   ## Get the swarm of particles
   def get_particles(hive_id) do
-    case which_children(hive_id) do
-      {:ok, children} ->
-        children
-
-      {:error, reason} ->
-        Logger.error("Failed to get particles: #{inspect(reason)}")
-        []
-    end
+    which_children(hive_id)
   end
 
   ## Count the number of particles
@@ -178,30 +170,34 @@ defmodule Hive.System do
 
   ## CLAIM LICENSE
   @impl true
-  def handle_info(:RESERVE_LICENSE, %{hive: hive} = state) do
+  def handle_info(:RESERVE_LICENSE, %{hive: %{hive_id: hive_id} = hive} = state) do
     new_state =
-    case HiveEmitter.try_reserve_license(hive) do
-      nil ->
-        Logger.error("Failed to claim license")
+      case HiveEmitter.try_reserve_license(hive) do
+        nil ->
           Process.send_after(self(), :RESERVE_LICENSE, 30_000)
-        state
+          state
 
-     license ->
-        Logger.info("License reserved : #{inspect(license)}")
-        new_state =
-            %{state |
-            hive: %{hive |
-              license: license,
-              license_id: license.license_id,
-              status: @hive_status_occupied
+        %{license_id: license_id} = license ->
+          Logger.warning("License [#{license_id}] assigned to Hive [#{hive_id}]")
+
+          %{hive: new_hive} =
+            new_state =
+            %{
+              state
+              | hive: %{
+                  hive
+                  | license: license,
+                    license_id: license_id,
+                    status: @hive_status_occupied
+                }
             }
-          }
-        HiveEmitter.emit_hive_occupied(new_state.hive)
-        new_state
-    end
-     {:noreply, new_state}
-  end
 
+          HiveEmitter.emit_hive_occupied(new_hive)
+          new_state
+      end
+
+    {:noreply, new_state}
+  end
 
   ################### PLUMBING ###################
   def to_name(key),
