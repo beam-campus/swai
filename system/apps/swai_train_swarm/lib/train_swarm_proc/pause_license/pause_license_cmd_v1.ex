@@ -1,8 +1,12 @@
-defmodule TrainSwarmProc.PauseScape.CmdV1 do
+defmodule TrainSwarmProc.PauseLicense.CmdV1 do
+  @moduledoc """
+  This module is responsible for handling the commands that are emitted by the TrainSwarmProc
+  and broadcasting them to the Phoenix.PubSub
+  """
   use Ecto.Schema
 
-  alias Scape.Init, as: ScapeInit
-  alias TrainSwarmProc.PauseScape.CmdV1, as: PauseScape
+  alias Schema.SwarmLicense, as: License
+  alias TrainSwarmProc.PauseLicense.CmdV1, as: PauseLicense
 
   import Ecto.Changeset
 
@@ -20,27 +24,23 @@ defmodule TrainSwarmProc.PauseScape.CmdV1 do
   embedded_schema do
     field(:agg_id, :binary_id)
     field(:version, :integer, default: 1)
-    embeds_one(:payload, ScapeInit)
+    embeds_one(:payload, License)
   end
 
-  def changeset(%PauseScape{} = seed, %{} = attrs)
+  def changeset(%PauseLicense{} = seed, %{} = attrs)
       when is_struct(attrs) do
     changeset(seed, Map.from_struct(attrs))
   end
 
-  def changeset(%PauseScape{} = seed, %{} = attrs)
+  def changeset(%PauseLicense{} = seed, %{} = attrs)
       when is_map(attrs) do
     seed
     |> cast(attrs, @all_fields)
-    |> cast_embed(:payload, with: &ScapeInit.changeset/2)
+    |> cast_embed(:payload, with: &License.changeset/2)
     |> validate_required(@all_fields)
   end
 
-  def from_map(seed, map) when is_struct(map) do
-    from_map(seed, Map.from_struct(map))
-  end
-
-  def from_map(%PauseScape{} = seed, %{} = map)
+  def from_map(%PauseLicense{} = seed, %{} = map)
       when is_map(map) do
     case changeset(seed, map) do
       %{valid?: true} = changeset ->
@@ -48,11 +48,8 @@ defmodule TrainSwarmProc.PauseScape.CmdV1 do
         |> apply_changes()
 
       changeset ->
-        Logger.error("Failed to create PauseScape from map: #{inspect(map)}")
+        Logger.error("Failed to create PauseLicense from map: #{inspect(map)}")
         {:error, changeset}
     end
   end
-
-
-
 end

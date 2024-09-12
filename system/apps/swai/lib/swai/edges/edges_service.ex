@@ -8,9 +8,10 @@ defmodule Edges.Service do
   """
 
   alias Edge.Facts, as: EdgeFacts
-  alias Phoenix.PubSub, as: PubSub
   alias Edge.Init, as: EdgeInit
+  alias Phoenix.PubSub, as: PubSub
   alias Schema.EdgeStats, as: EdgeStats
+  alias Schema.SwarmLicense, as: License
 
   require Colors
   require Logger
@@ -21,21 +22,21 @@ defmodule Edges.Service do
   @edge_attached_v1 EdgeFacts.edge_attached_v1()
   @edge_detached_v1 EdgeFacts.edge_detached_v1()
 
-  def count(),
+  def count,
     do:
       GenServer.call(
         __MODULE__,
         :count
       )
 
-  def get_all(),
+  def get_all,
     do:
       GenServer.call(
         __MODULE__,
         :get_all
       )
 
-  def get_stats(),
+  def get_stats,
     do:
       GenServer.call(
         __MODULE__,
@@ -54,6 +55,13 @@ defmodule Edges.Service do
       GenServer.call(
         __MODULE__,
         {:get_by_id, edge_id}
+      )
+
+  def hydrate(license),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:hydrate, license}
       )
 
   defp get_edge(%{edge_id: edge_id} = _edge_init) do
@@ -129,7 +137,38 @@ defmodule Edges.Service do
     end
   end
 
-  # edge_attached ###################
+  ################### HYDRATE ###################
+  @impl GenServer
+  def handle_call({:hydrate, %{edge_id: nil} = license}, _from, state) do
+    edge = EdgeInit.default()
+
+    new_license =
+      %License{license | edge_id: edge.edge_id, edge: edge}
+
+    {:reply, new_license, state}
+  end
+
+  @impl GenServer
+  def handle_call({:hydrate, %{edge_id: edge_id} = license}, _from, state) do
+    edge =
+      case :edges_cache |> Cachex.get(edge_id) do
+        {:ok, nil} ->
+          EdgeInit.default()
+
+        {:ok, old} ->
+          old
+
+        _ ->
+          EdgeInit.default()
+      end
+
+    new_license =
+      %License{license | edge: edge}
+
+    {:reply, new_license, state}
+  end
+
+  ##################### HANDLE EDGE ATTACHED ###################
   @impl GenServer
   def handle_info({@edge_attached_v1, %EdgeInit{edge_id: edge_id} = edge_init}, _state) do
     state =

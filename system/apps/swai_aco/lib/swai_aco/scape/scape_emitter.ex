@@ -4,14 +4,13 @@ defmodule Scape.Emitter do
   Scape.Emitter is a GenServer that manages a channel to a scape,
   """
 
-  alias Scape.Init, as: ScapeInit
   alias Edge.Client, as: Client
   alias Scape.Facts, as: ScapeFacts
+  alias Scape.Init, as: ScapeInit
 
   @scape_detached_v1 ScapeFacts.scape_detached_v1()
-  @scape_detached_v1 ScapeFacts.scape_detached_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
-  @initializing_scape_v1 ScapeFacts.initializing_scape_v1()
+  @initializing_scape_v1 ScapeFacts.scape_initializing_v1()
 
   require Logger
 

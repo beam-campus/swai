@@ -9,23 +9,25 @@ defmodule Licenses.Service do
   alias Schema.SwarmLicense, as: SwarmLicense
   alias Schema.SwarmLicense.Status, as: Status
 
-  alias TrainSwarmProc.Facts, as: TrainSwarmProcFacts
+  alias License.Facts, as: LicenseFacts
   alias Scape.Facts, as: ScapeFacts
 
-  alias TrainSwarmProc.InitializeLicense.EvtV1, as: Initialized
-  alias TrainSwarmProc.ConfigureLicense.EvtV1, as: Configured
-  alias TrainSwarmProc.PayLicense.EvtV1, as: Paid
-  alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
+  alias Arenas.Service, as: Arenas
+  alias Edges.Service, as: Edges
+  alias Hives.Service, as: Hives
+  alias Scapes.Service, as: Scapes
+
   alias TrainSwarmProc.ActivateLicense.EvtV1, as: Activated
+  alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
+  alias TrainSwarmProc.ConfigureLicense.EvtV1, as: Configured
+  alias TrainSwarmProc.InitializeLicense.EvtV1, as: Initialized
+  alias TrainSwarmProc.PauseLicense.EvtV1, as: LicensePaused
+  alias TrainSwarmProc.PayLicense.EvtV1, as: Paid
   alias TrainSwarmProc.QueueLicense.EvtV1, as: LicenseQueued
-  alias TrainSwarmProc.StartScape.EvtV1, as: ScapeStarted
-  alias TrainSwarmProc.PauseScape.EvtV1, as: ScapePaused
-  alias TrainSwarmProc.DetachScape.EvtV1, as: ScapeDetached
+  alias TrainSwarmProc.ReserveLicense.EvtV1, as: LicenseReserved
+  alias TrainSwarmProc.StartLicense.EvtV1, as: LicenseStarted
 
   alias Cachex, as: Cachex
-  alias Edge.Init, as: EdgeInit
-  alias Scape.Init, as: ScapeInit
-  alias Caches, as: Caches
 
   require Logger
   import Flags
@@ -37,33 +39,29 @@ defmodule Licenses.Service do
   @license_blocked_status Status.license_blocked()
   @license_queued_status Status.license_queued()
   @license_reserved_status Status.license_reserved()
+  @license_started_status Status.license_started()
+  @license_paused_status Status.license_paused()
 
-  @scape_started_status Status.scape_started()
-  @scape_paused_status Status.scape_paused()
-  @scape_detached_status Status.scape_detached()
+  @license_facts LicenseFacts.license_facts()
+  @licenses_cache_facts LicenseFacts.licenses_cache_facts()
 
-  @license_facts TrainSwarmProcFacts.license_facts()
-  @license_cache_updated_v1 TrainSwarmProcFacts.cache_updated_v1()
-  # @swarm_license_cache_facts TrainSwarmProcFacts.cache_facts()
-
-  @swarm_license_initialized_v1 TrainSwarmProcFacts.license_initialized()
-  @swarm_license_configured_v1 TrainSwarmProcFacts.license_configured()
-  @swarm_license_paid_v1 TrainSwarmProcFacts.license_paid()
-  @swarm_license_blocked_v1 TrainSwarmProcFacts.license_blocked()
-  @swarm_license_activated_v1 TrainSwarmProcFacts.license_activated()
+  @license_initialized_v1 LicenseFacts.license_initialized()
+  @license_configured_v1 LicenseFacts.license_configured()
+  @license_paid_v1 LicenseFacts.license_paid()
+  @license_blocked_v1 LicenseFacts.license_blocked()
+  @license_activated_v1 LicenseFacts.license_activated()
+  @license_queued_v1 LicenseFacts.license_queued()
+  @license_reserved_v1 LicenseFacts.license_reserved()
+  @license_started_v1 LicenseFacts.license_started()
+  @license_paused_v1 LicenseFacts.license_paused()
 
   @scape_facts ScapeFacts.scape_facts()
-  @license_queued_v1 ScapeFacts.license_queued_v1()
-  @scape_started_v1 ScapeFacts.scape_started_v1()
-  @scape_detached_v1 ScapeFacts.scape_detached_v1()
-  @scape_paused_v1 ScapeFacts.scape_paused_v1()
 
-  defp get_edge(%{edge: nil}), do: EdgeInit.default()
   defp get_edge(%{edge: edge}), do: edge
 
   defp check_queued_or_paused(%SwarmLicense{status: status}) do
     status
-    |> Flags.has_any?([@license_queued_status, @scape_paused_status])
+    |> Flags.has_any?([@license_queued_status, @license_paused_status])
   end
 
   ################# INIT ###################
@@ -142,7 +140,7 @@ defmodule Licenses.Service do
 
     res =
       Swai.PubSub
-      |> PubSub.broadcast!(@license_cache_updated_v1, cause)
+      |> PubSub.broadcast!(@licenses_cache_facts, cause)
 
     Logger.warning("Notified SwarmLicense Cache Updated #{inspect(cause)} => #{inspect(res)}")
   end
@@ -168,7 +166,7 @@ defmodule Licenses.Service do
       license
       | status:
           license.status
-          |> unset_all([@license_queued_status, @scape_paused_status])
+          |> unset_all([@license_queued_status, @license_paused_status])
           |> set(@license_reserved_status)
     }
 
@@ -261,7 +259,7 @@ defmodule Licenses.Service do
               license
               | status:
                   license.status
-                  |> unset_all([@license_queued_status, @scape_paused_status])
+                  |> unset_all([@license_queued_status, @license_paused_status])
                   |> set(@license_reserved_status)
             }
 
@@ -290,16 +288,20 @@ defmodule Licenses.Service do
   ################# GET_ALL_FOR_USER ##############
   @impl true
   def handle_call({:get_all_for_user, user_id}, _from, state) do
-    {
-      :reply,
+    decorated_licenses =
       :licenses_cache
       |> Cachex.stream!()
-      |> Enum.filter(fn {:entry, _key, _nil, _internal_id, lic} ->
+      |> Stream.filter(fn {:entry, _key, _nil, _internal_id, lic} ->
         lic.user_id == user_id
       end)
-      |> Enum.map(fn {:entry, _key, _nil, _internal_id, lic} -> lic end),
-      state
-    }
+      |> Stream.map(fn {:entry, _key, _nil, _internal_id, lic} -> lic end)
+      |> Stream.map(&Edges.hydrate/1)
+      |> Stream.map(&Scapes.hydrate/1)
+      |> Stream.map(&Hives.hydrate/1)
+      |> Stream.map(&Arenas.hydrate/1)
+      |> Enum.to_list()
+
+    {:reply, decorated_licenses, state}
   end
 
   #################### TERMINATE ##################
@@ -319,7 +321,7 @@ defmodule Licenses.Service do
   @impl true
   def handle_info(
         {
-          @swarm_license_initialized_v1,
+          @license_initialized_v1,
           %Initialized{agg_id: agg_id, version: _version, payload: payload} = evt,
           metadata
         },
@@ -334,10 +336,10 @@ defmodule Licenses.Service do
 
     case SwarmLicense.from_map(seed, payload) do
       {:ok, %SwarmLicense{} = license} ->
-        if :licenses_cache
-           |> Cachex.put!(agg_id, license) do
-          notify_swarm_licenses_updated({:license, @swarm_license_initialized_v1, license})
-        end
+        :licenses_cache
+        |> Cachex.put!(agg_id, license)
+
+        notify_swarm_licenses_updated({:license, @license_initialized_v1, license})
 
       {:error, _reason} ->
         Logger.error("Failed to create SwarmLicense from #{inspect(payload)}")
@@ -346,11 +348,11 @@ defmodule Licenses.Service do
     {:noreply, state}
   end
 
-  ## Handle License Configured
+  ################### LICENSE CONFIGURED ###################
   @impl true
   def handle_info(
         {
-          @swarm_license_configured_v1,
+          @license_configured_v1,
           %Configured{agg_id: agg_id, payload: configuration} = _evt,
           _metadata
         },
@@ -369,10 +371,10 @@ defmodule Licenses.Service do
               |> set(@license_configured_status)
         }
 
-        if :licenses_cache
-           |> Cachex.update!(agg_id, license) do
-          notify_swarm_licenses_updated({:license, @swarm_license_configured_v1, license})
-        end
+        :licenses_cache
+        |> Cachex.put!(agg_id, license)
+
+        notify_swarm_licenses_updated({:license, @license_configured_v1, license})
 
       {:error, _reason} ->
         Logger.error("Failed to update SwarmLicense from #{inspect(configuration)}")
@@ -381,11 +383,11 @@ defmodule Licenses.Service do
     {:noreply, state}
   end
 
-  ################### HANDLE_LICENSE_PAID ###################
+  ################### LICENSE PAID ###################
   @impl true
   def handle_info(
         {
-          @swarm_license_paid_v1,
+          @license_paid_v1,
           %Paid{agg_id: agg_id, version: _version, payload: _payment} = evt,
           _metadata
         },
@@ -405,10 +407,10 @@ defmodule Licenses.Service do
           |> set(@license_paid_status)
     }
 
-    if :licenses_cache
-       |> Cachex.update!(agg_id, license) do
-      notify_swarm_licenses_updated({:license, @swarm_license_paid_v1, license})
-    end
+    :licenses_cache
+    |> Cachex.put!(agg_id, license)
+
+    notify_swarm_licenses_updated({:license, @license_paid_v1, license})
 
     {:noreply, state}
   end
@@ -416,7 +418,7 @@ defmodule Licenses.Service do
   ######################## LICENSE ACTIVATED ##############################
   @impl true
   def handle_info(
-        {@swarm_license_activated_v1, %Activated{agg_id: agg_id} = evt, _metadata},
+        {@license_activated_v1, %Activated{agg_id: agg_id} = evt, _metadata},
         state
       ) do
     "LICENSE ACTIVATED with event #{inspect(evt)}"
@@ -433,21 +435,21 @@ defmodule Licenses.Service do
           |> set(@licensed_activated_status)
     }
 
-    if :licenses_cache
-       |> Cachex.update!(agg_id, license) do
-      notify_swarm_licenses_updated({:license, @swarm_license_activated_v1, license})
-    end
+    :licenses_cache
+    |> Cachex.put!(agg_id, license)
+
+    notify_swarm_licenses_updated({:license, @license_activated_v1, license})
 
     {:noreply, state}
   end
 
-  ################### SCAPE_QUEUED ###################
+  ################### LICENSE_QUEUED ###################
   @impl true
   def handle_info(
         {@license_queued_v1, %LicenseQueued{agg_id: agg_id} = evt, _metadata},
         state
       ) do
-    "SCAPE QUEUED with event #{inspect(evt)}"
+    "LICENSE QUEUED with event #{inspect(evt)}"
 
     license =
       :licenses_cache
@@ -457,22 +459,26 @@ defmodule Licenses.Service do
       license
       | status:
           license.status
-          |> unset_all([@scape_started_status, @scape_paused_status])
+          |> unset_all([
+            @license_started_status,
+            @license_paused_status,
+            @license_reserved_status
+          ])
           |> set(@license_queued_status)
     }
 
-    if :licenses_cache
-       |> Cachex.update!(agg_id, license) do
-      notify_swarm_licenses_updated({:license, @license_queued_v1, license})
-    end
+    :licenses_cache
+    |> Cachex.put!(agg_id, license)
+
+    notify_swarm_licenses_updated({:license, @license_queued_v1, license})
 
     {:noreply, state}
   end
 
-  ################### HANDLE_LICENSE_BLOCKED ###################
+  ################### LICENSE BLOCKED ###################
   @impl true
   def handle_info(
-        {@swarm_license_blocked_v1,
+        {@license_blocked_v1,
          %LicenseBlocked{agg_id: agg_id, version: _version, payload: block_info} = evt,
          _metadata},
         state
@@ -491,50 +497,54 @@ defmodule Licenses.Service do
           |> unset(@license_paid_status)
     }
 
-    if :licenses_cache
-       |> Cachex.update!(agg_id, license) do
-      notify_swarm_licenses_updated({:license, @swarm_license_blocked_v1, license, block_info})
-    end
+    :licenses_cache
+    |> Cachex.put!(agg_id, license)
+
+    notify_swarm_licenses_updated({:license, @license_blocked_v1, license, block_info})
 
     {:noreply, state}
   end
 
-  ################### SCAPE STARTED #####################################
+  ################### LICENSE STARTED #####################################
   @impl true
   def handle_info(
         {
-          @scape_started_v1,
-          %ScapeStarted{agg_id: agg_id, version: _version, payload: %{edge_id: edge_id} = payload} =
+          @license_started_v1,
+          %LicenseStarted{
+            agg_id: agg_id,
+            version: _version,
+            payload: payload
+          } =
             evt,
           _metadata
         },
         state
       ) do
-    "SCAPE STARTED with event #{inspect(evt)}"
+    "LICENSE STARTED with event #{inspect(evt)}"
 
-    case ScapeInit.from_map(%ScapeInit{}, payload) do
-      {:ok, scape} ->
-        _edge = get_edge(scape)
-        Logger.debug("ScapeStarted: #{inspect(scape)}")
-
-        license =
+    case SwarmLicense.from_map(%SwarmLicense{}, payload) do
+      {:ok, start_info} ->
+        stored_license =
           :licenses_cache
           |> Cachex.get!(agg_id)
 
-        license =
+        new_license =
           %SwarmLicense{
-            license
-            | edge_id: edge_id,
-              status:
-                license.status
-                |> unset_all([@license_queued_status, @scape_paused_status])
-                |> set(@scape_started_status)
+            start_info
+            | status:
+                stored_license.status
+                |> unset_all([
+                  @license_queued_status,
+                  @license_paused_status,
+                  @license_reserved_status
+                ])
+                |> set(@license_started_status)
           }
 
-        if :licenses_cache
-           |> Cachex.update!(agg_id, license) do
-          notify_swarm_licenses_updated({:license, @scape_started_v1, license})
-        end
+        :licenses_cache
+        |> Cachex.put!(agg_id, new_license)
+
+        notify_swarm_licenses_updated({:license, @license_started_v1, new_license})
 
       {:error, reason} ->
         Logger.error("Failed to create Scape from #{inspect(payload)} => #{inspect(reason)}")
@@ -543,43 +553,13 @@ defmodule Licenses.Service do
     {:noreply, state}
   end
 
-  ######################## SCAPE DETACHED ###########################
+  ######################## LICENSE PAUSED ############################
   @impl true
   def handle_info(
-        {@scape_detached_v1, %ScapeDetached{agg_id: agg_id} = evt, _metadata},
+        {@license_paused_v1, %LicensePaused{agg_id: agg_id} = evt, _metadata},
         state
       ) do
-    "SCAPE DETACHED with event #{inspect(evt)}"
-
-    license =
-      :licenses_cache
-      |> Cachex.get!(agg_id)
-
-    license =
-      %SwarmLicense{
-        license
-        | edge_id: "N/A",
-          status:
-            license.status
-            |> unset_all([@scape_started_status, @license_queued_status])
-            |> set_all([@scape_detached_status, @scape_paused_status, @license_queued_status])
-      }
-
-    if :licenses_cache
-       |> Cachex.update!(agg_id, license) do
-      notify_swarm_licenses_updated({:license, @scape_detached_v1, license})
-    end
-
-    {:noreply, state}
-  end
-
-  ######################## SCAPE PAUSED ############################
-  @impl true
-  def handle_info(
-        {@scape_paused_v1, %ScapePaused{agg_id: agg_id} = evt, _metadata},
-        state
-      ) do
-    "SCAPE PAUSED with event #{inspect(evt)}"
+    "LICENSE PAUSED with event #{inspect(evt)}"
 
     license =
       :licenses_cache
@@ -590,19 +570,56 @@ defmodule Licenses.Service do
         license
         | status:
             license.status
-            |> set(@scape_paused_status)
-            |> unset(@scape_started_status)
+            |> set(@license_paused_status)
+            |> unset_all([
+              @license_started_status,
+              @license_reserved_status,
+              @license_queued_status
+            ])
       }
 
-    if :licenses_cache
-       |> Cachex.update!(agg_id, license) do
-      notify_swarm_licenses_updated({:license, @scape_paused_v1, license})
-    end
+    :licenses_cache
+    |> Cachex.put!(agg_id, license)
+
+    notify_swarm_licenses_updated({:license, @license_paused_v1, license})
 
     {:noreply, state}
   end
 
-  ## Handle Info Falltrhough
+  ################### LICENSE RESERVED ###################
+  @impl true
+  def handle_info(
+        {@license_reserved_v1, %LicenseReserved{agg_id: agg_id} = evt, _metadata},
+        state
+      ) do
+    "LICENSE RESERVED with event #{inspect(evt)}"
+
+    license =
+      :licenses_cache
+      |> Cachex.get!(agg_id)
+
+    license =
+      %SwarmLicense{
+        license
+        | status:
+            license.status
+            |> set(@license_reserved_status)
+            |> unset_all([
+              @license_started_status,
+              @license_paused_status,
+              @license_queued_status
+            ])
+      }
+
+    :licenses_cache
+    |> Cachex.put!(agg_id, license)
+
+    notify_swarm_licenses_updated({:license, @license_reserved_v1, license})
+
+    {:noreply, state}
+  end
+
+  ####################### HANDLE INFO FALLTHROUGH #######################
   @impl true
   def handle_info(_msg, state) do
     {:noreply, state}

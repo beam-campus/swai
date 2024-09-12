@@ -85,7 +85,7 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicenseCard do
       <%= if @node.is_container do %>
         <img src={~p"/images/docker-mark.svg"} alt="Node Image" class="edge-image" />
       <% else %>
-        <img src={~p"/images/docker-mark.svg"} alt="Node Image" class="edge-image" />
+        <img src={~p"/images/erlang-mark.svg"} alt="Node Image" class="edge-image" />
       <% end %>
     </div>
     """

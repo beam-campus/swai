@@ -6,19 +6,14 @@ defmodule Edge.System do
 
   require Logger
 
-  alias Swai.Registry, as: EdgeRegistry
-  alias Scape.Init, as: ScapeInit
-  alias Scape.System, as: ScapeSystem
-  alias Edge.Init, as: EdgeInit
-  alias Schema.SwarmLicense, as: License
   alias Edge.Emitter, as: EdgeEmitter
-  alias Phoenix.PubSub, as: PubSub
   alias Edge.Facts, as: EdgeFacts
-  alias Edge.Hopes, as: EdgeHopes
-  alias Hive.System, as: HiveSystem
+  alias Edge.Init, as: EdgeInit
+  alias Phoenix.PubSub, as: PubSub
+  alias Scape.Init, as: ScapeInit
+  alias Swai.Registry, as: EdgeRegistry
 
   @edge_facts EdgeFacts.edge_facts()
-  @present_license_v1 EdgeHopes.present_license_v1()
 
   ##################### PUBLIC API #####################
   def start(%EdgeInit{} = edge_init) do
@@ -42,7 +37,7 @@ defmodule Edge.System do
         {:process_message, {room, message, params}}
       )
 
-  def get_scapes(),
+  def get_scapes,
     do:
       GenServer.call(
         __MODULE__,
@@ -97,31 +92,14 @@ defmodule Edge.System do
     {:ok, edge_init}
   end
 
-  ## GET_SCAPES
+  ########################## GET_SCAPES ############################
   @impl true
   def handle_call(:get_scapes, _from, %EdgeInit{edge_id: edge_id} = state) do
     scapes = Supervisor.which_children(via_sup(edge_id))
     {:reply, scapes, state}
   end
 
-  @impl true
-  def handle_cast(
-        {:process_message,
-         {_room, @present_license_v1, %{"license" => license_map, "hive_id" => hive_id}}},
-        state
-      ) do
-    case License.from_map(%License{}, license_map) do
-      {:ok, license} ->
-        HiveSystem.accept_license(hive_id, license)
-
-      {:error, reason} ->
-        Logger.error("Error processing license: #{inspect(reason)}")
-    end
-
-    {:noreply, state}
-  end
-
-  ## PROCESS_MESSAGE
+  ###################### PROCESS_MESSAGE ##############
   @impl true
   def handle_cast({:process_message, {room, message, params}}, state) do
     Logger.warning("EdgeSystem received message: #{inspect({room, message, params})}")
@@ -144,7 +122,7 @@ defmodule Edge.System do
     {:noreply, state}
   end
 
-  ## Edge Attached ############################  
+  ## Edge Attached ############################
   @impl true
   def handle_info({:edge_attached, %{edge_id: edge_id}}, state) do
     Logger.info("Edge attached: [#{edge_id}]")

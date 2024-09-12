@@ -81,6 +81,26 @@ defmodule Scape.Init do
     field(:algorithm_acronym, :string)
   end
 
+  def default,
+    do: %ScapeInit{
+      scape_id: "scape-#{UUID.uuid4()}",
+      scape_no: 0,
+      hives_cap: 0,
+      particles_cap: 0,
+      edge_id: "",
+      biotope_id: UUID.uuid4(),
+      algorithm_id: UUID.uuid4(),
+      scape_status: ScapeStatus.unknown(),
+      has_vacancy?: false,
+      scape_name: "N/A",
+      biotope_name: "N/A",
+      image_url: "~p/images/scape_default.svg",
+      theme: "N/A",
+      tags: "",
+      algorithm_name: "N/A",
+      algorithm_acronym: "N/A"
+    }
+
   def changeset(%ScapeInit{} = seed, %{} = args)
       when is_struct(args),
       do: changeset(seed, Map.from_struct(args))

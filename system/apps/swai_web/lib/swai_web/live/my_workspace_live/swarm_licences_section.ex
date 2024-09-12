@@ -1,7 +1,6 @@
 defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
   use SwaiWeb, :live_component
 
-
   alias Edge.Init, as: EdgeInit
 
   @impl true
@@ -20,15 +19,13 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
     end
   end
 
-
-
   @impl true
   def render(assigns) do
     ~H"""
     <div id="workspace-trainings-section" class="mx-4">
       <div class="px-5 text-white">
-        <h2> <%= @section_title %> </h2>
-        <p class="text-sm font-brand"> <%= @section_description %> </p>
+        <h2><%= @section_title %></h2>
+        <p class="text-sm font-brand"><%= @section_description %></p>
       </div>
 
       <div class="grid grid-cols-1 gap-4 mt-3">
@@ -44,6 +41,4 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
     </div>
     """
   end
-
-
 end

@@ -21,30 +21,27 @@ defmodule TrainSwarmProc.ToPubSubV1 do
   alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
 
   alias TrainSwarmProc.InitializeLicenseScape.EvtV1, as: ScapeInitialized
-  alias TrainSwarmProc.StartScape.EvtV1, as: ScapeStarted
-  alias TrainSwarmProc.PauseScape.EvtV1, as: ScapePaused
-  alias TrainSwarmProc.CancelScape.EvtV1, as: ScapeCancelled
+  alias TrainSwarmProc.StartLicense.EvtV1, as: LicenseStarted
+  alias TrainSwarmProc.PauseLicense.EvtV1, as: ScapePaused
 
-  alias TrainSwarmProc.Facts, as: Facts
   alias Scape.Facts, as: ScapeFacts
+  alias License.Facts, as: LicenseFacts
 
   alias Phoenix.PubSub, as: PubSub
 
   require Logger
 
-  @license_facts Facts.license_facts()
-  @license_initialized Facts.license_initialized()
-  @license_configured Facts.license_configured()
-  @license_paid Facts.license_paid()
-  @license_activated Facts.license_activated()
-  @license_blocked Facts.license_blocked()
+  @license_facts LicenseFacts.license_facts()
+  @license_initialized LicenseFacts.license_initialized()
+  @license_configured LicenseFacts.license_configured()
+  @license_paid LicenseFacts.license_paid()
+  @license_activated LicenseFacts.license_activated()
+  @license_blocked LicenseFacts.license_blocked()
 
   @scape_facts ScapeFacts.scape_facts()
-  @license_queued_v1 ScapeFacts.license_queued_v1()
-  @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
-  @scape_started_v1 ScapeFacts.scape_started_v1()
-  @scape_paused_v1 ScapeFacts.scape_paused_v1()
-  @scape_cancelled_v1 ScapeFacts.scape_cancelled_v1()
+  @license_queued_v1 LicenseFacts.license_queued()
+  @license_started_v1 LicenseFacts.license_started()
+  @license_paused_v1 LicenseFacts.license_paused()
 
   # Event: License INITIALIZED 
   @impl true
@@ -128,18 +125,18 @@ defmodule TrainSwarmProc.ToPubSubV1 do
     Logger.debug("SCAPE STARTED with event #{inspect(evt)}")
 
     Swai.PubSub
-    |> PubSub.broadcast!(@scape_facts, {@scape_started_v1, evt, metadata})
+    |> PubSub.broadcast!(@scape_facts, {@license_started_v1, evt, metadata})
 
     :ok
   end
 
-  ################################ SCAPE STARTED ##############################
+  ################################ LICENSE STARTED ##############################
   @impl true
-  def handle(%ScapeStarted{} = evt, metadata) do
-    Logger.debug("SCAPE STARTED with event #{inspect(evt)}")
+  def handle(%LicenseStarted{} = evt, metadata) do
+    Logger.debug("License STARTED with event #{inspect(evt)}")
 
     Swai.PubSub
-    |> PubSub.broadcast!(@scape_facts, {@scape_started_v1, evt, metadata})
+    |> PubSub.broadcast!(@scape_facts, {@license_started_v1, evt, metadata})
 
     :ok
   end
@@ -150,7 +147,7 @@ defmodule TrainSwarmProc.ToPubSubV1 do
     Logger.debug("SCAPE PAUSED with event #{inspect(evt)}")
 
     Swai.PubSub
-    |> PubSub.broadcast!(@scape_facts, {@scape_paused_v1, evt, metadata})
+    |> PubSub.broadcast!(@scape_facts, {@license_paused_v1, evt, metadata})
 
     :ok
   end

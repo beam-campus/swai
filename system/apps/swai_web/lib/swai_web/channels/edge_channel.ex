@@ -8,25 +8,23 @@ defmodule SwaiWeb.EdgeChannel do
   require Phoenix.PubSub
 
   alias Schema.SwarmLicense, as: License
-  alias SwaiWeb.EdgePresence, as: EdgePresence
-  alias SwaiWeb.EdgeDispatcher, as: EdgeDispatcher
 
-  alias SwaiWeb.ScapeDispatcher, as: ScapeDispatcher
-  alias SwaiWeb.Dispatch.ChannelWatcher
-  alias SwaiWeb.HiveDispatcher, as: HiveDispatcher
   alias SwaiWeb.ArenaDispatcher, as: ArenaDispatcher
+  alias SwaiWeb.Dispatch.ChannelWatcher
+  alias SwaiWeb.EdgeDispatcher, as: EdgeDispatcher
+  alias SwaiWeb.EdgePresence, as: EdgePresence
+  alias SwaiWeb.HiveDispatcher, as: HiveDispatcher
+  alias SwaiWeb.ScapeDispatcher, as: ScapeDispatcher
 
   alias Edge.Facts, as: EdgeFacts
   alias Edge.Hopes, as: EdgeHopes
   alias Edges.Service, as: Edges
 
-  alias Scape.Facts, as: ScapeFacts
+  alias Arena.Facts, as: ArenaFacts
   alias Hive.Facts, as: HiveFacts
   alias Hive.Hopes, as: HiveHopes
   alias Hive.Init, as: HiveInit
-  alias Arena.Facts, as: ArenaFacts
-
-  alias Edge.Init, as: EdgeInit
+  alias Scape.Facts, as: ScapeFacts
 
   @hope_shout "hope:shout"
   @hope_ping "ping"
@@ -35,11 +33,9 @@ defmodule SwaiWeb.EdgeChannel do
   # @scape_attached_v1 Facts.scape_attached_v1()
   @edge_attached_v1 EdgeFacts.edge_attached_v1()
 
-  @present_license_v1 EdgeHopes.present_license_v1()
-
-  @initializing_scape_v1 ScapeFacts.initializing_scape_v1()
+  @scape_initializing_v1 ScapeFacts.scape_initializing_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
-  @scape_started_v1 ScapeFacts.scape_started_v1()
+  @scape_attached_v1 ScapeFacts.scape_attached_v1()
   @scape_detached_v1 ScapeFacts.scape_detached_v1()
 
   @hive_initialized_v1 HiveFacts.hive_initialized_v1()
@@ -51,26 +47,6 @@ defmodule SwaiWeb.EdgeChannel do
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
   @edge_lobby "edge:lobby"
   @reserve_license_v1 HiveHopes.reserve_license_v1()
-
-  ################# PRESENT LICENSE  ################
-  def present_license(
-        %License{} = license,
-        %HiveInit{hive_id: hive_id, edge_id: edge_id}
-      ) do
-    case Edges.get_by_id(edge_id) do
-      nil ->
-        Logger.error("EdgeChannel.present_license: edge_id not found #{edge_id}")
-
-      edge ->
-        if edge.socket != nil do
-          edge.socket
-          |> push(@present_license_v1, %{
-            license: license,
-            hive_id: hive_id
-          })
-        end
-    end
-  end
 
   ################ CALLBACKS ################
   @impl true
@@ -124,7 +100,7 @@ defmodule SwaiWeb.EdgeChannel do
   @impl true
   def handle_in(@hope_join_edge, payload, socket) do
     socket
-    |> broadcast!(@hope_shout, payload)
+    |> broadcast!(@hope_join_edge, payload)
 
     {:noreply, socket}
   end
@@ -147,31 +123,28 @@ defmodule SwaiWeb.EdgeChannel do
     {:noreply, socket}
   end
 
+  #################### IN EDGE DETACHED ###########################
+  ## Edge Detached is handled by the ChannelWatcher (see join/3) ##
+  ################################################################
+
   ################### IN INITIALIZING SCAPE #######################
   @impl true
-  def handle_in(@initializing_scape_v1, payload, socket) do
-    ScapeDispatcher.pub_initializing_scape(payload, socket)
+  def handle_in(@scape_initializing_v1, payload, socket) do
+    ScapeDispatcher.pub_scape_initializing(payload)
     {:noreply, socket}
   end
 
   ##################### IN SCAPE INITIALIZED #######################
   @impl true
   def handle_in(@scape_initialized_v1, payload, socket) do
-    ScapeDispatcher.pub_scape_initialized(payload, socket)
-    {:noreply, socket}
-  end
-
-  #################### IN SCAPE STARTED ###########################
-  @impl true
-  def handle_in(@scape_started_v1, payload, socket) do
-    ScapeDispatcher.pub_scape_started(payload, socket)
+    ScapeDispatcher.pub_scape_initialized(payload)
     {:noreply, socket}
   end
 
   ##################### IN SCAPE DETACHED ##########################
   @impl true
   def handle_in(@scape_detached_v1, payload, socket) do
-    ScapeDispatcher.pub_scape_detached(payload, socket)
+    ScapeDispatcher.pub_scape_detached(payload)
     {:noreply, socket}
   end
 
@@ -203,10 +176,9 @@ defmodule SwaiWeb.EdgeChannel do
     {:noreply, socket}
   end
 
-  ### IN RESERVE LICENSE #######################################
+  ############## IN RESERVE LICENSE ##########################
   @impl true
   def handle_in(@reserve_license_v1, payload, socket) do
-    Logger.info("EdgeChannel.handle_in(:reserve_license, #{inspect(payload)})")
     reply = HiveDispatcher.try_reserve_license(payload)
     {:reply, {:ok, reply}, socket}
   end
@@ -221,8 +193,4 @@ defmodule SwaiWeb.EdgeChannel do
       #{inspect(payload)}")
     {:noreply, socket}
   end
-
-  # ################ INTERNALS ################
-  # defp to_topic(edge_id),
-  #   do: "edge:lobby:#{edge_id}"
 end

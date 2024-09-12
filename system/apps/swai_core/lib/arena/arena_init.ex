@@ -10,10 +10,10 @@ defmodule Arena.Init do
   require Logger
   require Jason.Encoder
 
-  alias Arena.Init, as: ArenaInit
-  alias Schema.Vector, as: Vector
-  alias Scape.Init, as: ScapeInit
   alias Arena.ArenaMap, as: ArenaMap
+  alias Arena.Init, as: ArenaInit
+  alias Scape.Init, as: ScapeInit
+  alias Schema.Vector, as: Vector
   alias Swai.Defaults, as: Defaults
 
   @hexa_size Defaults.arena_hexa_size()
@@ -85,6 +85,29 @@ defmodule Arena.Init do
         Logger.error("Failed to create arena: #{inspect(changeset)}")
         {:error, changeset}
     end
+  end
+
+  def default() do
+    seed =
+      %ArenaInit{
+        arena_id: "arena-#{UUID.uuid4()}",
+        edge_id: "edge-#{UUID.uuid4()}",
+        scape_id: "scape-#{UUID.uuid4()}",
+        biotope_id: UUID.uuid4(),
+        hives_cap: 0,
+        scape_name: "N/A",
+        arena_map:
+          ArenaMap.generate(
+            @map_width,
+            @map_height,
+            @hexa_size,
+            @maze_density,
+            0
+          ),
+        dimensions: ArenaMap.default_dimensions()
+      }
+
+    seed
   end
 
   def new(%ScapeInit{hives_cap: hives_cap} = scape_init) do

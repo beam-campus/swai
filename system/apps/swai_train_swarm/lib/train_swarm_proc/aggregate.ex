@@ -4,40 +4,34 @@ defmodule TrainSwarmProc.Aggregate do
   """
   use Ecto.Schema
 
-  alias TrainSwarmProc.Aggregate, as: Aggregate
-  alias TrainSwarmProc.Schema.Root, as: Root
   alias Schema.SwarmLicense, as: SwarmLicense
-  alias Schema.SwarmLicense.Status, as: Status
-
-  alias TrainSwarmProc.InitializeLicense.EvtV1, as: LicenseInitialized
-
-  alias TrainSwarmProc.ConfigureLicense.EvtV1, as: Configured
-  alias TrainSwarmProc.PayLicense.EvtV1, as: LicensePaid
+  alias Schema.SwarmLicense.Status, as: LicenseStatus
 
   alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
+  alias TrainSwarmProc.Aggregate, as: Aggregate
   alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
-
+  alias TrainSwarmProc.ConfigureLicense.EvtV1, as: Configured
+  alias TrainSwarmProc.InitializeLicense.EvtV1, as: LicenseInitialized
+  alias TrainSwarmProc.PauseLicense.EvtV1, as: LicensePaused
+  alias TrainSwarmProc.PayLicense.EvtV1, as: LicensePaid
   alias TrainSwarmProc.QueueLicense.EvtV1, as: LicenseQueued
-  alias TrainSwarmProc.StartScape.EvtV1, as: ScapeStarted
-  alias TrainSwarmProc.PauseScape.EvtV1, as: ScapePaused
-  alias TrainSwarmProc.DetachScape.EvtV1, as: ScapeDetached
-
-  alias Scape.Init, as: ScapeInit
+  alias TrainSwarmProc.ReserveLicense.EvtV1, as: LicenseReserved
+  alias TrainSwarmProc.StartLicense.EvtV1, as: LicenseStarted
 
   require Jason.Encoder
   require Logger
 
-  @proc_unknown Status.unknown()
-  @license_initialized_status Status.license_initialized()
-  @license_configured_status Status.license_configured()
-  @license_paid_status Status.license_paid()
-  @license_active_status Status.license_active()
-  @license_blocked_status Status.license_blocked()
+  @proc_unknown LicenseStatus.unknown()
+  @license_initialized_status LicenseStatus.license_initialized()
+  @license_configured_status LicenseStatus.license_configured()
+  @license_paid_status LicenseStatus.license_paid()
+  @license_active_status LicenseStatus.license_active()
+  @license_blocked_status LicenseStatus.license_blocked()
 
-  @license_queued_status Status.license_queued()
-  @scape_started_status Status.scape_started()
-  @scape_paused_status Status.scape_paused()
-  @scape_detached_status Status.scape_detached()
+  @license_queued_status LicenseStatus.license_queued()
+  @license_started_status LicenseStatus.license_started()
+  @license_reserved_status LicenseStatus.license_reserved()
+  @license_paused_status LicenseStatus.license_paused()
 
   @all_fields [
     :agg_id,
@@ -50,27 +44,20 @@ defmodule TrainSwarmProc.Aggregate do
   embedded_schema do
     field(:agg_id, :binary_id)
     field(:status, :integer, default: @proc_unknown)
-    embeds_one(:state, Root)
+    embeds_one(:state, SwarmLicense)
   end
 
   ###################  LICENSE INITIALIZED  ###################
   def apply(
-        %Aggregate{state: nil} = _agg,
-        %LicenseInitialized{} = evt
+        %Aggregate{state: nil},
+        %LicenseInitialized{payload: payload} = evt
       ) do
-    case SwarmLicense.from_map(%SwarmLicense{}, evt.payload) do
+    case SwarmLicense.from_map(%SwarmLicense{}, payload) do
       {:ok, new_license} ->
-        new_license = %SwarmLicense{
-          new_license
-          | status: @license_initialized_status
-        }
-
         %Aggregate{
           agg_id: evt.agg_id,
           status: @license_initialized_status,
-          state: %Root{
-            swarm_license: new_license
-          }
+          state: new_license
         }
 
       {:error, changeset} ->
@@ -87,20 +74,17 @@ defmodule TrainSwarmProc.Aggregate do
 
   ##################### LICENSE CONFIGURED #####################
   def apply(
-        %Aggregate{state: %Root{swarm_license: license} = state} = agg,
+        %Aggregate{state: license} = agg,
         %Configured{payload: configuration} = evt
       ) do
     case SwarmLicense.from_map(license, configuration) do
       {:ok, new_license} ->
-        new_license = %SwarmLicense{
-          new_license
-          | status: @license_configured_status
-        }
-
         %Aggregate{
           agg
-          | status: @license_configured_status,
-            state: %Root{state | swarm_license: new_license}
+          | status:
+              agg.status
+              |> Flags.set(@license_configured_status),
+            state: new_license
         }
 
       {:error, changeset} ->
@@ -112,52 +96,19 @@ defmodule TrainSwarmProc.Aggregate do
     end
   end
 
-  ###################### LICENSE_BLOCKED ######################
-  def apply(
-        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
-        %LicenseBlocked{payload: block_info} = evt
-      ) do
-    case SwarmLicense.from_map(license, block_info) do
-      {:ok, new_license} ->
-        new_license = %SwarmLicense{
-          new_license
-          | status: @license_blocked_status
-        }
-
-        %Aggregate{
-          agg
-          | status: @license_blocked_status,
-            state: %Root{root | swarm_license: new_license}
-        }
-
-      {:error, changeset} ->
-        Logger.error("invalid license BLOCKING
-
-          event => #{inspect(evt)}
-
-          changeset => #{inspect(changeset)}
-
-          ")
-        {:error, "invalid license block"}
-    end
-  end
-
   ##################### LICENSE PAID #####################
   def apply(
-        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
+        %Aggregate{state: license} = agg,
         %LicensePaid{payload: payment} = evt
       ) do
     case SwarmLicense.from_map(license, payment) do
       {:ok, new_license} ->
-        new_license = %SwarmLicense{
-          new_license
-          | status: @license_paid_status
-        }
-
         %Aggregate{
           agg
-          | status: @license_paid_status,
-            state: %Root{root | swarm_license: new_license}
+          | status:
+              agg.status
+              |> Flags.set(@license_paid_status),
+            state: new_license
         }
 
       {:error, changeset} ->
@@ -174,20 +125,17 @@ defmodule TrainSwarmProc.Aggregate do
 
   ##################### LICENSE ACTIVATED #####################
   def apply(
-        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
+        %Aggregate{state: license} = agg,
         %LicenseActivated{payload: activation} = evt
       ) do
     case SwarmLicense.from_map(license, activation) do
       {:ok, new_license} ->
-        new_license = %SwarmLicense{
-          new_license
-          | status: @license_active_status
-        }
-
         %Aggregate{
           agg
-          | status: @license_active_status,
-            state: %Root{root | swarm_license: new_license}
+          | status:
+              agg.status
+              |> Flags.set(@license_active_status),
+            state: new_license
         }
 
       {:error, changeset} ->
@@ -199,52 +147,24 @@ defmodule TrainSwarmProc.Aggregate do
     end
   end
 
-  ####################### LICENSE BLOCKED #######################
+  ####################### LICENSE QUEUED #######################
   def apply(
-        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
-        %LicenseBlocked{payload: block_info} = evt
+        %Aggregate{state: seed} = agg,
+        %LicenseQueued{payload: payload} = evt
       ) do
-    case SwarmLicense.from_map(license, block_info) do
+    case SwarmLicense.from_map(seed, payload) do
       {:ok, new_license} ->
-        new_license = %SwarmLicense{
-          new_license
-          | status: license.status |> Flags.set(@license_blocked_status)
-        }
-
         %Aggregate{
           agg
-          | status: agg.status |> Flags.set(@license_blocked_status),
-            state: %Root{root | swarm_license: new_license}
-        }
-
-      {:error, changeset} ->
-        Logger.error("invalid license block
-
-          event => #{inspect(evt)}
-
-          changeset => #{inspect(changeset)}
-
-          ")
-        {:error, "invalid license block"}
-    end
-  end
-
-  ####################### SCAPE QUEUED #######################
-  def apply(
-        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
-        %LicenseQueued{payload: scape} = evt
-      ) do
-    case SwarmLicense.from_map(license, scape) do
-      {:ok, new_license} ->
-        new_license = %SwarmLicense{
-          new_license
-          | status: @license_queued_status
-        }
-
-        %Aggregate{
-          agg
-          | status: agg.status |> Flags.set(@license_queued_status),
-            state: %Root{root | swarm_license: new_license}
+          | status:
+              agg.status
+              |> Flags.set(@license_queued_status)
+              |> Flags.unset_all([
+                @license_paused_status,
+                @license_reserved_status,
+                @license_started_status
+              ]),
+            state: new_license
         }
 
       {:error, changeset} ->
@@ -257,64 +177,120 @@ defmodule TrainSwarmProc.Aggregate do
     end
   end
 
-  ####################### SCAPE STARTED #######################
+  ###################### LICENSE_BLOCKED ######################
   def apply(
-        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
-        %ScapeStarted{payload: scape} = evt
+        %Aggregate{state: license} = agg,
+        %LicenseBlocked{payload: block_info} = evt
       ) do
-    case SwarmLicense.from_map(license, scape) do
+    case SwarmLicense.from_map(license, block_info) do
       {:ok, new_license} ->
-        new_license = %SwarmLicense{
-          new_license
-          | status: license.status |> Flags.set(@scape_started_status)
-        }
-
-        %Aggregate{
-          agg
-          | status: agg.status |> Flags.set(@scape_started_status),
-            state: %Root{root | swarm_license: new_license}
-        }
-
-      {:error, changeset} ->
-        Logger.error("invalid scape started
-
-          event => #{inspect(evt)}
-
-          changeset => #{inspect(changeset)}")
-        {:error, "invalid scape started"}
-    end
-  end
-
-  ############################ SCAPE DETACHED ############################
-  def apply(
-        %Aggregate{} = agg,
-        %ScapeDetached{} = _evt
-      ) do
         %Aggregate{
           agg
           | status:
               agg.status
-              |> Flags.set(@scape_detached_status)
+              |> Flags.set(@license_blocked_status)
+              |> Flags.unset_all([
+                @license_paid_status,
+                @license_queued_status,
+                @license_paused_status,
+                @license_reserved_status,
+                @license_started_status
+              ]),
+            state: new_license
         }
+
+      {:error, changeset} ->
+        Logger.error("invalid license BLOCKING
+
+          event => #{inspect(evt)}
+
+          changeset => #{inspect(changeset)}
+
+          ")
+        {:error, "invalid license block"}
+    end
   end
 
-  ########################### SCAPE PAUSED ###########################
+  ######################## LICENSE RESERVED #####################
   def apply(
-        %Aggregate{state: %Root{swarm_license: license} = root} = agg,
-        %ScapePaused{payload: pause_info} = evt
+        %Aggregate{state: license} = agg,
+        %LicenseReserved{payload: payload} = evt
       ) do
-    case SwarmLicense.from_map(license, pause_info) do
+    case SwarmLicense.from_map(license, payload) do
       {:ok, new_license} ->
-        new_license = %SwarmLicense{
-          new_license
-          | status: license.status |> Flags.set(@scape_paused_status)
-        }
-
         %Aggregate{
           agg
-          | status: agg.status
-          |> Flags.set(@scape_paused_status),
-            state: %Root{root | swarm_license: new_license}
+          | status:
+              agg.status
+              |> Flags.unset_all([
+                @license_queued_status,
+                @license_paused_status,
+                @license_started_status
+              ])
+              |> Flags.set(@license_reserved_status),
+            state: new_license
+        }
+
+      {:error, changeset} ->
+        Logger.error("invalid license RESERVATION
+
+          event => #{inspect(evt)}
+
+          changeset => #{inspect(changeset)}
+
+          ")
+        {:error, "invalid license reservation"}
+    end
+  end
+
+  ####################### LICENSE STARTED #######################
+  def apply(
+        %Aggregate{state: license} = agg,
+        %LicenseStarted{payload: scape} = evt
+      ) do
+    case SwarmLicense.from_map(license, scape) do
+      {:ok, new_license} ->
+        %Aggregate{
+          agg
+          | status:
+              agg.status
+              |> Flags.unset_all([
+                @license_reserved_status,
+                @license_paused_status,
+                @license_queued_status
+              ])
+              |> Flags.set(@license_started_status),
+            state: new_license
+        }
+
+      {:error, changeset} ->
+        Logger.error("Bad Event Payload
+
+          event => #{inspect(evt)}
+
+          changeset => #{inspect(changeset)}")
+        {:error, "Bad Event Payload"}
+    end
+  end
+
+  ########################### LICENSE  PAUSED ###########################
+  def apply(
+        %Aggregate{state: license} = agg,
+        %LicensePaused{payload: payload} = evt
+      ) do
+    case SwarmLicense.from_map(license, payload) do
+      {:ok, new_license} ->
+        %Aggregate{
+          agg
+          | status:
+              agg.status
+              |> Flags.unset_all([
+                @license_started_status,
+                @license_reserved_status,
+                @license_queued_status
+              ])
+              |> Flags.set(@license_paused_status),
+            state: new_license
         }
 
       {:error, changeset} ->

@@ -67,7 +67,7 @@ defmodule Colors do
   def scape_theme(pid),
     do: "#{yellow_on_red()}#{inspect(pid)}#{reset()}"
 
-  def region_theme(pid),
+  def hive_theme(pid),
     do: "#{yellow_on_green()}#{inspect(pid)}#{reset()}"
 
   def farm_theme(pid),
@@ -90,7 +90,4 @@ defmodule Colors do
 
   def arena_theme(pid),
     do: "#{white_on_blue()}#{inspect(pid)}#{reset()}"
-
-  def particle_theme(pid),
-    do: "#{yellow_on_black()}#{inspect(pid)}#{reset()}"
 end

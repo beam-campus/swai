@@ -13,6 +13,12 @@ defmodule Scape.System do
   alias Scape.Init, as: ScapeInit
   alias Arena.Init, as: ArenaInit
   alias Hive.Init, as: HiveInit
+  alias Scape.Facts, as: ScapeFacts
+
+  @scape_initializing_v1 ScapeFacts.scape_initializing_v1()
+  @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
+  @scape_detached_v1 ScapeFacts.scape_detached_v1()
+  @scape_attached_v1 ScapeFacts.scape_attached_v1()
 
   ################# START HIVE #####################
   defp start_hives(%{hives_cap: hives_cap, scape_id: scape_id}) do
@@ -82,17 +88,12 @@ defmodule Scape.System do
   @doc """
   Returns the list of children supervised by this module
   """
-  def which_children(scape_id) do
-    try do
+  def which_children(scape_id),
+    do:
       Supervisor.which_children(via_sup(scape_id))
       |> Enum.reverse()
-    rescue
-      _ -> []
-    end
-  end
 
-  ###### CALLBACKS ############
-
+  ################ HANDLE START HIVE  ##########################
   @impl GenServer
   def handle_cast({:start_hive, hive_no}, %ScapeInit{scape_id: scape_id} = scape_init) do
     {:ok, hive_init} =
@@ -106,6 +107,7 @@ defmodule Scape.System do
     {:noreply, scape_init}
   end
 
+  ##################### HANDLE EXIT ############################
   @impl GenServer
   def handle_info(
         {:EXIT, from_pid, reason},
@@ -118,12 +120,14 @@ defmodule Scape.System do
     {:noreply, scape_init}
   end
 
+  ##################### HANDLE INFO FALLTHROUGH ############################
   @impl GenServer
   def handle_info(msg, state) do
     Logger.warning("Unhandled Info: [#{msg}]")
     {:noreply, state}
   end
 
+  ##################### TERMINATE ############################
   @impl GenServer
   def terminate(reason, scape_init) do
     Logger.warning(
@@ -134,7 +138,7 @@ defmodule Scape.System do
     {:ok, scape_init}
   end
 
-  ## PLUMBIMG 
+  ##################### PLUMBIMG ############################
   def via(key),
     do: Swai.Registry.via_tuple({:scape_sys, to_name(key)})
 

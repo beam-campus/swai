@@ -9,7 +9,7 @@ defmodule Licenses.Db do
   alias Schema.SwarmLicense, as: SwarmLicense
   alias Schema.SwarmLicense.Status, as: Status
 
-  alias TrainSwarmProc.Facts, as: TrainSwarmProcFacts
+  alias License.Facts, as: LicenseFacts
   alias Scape.Facts, as: ScapeFacts
 
   alias TrainSwarmProc.InitializeLicense.EvtV1, as: Initialized
@@ -20,7 +20,6 @@ defmodule Licenses.Db do
   alias TrainSwarmProc.QueueLicense.EvtV1, as: LicenseQueued
   alias Cachex, as: Cachex
 
-
   require Logger
 
   @license_initialized_status Status.license_initialized()
@@ -30,29 +29,29 @@ defmodule Licenses.Db do
   @license_blocked_status Status.license_blocked()
   @license_queued_status Status.license_queued()
 
-  @license_facts TrainSwarmProcFacts.license_facts()
-  @swarm_license_cache_facts TrainSwarmProcFacts.cache_facts()
+  @license_facts LicenseFacts.license_facts()
+  @license_cache_facts LicenseFacts.licenses_cache_facts()
 
-  @swarm_license_initialized_v1 TrainSwarmProcFacts.license_initialized()
-  @swarm_license_configured_v1 TrainSwarmProcFacts.license_configured()
-  @swarm_license_paid_v1 TrainSwarmProcFacts.license_paid()
-  @swarm_license_blocked_v1 TrainSwarmProcFacts.license_blocked()
+  @license_initialized_v1 LicenseFacts.license_initialized()
+  @license_configured_v1 LicenseFacts.license_configured()
+  @license_paid_v1 LicenseFacts.license_paid()
+  @license_blocked_v1 LicenseFacts.license_blocked()
+  @license_queued_v1 LicenseFacts.license_queued()
 
   @scape_facts ScapeFacts.scape_facts()
-  @license_queued_v1 ScapeFacts.license_queued_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
 
-  @swarm_license_activated_v1 TrainSwarmProcFacts.license_activated()
+  @license_activated_v1 LicenseFacts.license_activated()
 
   ################## API ##################
-  def count(),
+  def count,
     do:
       GenServer.call(
         __MODULE__,
         :count
       )
 
-  def get_all(),
+  def get_all,
     do:
       GenServer.call(
         __MODULE__,
@@ -66,7 +65,7 @@ defmodule Licenses.Db do
         {:get_all_for_user, user_id}
       )
 
-  def get_all_queued(),
+  def get_all_queued,
     do:
       GenServer.call(
         __MODULE__,
@@ -75,10 +74,9 @@ defmodule Licenses.Db do
 
   ############ INTERNALS ###############
   defp notify_swarm_licenses_updated(cause) do
-
     res =
       Swai.PubSub
-      |> PubSub.broadcast!(@swarm_license_cache_facts, cause)
+      |> PubSub.broadcast!(@license_cache_facts, cause)
 
     Logger.alert("Notified SwarmLicense Cache Updated #{inspect(cause)} => #{inspect(res)}")
   end
@@ -170,7 +168,7 @@ defmodule Licenses.Db do
   @impl true
   def handle_info(
         {
-          @swarm_license_initialized_v1,
+          @license_initialized_v1,
           %Initialized{agg_id: agg_id, version: _version, payload: payload} = evt,
           metadata
         },
@@ -183,7 +181,7 @@ defmodule Licenses.Db do
       {:ok, %SwarmLicense{} = license} ->
         if :swarm_licenses_cache
            |> Cachex.put!(agg_id, license) do
-          notify_swarm_licenses_updated({@swarm_license_initialized_v1, license})
+          notify_swarm_licenses_updated({@license_initialized_v1, license})
         end
 
       {:error, _reason} ->
@@ -197,7 +195,7 @@ defmodule Licenses.Db do
   @impl true
   def handle_info(
         {
-          @swarm_license_configured_v1,
+          @license_configured_v1,
           %Configured{agg_id: agg_id, payload: configuration} = _evt,
           _metadata
         },
@@ -213,7 +211,7 @@ defmodule Licenses.Db do
 
         if :swarm_licenses_cache
            |> Cachex.update!(agg_id, license) do
-          notify_swarm_licenses_updated({@swarm_license_configured_v1, license})
+          notify_swarm_licenses_updated({@license_configured_v1, license})
         end
 
       {:error, _reason} ->
@@ -227,7 +225,7 @@ defmodule Licenses.Db do
   @impl true
   def handle_info(
         {
-          @swarm_license_paid_v1,
+          @license_paid_v1,
           %Paid{agg_id: agg_id, version: _version, payload: _payment} = evt,
           _metadata
         },
@@ -243,7 +241,7 @@ defmodule Licenses.Db do
 
     if :swarm_licenses_cache
        |> Cachex.update!(agg_id, license) do
-      notify_swarm_licenses_updated({@swarm_license_paid_v1, license})
+      notify_swarm_licenses_updated({@license_paid_v1, license})
     end
 
     {:noreply, state}
@@ -252,7 +250,7 @@ defmodule Licenses.Db do
   ######################## LICENSE ACTIVATED ##############################
   @impl true
   def handle_info(
-        {@swarm_license_activated_v1, %Activated{agg_id: agg_id} = evt, _metadata},
+        {@license_activated_v1, %Activated{agg_id: agg_id} = evt, _metadata},
         state
       ) do
     Logger.alert("LICENSE ACTIVATED with event #{inspect(evt)}")
@@ -265,7 +263,7 @@ defmodule Licenses.Db do
 
     if :swarm_licenses_cache
        |> Cachex.update!(agg_id, license) do
-      notify_swarm_licenses_updated({@swarm_license_activated_v1, license})
+      notify_swarm_licenses_updated({@license_activated_v1, license})
     end
 
     {:noreply, state}
@@ -296,7 +294,7 @@ defmodule Licenses.Db do
   ################### HANDLE_LICENSE_BLOCKED ###################
   @impl true
   def handle_info(
-        {@swarm_license_blocked_v1,
+        {@license_blocked_v1,
          %LicenseBlocked{agg_id: agg_id, version: _version, payload: block_info} = evt,
          _metadata},
         state
@@ -311,7 +309,7 @@ defmodule Licenses.Db do
 
     if :swarm_licenses_cache
        |> Cachex.update!(agg_id, license) do
-      notify_swarm_licenses_updated({@swarm_license_blocked_v1, license, block_info})
+      notify_swarm_licenses_updated({@license_blocked_v1, license, block_info})
     end
 
     {:noreply, state}

@@ -26,9 +26,12 @@ defmodule Arena.Hexa do
   @primary_key false
   @derive {Jason.Encoder, only: @all_fields}
   embedded_schema do
-    field(:q, :integer)
-    field(:r, :integer)
+    field(:q, :integer, default: 0)
+    field(:r, :integer, default: 0)
   end
+
+  def changeset(seed, nil),
+    do: seed
 
   def changeset(hexa, attrs)
       when is_map(attrs) do

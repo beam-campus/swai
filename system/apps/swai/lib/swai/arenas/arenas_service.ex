@@ -5,15 +5,23 @@ defmodule Arenas.Service do
   require Logger
 
   alias Arena.Facts, as: ArenaFacts
-  alias Phoenix.PubSub, as: PubSub
   alias Arena.Init, as: ArenaInit
+  alias Phoenix.PubSub, as: PubSub
+  alias Schema.SwarmLicense, as: License
 
   @arena_facts ArenaFacts.arena_facts()
   @arena_cache_updated_v1 ArenaFacts.arena_cache_updated_v1()
   @arena_initialized_v1 ArenaFacts.arena_initialized_v1()
 
   ## Public API
-  def get_all(),
+  def hydrate(license),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:hydrate, license}
+      )
+
+  def get_all,
     do:
       GenServer.call(
         __MODULE__,
@@ -42,6 +50,36 @@ defmodule Arenas.Service do
   end
 
   ## API CALLS
+
+  ####################### HYDRATE #######################
+
+  @impl GenServer
+  def handle_call({:hydrate, %{scape_id: nil} = license}, _from, cache_file) do
+    the_arena = ArenaInit.default()
+    new_license = %License{license | arena: the_arena}
+    {:reply, new_license, cache_file}
+  end
+
+  @impl GenServer
+  def handle_call({:hydrate, %{scape_id: scape_id} = license}, _from, cache_file) do
+    reply =
+      case :arenas_cache |> Cachex.get(scape_id) do
+        {:ok, nil} ->
+          ArenaInit.default()
+
+        {:ok, arena_init} ->
+          arena_init
+
+        _ ->
+          ArenaInit.default()
+      end
+
+    new_license = %License{license | arena: reply}
+
+    {:reply, new_license, cache_file}
+  end
+
+  ####################### GET ALL #######################
   @impl GenServer
   def handle_call(:get_all, _from, cache_file) do
     reply =

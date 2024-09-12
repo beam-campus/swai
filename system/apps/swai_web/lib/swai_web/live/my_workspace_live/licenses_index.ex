@@ -6,23 +6,17 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
   use SwaiWeb, :live_view
 
   alias Edges.Service, as: Edges
-  alias Phoenix.PubSub, as: PubSub
-  alias TrainSwarmProc.Facts, as: TrainSwarmProcFacts
+  alias License.Facts, as: LicenseFacts
   alias Licenses.Service, as: Licenses
-
-
+  alias Phoenix.PubSub, as: PubSub
   alias Schema.SwarmLicense, as: SwarmLicense
 
-  @license_cache_updated TrainSwarmProcFacts.cache_updated_v1()
-
-  # @license_cache_facts TrainSwarmProcFacts.cache_facts()
+  @licenses_cache_facts LicenseFacts.licenses_cache_facts()
 
   require Logger
 
-
   @impl true
   def mount(_params, _session, socket) do
-
     current_user = socket.assigns.current_user
 
     case connected?(socket) do
@@ -30,7 +24,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
         # trainings = Workspace.get_swarm_licenses_by_user_id(current_user.id)
 
         Swai.PubSub
-        |> PubSub.subscribe(@license_cache_updated)
+        |> PubSub.subscribe(@licenses_cache_facts)
 
         {
           :ok,
@@ -39,7 +33,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
             page_title: "My Workspace",
             edges: Edges.get_all(),
             now: DateTime.utc_now(),
-            swarm_licenses: Licenses.get_all_for_user(current_user.id)
+            licenses: Licenses.get_all_for_user(current_user.id)
           )
         }
 
@@ -50,7 +44,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
            page_title: "My Workspace",
            edges: [],
            now: DateTime.utc_now(),
-           swarm_licenses: []
+           licenses: []
          )}
     end
   end
@@ -69,17 +63,18 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
     |> assign(:page_title, "Workspace")
   end
 
-  @impl true
+   @impl true
   def handle_info({:license, _evt, %SwarmLicense{user_id: the_user}}, socket) do
     if the_user == socket.assigns.current_user.id do
       new_user = Accounts.get_user!(the_user)
       licenses = Licenses.get_all_for_user(socket.assigns.current_user.id)
+
       {
         :noreply,
         socket
         |> assign(
           current_user: new_user,
-          swarm_licenses: licenses
+          licenses: licenses
         )
       }
     else
@@ -87,18 +82,21 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
     end
   end
 
-########################### UNHANDLED MESSAGES ############################
+  ########################### UNHANDLED MESSAGES ############################
   @impl true
   def handle_info({:license, _evt, _license}, socket) do
     licenses = Licenses.get_all_for_user(socket.assigns.current_user.id)
     {
       :noreply,
       socket
-      |> assign(
-        swarm_licenses: licenses
-        )
+      |> assign(licenses: licenses)
     }
 
+    {:noreply, socket}
+  end
+
+  @impl true
+  def handle_info(_msg, socket) do
     {:noreply, socket}
   end
 
@@ -113,16 +111,16 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
           live_action={@live_action}
           module={SwaiWeb.MyWorkspaceLive.SwarmLicensesSection}
           edges={@edges}
-          swarm_licenses={@swarm_licenses}
+          swarm_licenses={@licenses}
           now={@now}
           section_title="My Swarm Licenses"
           section_description="This is a list of all the Swarm Licenses you have created."
         />
       </section>
       <section id="dummy-section" class="pt-15" style="height: 100px;">
-       <div class="flex justify-center items-center" style="height: 150px;">
-         <p class="text-lg text-gray-500"></p>
-         </div>
+        <div class="flex justify-center items-center" style="height: 150px;">
+          <p class="text-lg text-gray-500"></p>
+        </div>
       </section>
     </div>
     """

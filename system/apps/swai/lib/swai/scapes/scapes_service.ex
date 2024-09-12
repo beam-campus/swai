@@ -11,24 +11,16 @@ defmodule Scapes.Service do
   alias Phoenix.PubSub, as: PubSub
   alias Scape.Facts, as: ScapeFacts
   alias Scape.Init, as: ScapeInit
-  alias Schema.SwarmLicense.Status, as: LicenseStatus
+  alias Schema.SwarmLicense, as: License
 
   @scape_facts ScapeFacts.scape_facts()
 
-  @initializing_scape_v1 ScapeFacts.initializing_scape_v1()
+  @initializing_scape_v1 ScapeFacts.scape_initializing_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
   @scape_detached_v1 ScapeFacts.scape_detached_v1()
-  @scape_started_v1 ScapeFacts.scape_started_v1()
+  @scape_attached_v1 ScapeFacts.scape_attached_v1()
 
-  # @edge_detached_v1 EdgeFacts.edge_detached_v1()
   @scapes_cache_updated_v1 ScapeFacts.scapes_cache_updated_v1()
-
-  @scape_started_status LicenseStatus.scape_started()
-  # @scape_paused_status LicenseStatus.scape_paused()
-  # @scape_completed_status LicenseStatus.scape_completed()
-  # @scape_cancelled_status LicenseStatus.scape_cancelled()
-  # @scape_initializing_status LicenseStatus.scape_initializing()
-  # @scape_initialized_status LicenseStatus.scape_initialized()
 
   ############################ INIT ##############################
   @impl true
@@ -42,21 +34,28 @@ defmodule Scapes.Service do
   end
 
   #################### PUBLIC API ##################
-  def get_all(),
+  def hydrate(license),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:hydrate, license}
+      )
+
+  def get_all,
     do:
       GenServer.call(
         __MODULE__,
         :get_all
       )
 
-  def get_stream(),
+  def get_stream,
     do:
       GenServer.call(
         __MODULE__,
         :get_stream
       )
 
-  def get_summary(),
+  def get_summary,
     do:
       GenServer.call(
         __MODULE__,
@@ -77,14 +76,70 @@ defmodule Scapes.Service do
     )
   end
 
-  def count() do
+  def count do
     GenServer.call(
       __MODULE__,
       {:count}
     )
   end
 
+  #################### SAVE_SCAPE ##################
+  @impl true
+  def handle_cast({:save_scape, %{scape_id: scape_id} = scape_init}, state) do
+    :scapes_cache
+    |> Cachex.put!(scape_id, scape_init)
+
+    {:noreply, state}
+  end
+
+  #################### UPDATE_SCAPE_STATUS  ##################
+  @impl true
+  def handle_cast({:update_scape_status, status}, state) do
+    new_scape = %ScapeInit{state | scape_status: status}
+
+    :scapes_cache
+    |> Cachex.put!(new_scape.scape_id, new_scape)
+
+    {:noreply, new_scape}
+  end
+
   #################### HANDLE CALL ##################
+
+  #################### HYDRATE ###############################
+
+  @impl true
+  def handle_call({:hydrate, %{scape_id: nil} = license}, _from, state) do
+    result = ScapeInit.default()
+    new_license =
+      %License{license | scape_id: result.scape_id, scape: result}
+    {:reply, new_license, state}
+  end
+
+  @impl true
+  def handle_call(
+        {:hydrate, %{scape_id: scape_id} = license},
+        _from,
+        state
+      ) do
+    result =
+      case :scapes_cache
+           |> Cachex.get(scape_id) do
+        {:ok, nil} ->
+          ScapeInit.default()
+
+        {:ok, scape} ->
+          scape
+
+        _ ->
+          ScapeInit.default()
+      end
+
+    new_license =
+      %License{license | scape: result}
+
+    {:reply, new_license, state}
+  end
+
   @impl true
   def handle_call({:count}, _from, state) do
     result =
@@ -94,35 +149,6 @@ defmodule Scapes.Service do
 
     {:reply, result, state}
   end
-
-  #################### SAVE_SCAPE ##################
-  @impl true
-  def handle_cast({:save_scape, %{scape_id: scape_id} = scape_init}, state) do
-    case :scapes_cache
-         |> Cachex.get!(scape_id) do
-      {:ok, nil} ->
-        Logger.info("Scape saved: #{inspect(scape_init)}")
-
-      {:ok, _} ->
-        :scapes_cache
-        |> Cachex.put!(scape_id, scape_init)
-
-        Logger.info("Scape updated: #{inspect(scape_init)}")
-
-      {:error, _} ->
-        Logger.error("Failed to save Scape: #{inspect(scape_init)}")
-    end
-
-    :scapes_cache
-    |> Cachex.put!(scape_init.scape_id, scape_init)
-
-    {:noreply, state}
-  end
-
-  #################### UPDATE_SCAPE_STATUS  ##################
-  @impl true
-  def handle_cast({:update_scape_status, status}, state),
-    do: {:noreply, %{state | scape_status: status}}
 
   #################### GET ALL ###############################
   @impl true
@@ -179,10 +205,15 @@ defmodule Scapes.Service do
   ####################### INITIALIZING SCAPE #######################
   @impl true
   def handle_info({@initializing_scape_v1, %ScapeInit{scape_id: scape_id} = scape_init}, state) do
-    :scapes_cache
-    |> Cachex.put!(scape_id, scape_init)
+    new_scape = %ScapeInit{
+      scape_init
+      | scape_status: ScapeStatus.initializing()
+    }
 
-    notify_cache_updated(@initializing_scape_v1, scape_init)
+    :scapes_cache
+    |> Cachex.put!(scape_id, new_scape)
+
+    notify_cache_updated(@initializing_scape_v1, new_scape)
 
     {:noreply, state}
   end
@@ -190,10 +221,31 @@ defmodule Scapes.Service do
   ####################### INITIALIZED SCAPE #######################
   @impl true
   def handle_info({@scape_initialized_v1, %ScapeInit{scape_id: scape_id} = scape_init}, state) do
-    :scapes_cache
-    |> Cachex.put!(scape_id, scape_init)
+    new_scape = %ScapeInit{
+      scape_init
+      | scape_status: ScapeStatus.initialized()
+    }
 
-    notify_cache_updated(@scape_initialized_v1, scape_init)
+    :scapes_cache
+    |> Cachex.put!(scape_id, new_scape)
+
+    notify_cache_updated(@scape_initialized_v1, new_scape)
+
+    {:noreply, state}
+  end
+
+  ####################### ATTACHED SCAPE #######################
+  @impl true
+  def handle_info({@scape_attached_v1, %{scape_id: scape_id} = scape}, state) do
+    new_scape = %ScapeInit{
+      scape
+      | scape_status: ScapeStatus.attached()
+    }
+
+    :scapes_cache
+    |> Cachex.put!(scape_id, new_scape)
+
+    notify_cache_updated(@scape_attached_v1, new_scape)
 
     {:noreply, state}
   end
@@ -201,45 +253,15 @@ defmodule Scapes.Service do
   ####################### DETACHED SCAPE #######################
   @impl true
   def handle_info({@scape_detached_v1, %ScapeInit{scape_id: scape_id} = scape_init}, state) do
+    new_scape = %ScapeInit{
+      scape_init
+      | scape_status: ScapeStatus.detached()
+    }
+
     :scapes_cache
     |> Cachex.del!(scape_id)
 
-    notify_cache_updated(@scape_detached_v1, scape_init)
-
-    {:noreply, state}
-  end
-
-  ########################### SCAPE STARTED #######################
-  @impl true
-  def handle_info({@scape_started_v1, %ScapeInit{scape_id: scape_id} = scape_init}, state) do
-    scape =
-      case :scapes_cache
-           |> Cachex.get!(scape_id) do
-        {:ok, nil} ->
-          scape_init
-
-        {:ok, scape} ->
-          scape
-
-        {:error, _} ->
-          scape_init
-      end
-
-    scape =
-      %ScapeInit{
-        scape
-        | scape_status: @scape_started_status
-      }
-
-    case :scapes_cache
-         |> Cachex.put!(scape_id, scape) do
-      {:ok, _} ->
-        Logger.info("Scape started: #{inspect(scape)}")
-        notify_cache_updated(@scape_started_v1, scape_init)
-
-      {:error, _} ->
-        Logger.error("Failed to update Scape status to started: #{inspect(scape)}")
-    end
+    notify_cache_updated(@scape_detached_v1, new_scape)
 
     {:noreply, state}
   end

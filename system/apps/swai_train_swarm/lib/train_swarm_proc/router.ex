@@ -12,21 +12,20 @@ defmodule TrainSwarmProc.Router do
   alias TrainSwarmProc.PayLicense.CmdV1, as: PayLicense
   alias TrainSwarmProc.PayLicense.Evaluator, as: PayLicenseHandler
 
+  alias TrainSwarmProc.PauseLicense.CmdV1, as: PauseLicense
+  alias TrainSwarmProc.PauseLicense.Evaluator, as: PauseLicenseHandler
+
   alias TrainSwarmProc.ActivateLicense.CmdV1, as: ActivateLicense
   alias TrainSwarmProc.ActivateLicense.Evaluator, as: ActivateLicenseHandler
 
   alias TrainSwarmProc.QueueLicense.CmdV1, as: QueueLicense
   alias TrainSwarmProc.QueueLicense.Evaluator, as: QueueLicenseHandler
 
-  alias TrainSwarmProc.StartScape.CmdV1, as: StartScape
-  alias TrainSwarmProc.StartScape.Evaluator, as: StartScapeHandler
+  alias TrainSwarmProc.ReserveLicense.CmdV1, as: ReserveLicense
+  alias TrainSwarmProc.ReserveLicense.Evaluator, as: ReserveLicenseHandler
 
-  alias TrainSwarmProc.PauseScape.CmdV1, as: PauseScape
-  alias TrainSwarmProc.PauseScape.Evaluator, as: PauseScapeHandler
-
-  alias TrainSwarmProc.DetachScape.CmdV1, as: DetachScape
-  alias TrainSwarmProc.DetachScape.Evaluator, as: DetachScapeHandler
-
+  alias TrainSwarmProc.StartLicense.CmdV1, as: StartLicense
+  alias TrainSwarmProc.StartLicense.Evaluator, as: StartLicenseHandler
 
   dispatch(InitializeLicense,
     to: InitializeLicenseHandler,
@@ -58,23 +57,21 @@ defmodule TrainSwarmProc.Router do
     identity: :agg_id
   )
 
-  dispatch(StartScape,
-    to: StartScapeHandler,
-    aggregate: Aggregate,
-    identity: :agg_id
-    )
-
-  dispatch(DetachScape,
-    to: DetachScapeHandler,
+  dispatch(StartLicense,
+    to: StartLicenseHandler,
     aggregate: Aggregate,
     identity: :agg_id
   )
 
-  dispatch(PauseScape,
-    to: PauseScapeHandler,
+  dispatch(PauseLicense,
+    to: PauseLicenseHandler,
     aggregate: Aggregate,
     identity: :agg_id
   )
 
-
+  dispatch(ReserveLicense,
+    to: ReserveLicenseHandler,
+    aggregate: Aggregate,
+    identity: :agg_id
+  )
 end

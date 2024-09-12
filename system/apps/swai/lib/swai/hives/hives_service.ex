@@ -5,12 +5,10 @@ defmodule Hives.Service do
   require Logger
   import Flags
 
-  alias ElixirSense.Core.ReservedWords
-  alias Swai.PubSub, as: SwaiPubSub
-  alias Phoenix.PubSub, as: PubSub
   alias Hive.Facts, as: HiveFacts
   alias Hive.Init, as: HiveInit
   alias Hive.Status, as: HiveStatus
+  alias Phoenix.PubSub, as: PubSub
   alias Schema.SwarmLicense, as: License
 
   @hive_facts HiveFacts.hive_facts()
@@ -18,7 +16,14 @@ defmodule Hives.Service do
   @hive_occupied_v1 HiveFacts.hive_occupied_v1()
   @hive_vacated_v1 HiveFacts.hive_vacated_v1()
 
-  def get_all(),
+  def hydrate(license),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:hydrate, license}
+      )
+
+  def get_all,
     do:
       GenServer.call(
         __MODULE__,
@@ -27,7 +32,7 @@ defmodule Hives.Service do
 
   defp notify_hives_cache_updated(cause),
     do:
-      SwaiPubSub
+      Swai.PubSub
       |> PubSub.broadcast(@hive_facts, cause)
 
   ## Handle get_all
@@ -42,38 +47,49 @@ defmodule Hives.Service do
     {:reply, reply, state}
   end
 
-  ############## SUBSCRIBED FACTS ###############################
-  ## Hive Reserved
+  ############### CALL HYDRATE ############################
   @impl true
-  def handle_info(
-        {@hive_reserved_v1, %HiveInit{hive_id: hive_id} = hive_init} = cause,
-        state
-      ) do
-    case :hives_cache |> Cachex.get!(hive_id) do
-      nil ->
-        :hives_cache
-        |> Cachex.put!(hive_id, hive_init)
+  def handle_call({:hydrate, %{hive_id: nil} = license}, _from, state) do
+    the_hive = HiveInit.default()
+   new_license = %License{license |
+      hive_id: the_hive.hive_id,
+      hive: the_hive
+    }
+    {:reply, new_license, state}
+  end
+  
 
-      found_hive ->
-        hive_init =
-          %HiveInit{
-            found_hive
-            | status:
-                found_hive.status
-                |> unset(HiveStatus.hive_vacant())
-                |> set(HiveStatus.hive_reserved())
-          }
 
-        :hives_cache
-        |> Cachex.update!(hive_id, hive_init)
-    end
+  @impl true
+  def handle_call({:hydrate, %{hive_id: hive_id} = license}, _from, state) do
+    the_hive =
+      case :hives_cache |> Cachex.get(hive_id) do
+        {:ok, nil} ->
+          HiveInit.default()
 
-    notify_hives_cache_updated(cause)
+        {:ok, old} ->
+          old
 
-    {:noreply, state}
+        _ ->
+          HiveInit.default()
+      end
+
+    new_license = %License{license | hive: the_hive}
+    {:reply, new_license, state}
   end
 
-  ## Hive Vacated
+  defp hive_from_map(seed, %HiveInit{} = hive_init) do
+    case HiveInit.from_map(seed, hive_init) do
+      {:ok, result} ->
+        result
+
+      {:error, changeset} ->
+        Logger.error("invalid Hive Map, reason: #{inspect(changeset)}")
+        seed
+    end
+  end
+
+  ################# HIVE VACATED ########################
   @impl true
   def handle_info(
         {@hive_vacated_v1, %HiveInit{hive_id: hive_id} = hive_init} = cause,
@@ -103,7 +119,7 @@ defmodule Hives.Service do
     {:noreply, state}
   end
 
-  ## Hive Occupied
+  ################# HIVE OCCUPIED ########################
   @impl true
   def handle_info(
         {@hive_occupied_v1, %HiveInit{hive_id: hive_id} = hive_init} = cause,
@@ -114,26 +130,25 @@ defmodule Hives.Service do
         :hives_cache
         |> Cachex.put!(hive_id, hive_init)
 
-      found_hive ->
-        hive_init =
-          %HiveInit{
-            found_hive
-            | status:
-                found_hive.status
-                |> unset(HiveStatus.hive_vacant())
-                |> set(HiveStatus.hive_occupied())
-          }
+      seed ->
+        new_hive = %HiveInit{
+          hive_from_map(seed, hive_init)
+          | status:
+              seed.status
+              |> unset(HiveStatus.hive_vacant())
+              |> set(HiveStatus.hive_occupied())
+        }
 
         :hives_cache
-        |> Cachex.update!(hive_id, hive_init)
-    end
+        |> Cachex.update!(hive_id, new_hive)
 
-    notify_hives_cache_updated(cause)
+        notify_hives_cache_updated(cause)
+    end
 
     {:noreply, state}
   end
 
-  ## Hive Initialized 
+  ################# HIVE INITIALIZED ########################
   @impl true
   def handle_info(
         {@hive_initialized_v1, %HiveInit{hive_id: hive_id} = hive_init} = cause,
@@ -173,7 +188,7 @@ defmodule Hives.Service do
   def init(cache_file) do
     Logger.warning("Hives.Service is up =>  #{inspect(cache_file)}")
 
-    SwaiPubSub
+    Swai.PubSub
     |> PubSub.subscribe(@hive_facts)
 
     {:ok, cache_file}

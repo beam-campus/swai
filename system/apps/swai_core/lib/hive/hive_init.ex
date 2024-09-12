@@ -94,6 +94,21 @@ defmodule Hive.Init do
     end
   end
 
+  def default,
+    do: %HiveInit{
+      hive_id: "hive-#{UUID.uuid4()}",
+      status: @hive_status_unknown,
+      particles_cap: 0,
+      edge_id: "N/A",
+      scape_id: "N/A",
+      biotope_id: UUID.uuid4(),
+      hive_no: 0,
+      license_id: nil,
+      scape_name: "N/A",
+      hexa: nil,
+      license: nil
+    }
+
   def new(hive_no, %ScapeInit{} = scape_init) do
     %HiveInit{
       hive_id: "hive-#{UUID.uuid4()}",

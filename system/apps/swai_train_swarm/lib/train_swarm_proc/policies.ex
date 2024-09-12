@@ -31,11 +31,7 @@ defmodule TrainSwarmProc.Policies do
   alias Schema.SwarmLicense, as: Activation
   alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
   alias TrainSwarmProc.QueueLicense.CmdV1, as: QueueLicense
-  alias Scape.Init, as: ScapeInit
-  alias Schema.Vector, as: Vector
-  alias TrainSwarmProc.BlockLicense.CmdV1, as: BlockLicense
-  alias Schema.SwarmLicense, as: BlockInfo
-  alias TrainSwarmProc.PauseScape.CmdV1, as: PauseScape
+  alias TrainSwarmProc.PauseLicense.CmdV1, as: PauseLicense
   alias TrainSwarmProc.DetachScape.EvtV1, as: ScapeDetached
   alias Schema.SwarmLicense, as: License
 
@@ -46,6 +42,7 @@ defmodule TrainSwarmProc.Policies do
   def interested?(%BudgetReached{} = event), do: {:start, event}
   def interested?(%LicenseActivated{} = event), do: {:start, event}
   def interested?(%ScapeDetached{} = event), do: {:start, event}
+  
 
   def interested?(_event), do: false
 
@@ -66,7 +63,7 @@ defmodule TrainSwarmProc.Policies do
     end
   end
 
-  # POLICY: License PAYMENT triggers License ACTIVATION 
+  # POLICY: License PAYMENT triggers License ACTIVATION
   def handle(
         %Policies{} = _policies,
         %Paid{agg_id: agg_id, payload: payment} = _event
@@ -104,7 +101,7 @@ defmodule TrainSwarmProc.Policies do
         %Policies{} = _policies,
         %ScapeDetached{agg_id: agg_id, payload: scape_init} = _event
       ) do
-    %PauseScape{
+    %PauseLicense{
       agg_id: agg_id,
       version: 1,
       payload: scape_init

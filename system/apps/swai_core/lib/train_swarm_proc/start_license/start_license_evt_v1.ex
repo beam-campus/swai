@@ -1,12 +1,12 @@
-defmodule TrainSwarmProc.QueueLicense.EvtV1 do
+defmodule TrainSwarmProc.StartLicense.EvtV1 do
   @moduledoc """
-  Event for a swarm training.
+  Event module for LicenseStarted
   """
   use Ecto.Schema
 
   import Ecto.Changeset
 
-  require Jason.Encoder
+  require Logger
 
   alias Schema.SwarmLicense, as: License
 
@@ -35,10 +35,12 @@ defmodule TrainSwarmProc.QueueLicense.EvtV1 do
     embeds_one(:payload, License)
   end
 
-  def changeset(seed, %{} = attrs) when is_struct(attrs),
-    do: changeset(seed, Map.from_struct(attrs))
+  def changeset(seed, attrs)
+      when is_struct(attrs),
+      do: changeset(seed, Map.from_struct(attrs))
 
-  def changeset(seed, %{} = attrs) when is_map(attrs) do
+  def changeset(seed, attrs)
+      when is_map(attrs) do
     seed
     |> cast(attrs, @flat_fields)
     |> cast_embed(:payload, with: &License.changeset/2)
@@ -51,6 +53,7 @@ defmodule TrainSwarmProc.QueueLicense.EvtV1 do
         {:ok, apply_changes(changeset)}
 
       changeset ->
+        Logger.error("Failed to create LicenseStarted from map: #{inspect(map)}")
         {:error, changeset}
     end
   end
