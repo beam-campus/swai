@@ -34,23 +34,23 @@ defmodule Arena.Hexa do
     do: seed
 
   def changeset(hexa, attrs)
+      when is_struct(attrs),
+      do: changeset(hexa, Map.from_struct(attrs))
+
+  def changeset(hexa, attrs)
       when is_map(attrs) do
     hexa
     |> cast(attrs, @all_fields)
     |> validate_required(@all_fields)
   end
 
-  def changeset(hexa, attrs)
-      when is_struct(attrs),
-      do: changeset(hexa, Map.from_struct(attrs))
-
   def from_map(seed, attrs) do
     case changeset(seed, attrs) do
       %{valid?: true} = changes ->
         {:ok, apply_changes(changes)}
 
-      changeset ->
-        {:error, changeset}
+      {:error, default} ->
+        {:ok, default}
     end
   end
 

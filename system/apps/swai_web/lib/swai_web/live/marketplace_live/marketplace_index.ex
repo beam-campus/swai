@@ -1,11 +1,13 @@
 defmodule SwaiWeb.MarketplaceLive.Index do
-  alias Swai.Defaults, as: Limits
-  alias Schema.SwarmLicense.Status
-  use SwaiWeb, :live_view
-
   @moduledoc """
   The live view for the training grounds index page.
   """
+
+  alias Swai.Defaults, as: Limits
+
+  alias Schema.SwarmLicense.Status, as: LicenseStatus
+  
+  use SwaiWeb, :live_view
 
   alias Edges.Service, as: Edges
   alias Swai.Biotopes, as: Biotopes
@@ -95,7 +97,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
 
     seed = %SwarmLicense{
       license_id: UUID.uuid4(),
-      status: Status.unknown(),
+      status: LicenseStatus.unknown(),
       user_id: user_id,
       cost_in_tokens: Limits.standard_cost_in_tokens(),
       available_tokens: available_tokens,

@@ -3,6 +3,7 @@ defmodule Edge.Facts do
   Edge.Facts contains the facts for the Edge subsystem.
   """
   def edge_facts, do: "edge_facts"
+  def edges_cache_facts, do: "edges_cache_facts"
 
   def initializing_edge_v1, do: "initializing_edge:v1"
 

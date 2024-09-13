@@ -2,12 +2,11 @@ defmodule SwaiWeb.EdgeDispatcher do
   @moduledoc """
   The EdgeHandler is used to broadcast messages to all clients
   """
-
   alias Edge.Facts, as: EdgeFacts
   alias Edge.Init, as: EdgeInit
   alias Phoenix.PubSub, as: PubSub
-  alias SwaiWeb.ScapeDispatcher, as: ScapeDispatcher
   alias SwaiWeb.LicenseDispatcher, as: LicenseDispatcher
+  alias SwaiWeb.ScapeDispatcher, as: ScapeDispatcher
   require Logger
 
   @edge_facts EdgeFacts.edge_facts()
@@ -17,7 +16,7 @@ defmodule SwaiWeb.EdgeDispatcher do
   ################ CALLBACKS ################
   ## Edge Detached
   def pub_edge_detached(payload) do
-    case EdgeInit.from_map(payload["edge_init"]) do
+    case EdgeInit.from_map(EdgeInit.default(), payload["edge_init"]) do
       {:ok, %EdgeInit{edge_id: edge_id} = edge_init} ->
         ScapeDispatcher.detach_edge(edge_id)
         LicenseDispatcher.detach_edge(edge_id)
@@ -33,7 +32,7 @@ defmodule SwaiWeb.EdgeDispatcher do
   ## Edge Attached
   def pub_edge_attached(payload, socket) do
     Logger.info("pub_edge_attached #{inspect(payload)}")
-    {:ok, edge_init} = EdgeInit.from_map(payload["edge_init"])
+    {:ok, edge_init} = EdgeInit.from_map(EdgeInit.default(), payload["edge_init"])
 
     edge_init =
       %Edge.Init{

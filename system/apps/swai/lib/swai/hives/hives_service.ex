@@ -57,8 +57,6 @@ defmodule Hives.Service do
     }
     {:reply, new_license, state}
   end
-  
-
 
   @impl true
   def handle_call({:hydrate, %{hive_id: hive_id} = license}, _from, state) do
@@ -104,8 +102,8 @@ defmodule Hives.Service do
         hive_init =
           %HiveInit{
             found_hive
-            | status:
-                found_hive.status
+            | hive_status:
+                found_hive.hive_status
                 |> unset(HiveStatus.hive_occupied())
                 |> set(HiveStatus.hive_vacant())
           }
@@ -133,8 +131,8 @@ defmodule Hives.Service do
       seed ->
         new_hive = %HiveInit{
           hive_from_map(seed, hive_init)
-          | status:
-              seed.status
+          | hive_status:
+              seed.hive_status
               |> unset(HiveStatus.hive_vacant())
               |> set(HiveStatus.hive_occupied())
         }
@@ -157,7 +155,7 @@ defmodule Hives.Service do
     hive_init =
       %HiveInit{
         hive_init
-        | status: HiveStatus.hive_initialized()
+        | hive_status: HiveStatus.hive_initialized()
       }
 
     case :hives_cache |> Cachex.get!(hive_id) do

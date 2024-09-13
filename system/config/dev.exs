@@ -1,7 +1,5 @@
 import Config
 
-
-
 # Configure your database
 # config :swai, Swai.Repo,
 #   database: Path.expand("../swai_dev.db", __DIR__),
@@ -19,8 +17,6 @@ config :swai, Swai.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10,
   log: false
-
-
 
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.
@@ -41,9 +37,7 @@ config :swoosh, :api_client, false
 config :swai_train_swarm,
   log: false
 
-config :commanded,
-  log_level: :none
-
+config :commanded, log_level: :none, logger: false
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -103,8 +97,7 @@ config :swai_web, dev_routes: true
 # Do not include metadata nor timestamps in development logs
 
 # Disable logging for phoenix
-config :phoenix,
-  log: false
+config :phoenix, :logger, false
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime

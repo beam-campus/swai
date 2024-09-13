@@ -9,11 +9,12 @@ defmodule Arena.ArenaMap do
   require Logger
 
   alias Arena.ArenaMap, as: ArenaMap
+  alias Arena.Element, as: ArenaElement
   alias Arena.Hexa, as: Hexa
+  alias Feature.Init, as: Feature
+  alias Scape.Utils, as: ScapeUtils
   alias Schema.Vector, as: Vector
   alias Swai.Defaults, as: Defaults
-  alias Scape.Utils, as: ScapeUtils
-  alias Feature.Init, as: Feature
 
   @map_width Defaults.arena_width()
   @map_height Defaults.arena_height()
@@ -31,6 +32,13 @@ defmodule Arena.ArenaMap do
     # :threats,
     # :hives,
     :elements
+  ]
+
+  @required_fields [
+    :width,
+    :height,
+    :hexa_size,
+    :maze_density
   ]
 
   @flat_fields [
@@ -52,15 +60,22 @@ defmodule Arena.ArenaMap do
     # field(:particles, {:array, :map}, default: [])
     # field(:threats, {:array, :map}, default: [])
     # field(:hives, {:array, :map}, default: [])
-    embeds_many(:elements, Arena.Element, on_replace: :delete)
+    embeds_many(:elements, ArenaElement, on_replace: :delete)
   end
+
+  def changeset(seed, nil),
+    do: seed
+
+  def changeset(arena_map, data)
+    when is_struct(data),
+    do: changeset(arena_map, Map.from_struct(data))
 
   def changeset(arena_map, attrs)
       when is_map(attrs) do
     arena_map
     |> cast(attrs, @flat_fields)
-    |> cast_embed(:elements, with: &Arena.Element.changeset/2)
-    |> validate_required(@all_fields)
+    |> cast_embed(:elements, with: &Arena.Element.changeset/2, required: true)
+    |> validate_required(@required_fields)
   end
 
   def generate(width, height, hexa_size, maze_density, hives_cap) do

@@ -4,20 +4,22 @@ defmodule Edge.Init do
   @moduledoc """
   Edge.Init is the struct that identifies the state of a Region.
   """
-  alias Edge.Init, as: EdgeInit
   alias AppUtils, as: AppUtils
-  alias Schema.EdgeStats, as: Stats
+  alias Edge.Init, as: EdgeInit
+  alias Edge.Status, as: EdgeStatus
   alias Phoenix.Socket, as: Socket
-
+  alias Schema.EdgeStats, as: Stats
 
   import Ecto.Changeset
 
   require Logger
   require EnvVars
 
+  @edge_status_unknown EdgeStatus.unknown()
 
   @all_fields [
     :edge_id,
+    :edge_status,
     :scapes_cap,
     :hives_cap,
     :particles_cap,
@@ -65,6 +67,7 @@ defmodule Edge.Init do
 
   @json_fields [
     :edge_id,
+    :edge_status,
     :scapes_cap,
     :hives_cap,
     :particles_cap,
@@ -111,6 +114,7 @@ defmodule Edge.Init do
 
   @flat_fields [
     :edge_id,
+    :edge_status,
     :scapes_cap,
     :hives_cap,
     :particles_cap,
@@ -154,14 +158,9 @@ defmodule Edge.Init do
     :flag_svg
   ]
 
-  # @embedded_fields [
-  #   :stats,
-  #   :socket,
-  #   :biotopes
-  # ]
-
   @required_fields [
     :edge_id,
+    :edge_status,
     :biotope_id,
     :algorithm_acronym,
     :algorithm_id,
@@ -175,6 +174,7 @@ defmodule Edge.Init do
   @primary_key false
   embedded_schema do
     field(:edge_id, :string)
+    field(:edge_status, :integer, default: @edge_status_unknown)
     field(:scapes_cap, :integer)
     field(:hives_cap, :integer)
     field(:particles_cap, :integer)
@@ -232,12 +232,8 @@ defmodule Edge.Init do
         |> cast_embed(:stats, with: &Stats.changeset/2)
         |> validate_required(@required_fields)
 
-  def from_map(seed, struct) when is_struct(struct),
-    do: from_map(seed, Map.from_struct(struct))
-
-  def from_map(map)
-      when is_map(map) do
-    case(changeset(%EdgeInit{}, map)) do
+  def from_map(seed, map) do
+    case(changeset(seed, map)) do
       %{valid?: true} = changeset ->
         edge_init =
           changeset
@@ -253,6 +249,7 @@ defmodule Edge.Init do
   def default,
     do: %EdgeInit{
       edge_id: "N/A",
+      edge_status: EdgeStatus.unknown(),
       biotope_id: "N/A",
       algorithm_acronym: "N/A",
       api_key: "N/A",
@@ -292,7 +289,7 @@ defmodule Edge.Init do
       stats: Stats.empty()
     }
 
-  def from_environment() do
+  def from_environment do
     {:ok, chost} = :inet.gethostname()
     edge_id = "#{to_string(chost)}-" <> "#{inspect(UUID.uuid4())}"
 
@@ -302,6 +299,7 @@ defmodule Edge.Init do
 
     %EdgeInit{
       edge_id: edge_id,
+      edge_status: @edge_status_unknown,
       api_key: api_key,
       is_container: AppUtils.running_in_container?(),
       ip_address: "unknown",
@@ -361,6 +359,7 @@ defmodule Edge.Init do
 
     %EdgeInit{
       edge_id: edge_id,
+      edge_status: @edge_status_unknown,
       biotope_id: biotope_id,
       algorithm_acronym: algorithm_acronym,
       api_key: api_key,
@@ -400,7 +399,7 @@ defmodule Edge.Init do
     }
   end
 
-  def enriched() do
+  def enriched do
     {:ok, ip_info} =
       Apis.IpInfoCache.refresh()
 

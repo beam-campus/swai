@@ -88,7 +88,7 @@ defmodule Hive.System do
 
         new_state = %HiveInit{
           state
-          | status: @hive_status_vacant,
+          | hive_status: @hive_status_vacant,
             license_id: nil,
             license: nil
         }
@@ -122,7 +122,7 @@ defmodule Hive.System do
               state
               | license: license,
                 license_id: license_id,
-                status: @hive_status_occupied
+                hive_status: @hive_status_occupied
             }
 
           HiveEmitter.emit_hive_occupied(new_state)

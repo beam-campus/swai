@@ -5,13 +5,13 @@ defmodule SwaiWeb.EdgesLive.Index do
   require Seconds
   require Jason.Encoder
 
+  alias Edge.Facts, as: EdgeFacts
   alias Edges.Service, as: EdgesCache
   alias Phoenix.PubSub
-  alias Edge.Facts, as: EdgeFacts
 
   import ErlUtils
 
-  @edges_cache_updated_v1 EdgeFacts.edges_cache_updated_v1()
+  @edges_cache_facts EdgeFacts.edges_cache_facts()
 
   # def refresh(_caller_state),
   #   do: Process.send(self(), :refresh, @refresh_seconds * 1_000)
@@ -23,7 +23,9 @@ defmodule SwaiWeb.EdgesLive.Index do
     case connected?(socket) do
       true ->
         Logger.info("Connected")
-        PubSub.subscribe(Swai.PubSub, @edges_cache_updated_v1)
+
+        Swai.PubSub
+        |> PubSub.subscribe(@edges_cache_facts)
 
         {
           :ok,
@@ -55,22 +57,10 @@ defmodule SwaiWeb.EdgesLive.Index do
   @impl true
   def handle_info(:count_messages, socket) do
     Process.send_after(self(), :count_messages, 10_000)
-    # old_nbr_of_msgs = total_messages()
+    #    old_nbr_of_msgs = total_messages()
     nbr_of_processes = ErlUtils.total_processes()
 
     {:noreply, socket |> assign(nbr_of_msgs: nbr_of_processes)}
-  end
-
-  @impl true
-  def handle_info({@edges_cache_updated_v1, _payload}, socket) do
-    {
-      :noreply,
-      socket
-      |> assign(
-        edges: EdgesCache.get_all(),
-        now: DateTime.utc_now()
-      )
-    }
   end
 
   @impl true

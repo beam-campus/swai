@@ -6,12 +6,14 @@ defmodule Arenas.Service do
 
   alias Arena.Facts, as: ArenaFacts
   alias Arena.Init, as: ArenaInit
+  alias Arena.Status, as: ArenaStatus
   alias Phoenix.PubSub, as: PubSub
   alias Schema.SwarmLicense, as: License
 
   @arena_facts ArenaFacts.arena_facts()
-  @arena_cache_updated_v1 ArenaFacts.arena_cache_updated_v1()
+  @arenas_cache_facts ArenaFacts.arenas_cache_facts()
   @arena_initialized_v1 ArenaFacts.arena_initialized_v1()
+  @arena_status_initialized ArenaStatus.initialized()
 
   ## Public API
   def hydrate(license),
@@ -62,7 +64,7 @@ defmodule Arenas.Service do
 
   @impl GenServer
   def handle_call({:hydrate, %{scape_id: scape_id} = license}, _from, cache_file) do
-    reply =
+    the_arena =
       case :arenas_cache |> Cachex.get(scape_id) do
         {:ok, nil} ->
           ArenaInit.default()
@@ -74,7 +76,7 @@ defmodule Arenas.Service do
           ArenaInit.default()
       end
 
-    new_license = %License{license | arena: reply}
+    new_license = %License{license | arena: the_arena}
 
     {:reply, new_license, cache_file}
   end
@@ -91,7 +93,7 @@ defmodule Arenas.Service do
     {:reply, reply, cache_file}
   end
 
-  ## SUBSCRIBED FACTS
+  ####################### SUBSCRIBED FACTS ################
   @impl GenServer
   def handle_info(
         {@arena_initialized_v1,
@@ -100,17 +102,22 @@ defmodule Arenas.Service do
          } = arena_init} = cause,
         state
       ) do
-    case :arenas_cache |> Cachex.get!(arena_id) do
-      nil ->
-        :arenas_cache
-        |> Cachex.put!(arena_id, arena_init)
+    new_arena =
+      case :arenas_cache |> Cachex.get!(arena_id) do
+        nil ->
+          arena_init
 
-      _ ->
-        :arenas_cache
-        |> Cachex.update!(arena_id, arena_init)
-    end
+        arena ->
+          arena
+      end
 
-    notify_cache_updated(cause, arena_init)
+    new_arena =
+      %ArenaInit{new_arena | arena_status: @arena_status_initialized}
+
+    :arenas_cache
+    |> Cachex.put!(arena_id, new_arena)
+
+    notify_cache_updated(cause)
 
     {:noreply, state}
   end
@@ -121,11 +128,11 @@ defmodule Arenas.Service do
     {:noreply, state}
   end
 
-  defp notify_cache_updated(cause, arena_init) do
+  defp notify_cache_updated(cause) do
     Swai.PubSub
     |> PubSub.broadcast!(
-      @arena_cache_updated_v1,
-      {cause, arena_init}
+      @arenas_cache_facts,
+      {:arena, cause}
     )
   end
 

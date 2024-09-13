@@ -1,4 +1,4 @@
-defmodule TrainSwarmProc.StartLicense.Evaluator do
+defmodule TrainSwarmPeoc.StartLicense.Evaluator do
   @moduledoc """
   This module is responsible for evaluating the start of a scape.
   """

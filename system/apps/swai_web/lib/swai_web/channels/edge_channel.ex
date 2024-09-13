@@ -7,8 +7,6 @@ defmodule SwaiWeb.EdgeChannel do
   require Logger
   require Phoenix.PubSub
 
-  alias Schema.SwarmLicense, as: License
-
   alias SwaiWeb.ArenaDispatcher, as: ArenaDispatcher
   alias SwaiWeb.Dispatch.ChannelWatcher
   alias SwaiWeb.EdgeDispatcher, as: EdgeDispatcher
@@ -17,26 +15,22 @@ defmodule SwaiWeb.EdgeChannel do
   alias SwaiWeb.ScapeDispatcher, as: ScapeDispatcher
 
   alias Edge.Facts, as: EdgeFacts
-  alias Edge.Hopes, as: EdgeHopes
-  alias Edges.Service, as: Edges
 
   alias Arena.Facts, as: ArenaFacts
   alias Hive.Facts, as: HiveFacts
   alias Hive.Hopes, as: HiveHopes
-  alias Hive.Init, as: HiveInit
   alias Scape.Facts, as: ScapeFacts
 
   @hope_shout "hope:shout"
   @hope_ping "ping"
   @hope_join_edge "join_edge"
 
-  # @scape_attached_v1 Facts.scape_attached_v1()
   @edge_attached_v1 EdgeFacts.edge_attached_v1()
 
+  # @scape_attached_v1 ScapeFacts.scape_attached_v1()
+  @scape_detached_v1 ScapeFacts.scape_detached_v1()
   @scape_initializing_v1 ScapeFacts.scape_initializing_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
-  @scape_attached_v1 ScapeFacts.scape_attached_v1()
-  @scape_detached_v1 ScapeFacts.scape_detached_v1()
 
   @hive_initialized_v1 HiveFacts.hive_initialized_v1()
   @hive_occupied_v1 HiveFacts.hive_occupied_v1()

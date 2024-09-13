@@ -111,7 +111,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
           live_action={@live_action}
           module={SwaiWeb.MyWorkspaceLive.SwarmLicensesSection}
           edges={@edges}
-          swarm_licenses={@licenses}
+          licenses={@licenses}
           now={@now}
           section_title="My Swarm Licenses"
           section_description="This is a list of all the Swarm Licenses you have created."

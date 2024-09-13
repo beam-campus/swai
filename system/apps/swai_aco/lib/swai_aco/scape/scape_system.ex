@@ -9,16 +9,11 @@ defmodule Scape.System do
   require Process
   require Task
 
-  alias Scape.Emitter, as: ScapeEmitter
-  alias Scape.Init, as: ScapeInit
   alias Arena.Init, as: ArenaInit
   alias Hive.Init, as: HiveInit
+  alias Scape.Emitter, as: ScapeEmitter
+  alias Scape.Init, as: ScapeInit
   alias Scape.Facts, as: ScapeFacts
-
-  @scape_initializing_v1 ScapeFacts.scape_initializing_v1()
-  @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
-  @scape_detached_v1 ScapeFacts.scape_detached_v1()
-  @scape_attached_v1 ScapeFacts.scape_attached_v1()
 
   ################# START HIVE #####################
   defp start_hives(%{hives_cap: hives_cap, scape_id: scape_id}) do

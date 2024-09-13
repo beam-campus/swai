@@ -25,6 +25,8 @@ defmodule TrainSwarmProc.StartLicense.CmdV1 do
     embeds_one(:payload, License)
   end
 
+  def changeset(seed, nil), do: nil
+
   def changeset(seed, attrs)
       when is_struct(attrs) do
     changeset(seed, Map.from_struct(attrs))

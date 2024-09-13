@@ -8,10 +8,10 @@ defmodule Hive.Init do
 
   alias Arena.Hexa, as: Hexa
   alias Hive.Init, as: HiveInit
+  alias Hive.Status, as: HiveStatus
   alias Scape.Init, as: ScapeInit
   alias Scape.Utils, as: ScapeUtils
   alias Schema.SwarmLicense, as: License
-  alias Hive.Status, as: HiveStatus
 
   require Logger
   require Jason.Encoder
@@ -20,8 +20,9 @@ defmodule Hive.Init do
 
   @all_fields [
     :hive_id,
+    :hive_name,
     :particles_cap,
-    :status,
+    :hive_status,
     :edge_id,
     :scape_id,
     :biotope_id,
@@ -34,7 +35,9 @@ defmodule Hive.Init do
 
   @flat_fields [
     :hive_id,
+    :hive_name,
     :particles_cap,
+    :hive_status,
     :edge_id,
     :scape_id,
     :biotope_id,
@@ -58,12 +61,13 @@ defmodule Hive.Init do
   embedded_schema do
     # HiveInit ID
     field(:hive_id, :string, default: "hive-#{UUID.uuid4()}")
-    field(:status, :integer, default: @hive_status_unknown)
+    field(:hive_status, :integer, default: @hive_status_unknown)
     field(:particles_cap, :integer)
+    field(:hive_name, :string)
     field(:edge_id, :string)
     field(:scape_id, :string)
     field(:biotope_id, :string)
-    field(:hive_no, :integer)
+    field(:hive_no, :integer, default: 1)
     field(:license_id, :binary_id, default: nil)
     field(:scape_name, :string)
     embeds_one(:hexa, Hexa, on_replace: :delete)
@@ -74,7 +78,7 @@ defmodule Hive.Init do
       when is_struct(struct),
       do: changeset(seed, Map.from_struct(struct))
 
-  def changeset(%HiveInit{} = seed, attrs)
+  def changeset(seed, attrs)
       when is_map(attrs) do
     seed
     |> cast(attrs, @flat_fields)
@@ -83,7 +87,7 @@ defmodule Hive.Init do
     |> validate_required(@required_fields)
   end
 
-  def from_map(%HiveInit{} = seed, map) do
+  def from_map(seed, map) do
     case changeset(seed, map) do
       %{valid?: true} = changeset ->
         {:ok, apply_changes(changeset)}
@@ -97,23 +101,26 @@ defmodule Hive.Init do
   def default,
     do: %HiveInit{
       hive_id: "hive-#{UUID.uuid4()}",
-      status: @hive_status_unknown,
+      hive_status: @hive_status_unknown,
       particles_cap: 0,
       edge_id: "N/A",
       scape_id: "N/A",
       biotope_id: UUID.uuid4(),
-      hive_no: 0,
+      hive_no: 1,
+      hive_name: "N/A",
       license_id: nil,
       scape_name: "N/A",
       hexa: nil,
       license: nil
     }
 
-  def new(hive_no, %ScapeInit{} = scape_init) do
+  def new(hive_no, %ScapeInit{scape_name: scape_name} = scape_init) do
     %HiveInit{
       hive_id: "hive-#{UUID.uuid4()}",
       hive_no: hive_no,
-      hexa: ScapeUtils.get_hive_hexa(hive_no)
+      hexa: ScapeUtils.get_hive_hexa(hive_no),
+      hive_status: @hive_status_unknown,
+      hive_name: "#{scape_name}-#{hive_no}"
     }
     |> from_map(scape_init)
   end

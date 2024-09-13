@@ -8,6 +8,7 @@ defmodule SwaiWeb.LicenseDispatcher do
   require Logger
 
   defp do_detach_license(%{license_id: agg_id} = license) do
+    Logger.alert("Pausing License: #{inspect(license)}")
     pause_license_cmd = %PauseLicense{
       agg_id: agg_id,
       version: 1,

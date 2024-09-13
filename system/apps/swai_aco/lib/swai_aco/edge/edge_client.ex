@@ -52,9 +52,21 @@ defmodule Edge.Client do
   @impl Slipstream
   def handle_call({:request, topic, hope, payload}, _from, socket) do
     resp =
-       socket
-          |> push!(topic, hope, payload)
+      case socket
+           |> push(topic, hope, payload) do
+        {:ok, push_ref} ->
+          push_ref
           |> await_reply!(2_000)
+
+        {:error, reason} ->
+          Logger.warning("Edge.Client push error: #{inspect(reason)}")
+        nil
+
+        _ ->
+          Logger.warning("Edge.Client unspecified push error")
+          nil
+      end
+
     {:reply, resp, socket}
   end
 

@@ -10,7 +10,7 @@ defmodule TrainSwarmProc.Aggregate do
   alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
   alias TrainSwarmProc.Aggregate, as: Aggregate
   alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
-  alias TrainSwarmProc.ConfigureLicense.EvtV1, as: Configured
+  alias TrainSwarmProc.ConfigureLicense.EvtV1, as: LicenseConfigured
   alias TrainSwarmProc.InitializeLicense.EvtV1, as: LicenseInitialized
   alias TrainSwarmProc.PauseLicense.EvtV1, as: LicensePaused
   alias TrainSwarmProc.PayLicense.EvtV1, as: LicensePaid
@@ -75,7 +75,7 @@ defmodule TrainSwarmProc.Aggregate do
   ##################### LICENSE CONFIGURED #####################
   def apply(
         %Aggregate{state: license} = agg,
-        %Configured{payload: configuration} = evt
+        %LicenseConfigured{payload: configuration} = evt
       ) do
     case SwarmLicense.from_map(license, configuration) do
       {:ok, new_license} ->

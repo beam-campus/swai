@@ -12,14 +12,16 @@ defmodule Arena.Init do
 
   alias Arena.ArenaMap, as: ArenaMap
   alias Arena.Init, as: ArenaInit
+  alias Arena.Status, as: ArenaStatus
   alias Scape.Init, as: ScapeInit
   alias Schema.Vector, as: Vector
   alias Swai.Defaults, as: Defaults
 
+  @arena_status_unknown ArenaStatus.unknown()
+
   @hexa_size Defaults.arena_hexa_size()
   @map_width Defaults.arena_width()
   @map_height Defaults.arena_height()
-
   @maze_density Defaults.arena_maze_density()
 
   @all_fields [
@@ -59,6 +61,7 @@ defmodule Arena.Init do
     field(:biotope_id, :binary_id)
     field(:hives_cap, :integer)
     field(:scape_name, :string)
+    field(:arena_status, :integer, default: @arena_status_unknown)
     embeds_one(:dimensions, Vector, on_replace: :delete)
     embeds_one(:arena_map, ArenaMap, on_replace: :delete)
   end
@@ -87,7 +90,7 @@ defmodule Arena.Init do
     end
   end
 
-  def default() do
+  def default do
     seed =
       %ArenaInit{
         arena_id: "arena-#{UUID.uuid4()}",

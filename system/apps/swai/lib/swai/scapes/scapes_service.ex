@@ -11,6 +11,7 @@ defmodule Scapes.Service do
   alias Phoenix.PubSub, as: PubSub
   alias Scape.Facts, as: ScapeFacts
   alias Scape.Init, as: ScapeInit
+  alias Scape.Status, as: ScapeStatus
   alias Schema.SwarmLicense, as: License
 
   @scape_facts ScapeFacts.scape_facts()
@@ -110,8 +111,10 @@ defmodule Scapes.Service do
   @impl true
   def handle_call({:hydrate, %{scape_id: nil} = license}, _from, state) do
     result = ScapeInit.default()
+
     new_license =
       %License{license | scape_id: result.scape_id, scape: result}
+
     {:reply, new_license, state}
   end
 

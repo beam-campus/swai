@@ -9,6 +9,7 @@ defmodule Edges.Service do
 
   alias Edge.Facts, as: EdgeFacts
   alias Edge.Init, as: EdgeInit
+  alias Edge.Status, as: EdgeStatus
   alias Phoenix.PubSub, as: PubSub
   alias Schema.EdgeStats, as: EdgeStats
   alias Schema.SwarmLicense, as: License
@@ -17,10 +18,26 @@ defmodule Edges.Service do
   require Logger
 
   @edge_facts EdgeFacts.edge_facts()
-
-  @edges_cache_updated_v1 EdgeFacts.edges_cache_updated_v1()
+  @edges_cache_facts EdgeFacts.edges_cache_facts()
   @edge_attached_v1 EdgeFacts.edge_attached_v1()
   @edge_detached_v1 EdgeFacts.edge_detached_v1()
+
+  @edge_status_attached EdgeStatus.edge_attached()
+  @edge_status_detached EdgeStatus.edge_detached()
+
+  def start do
+    case start_link(nil) do
+      {:ok, pid} ->
+        {:ok, pid}
+
+      {:error, {:already_started, pid}} ->
+        {:ok, pid}
+
+      {:error, reason} ->
+        Logger.error("Edges.Service failed to start: #{reason}")
+        {:error, reason}
+    end
+  end
 
   def count,
     do:
@@ -170,7 +187,7 @@ defmodule Edges.Service do
 
   ##################### HANDLE EDGE ATTACHED ###################
   @impl GenServer
-  def handle_info({@edge_attached_v1, %EdgeInit{edge_id: edge_id} = edge_init}, _state) do
+  def handle_info({@edge_attached_v1, %EdgeInit{edge_id: edge_id} = edge_init} = cause, _state) do
     state =
       case get_edge(edge_init) do
         nil ->
@@ -178,7 +195,8 @@ defmodule Edges.Service do
             edge_init
             | stats: %EdgeStats{
                 nbr_of_agents: 1
-              }
+              },
+              edge_status: @edge_status_attached
           }
 
           :edges_cache
@@ -192,21 +210,18 @@ defmodule Edges.Service do
             | nbr_of_agents: old_stats.nbr_of_agents + 1
           }
 
-          new_edge = %EdgeInit{
-            old
-            | stats: new_stats
-          }
+          new_edge = %EdgeInit{old | stats: new_stats, edge_status: @edge_status_attached}
 
           :edges_cache
           |> Cachex.update!(edge_id, new_edge)
       end
 
-    notify_edges_updated({@edge_attached_v1, edge_init})
+    notify_edges_updated(cause)
     {:noreply, state}
   end
 
   @impl GenServer
-  def handle_info({@edge_detached_v1, %EdgeInit{} = edge_init}, _state) do
+  def handle_info({@edge_detached_v1, %EdgeInit{} = edge_init} = cause, _state) do
     ######################################################################
     ## @edge_detached_v1 does not remove the edge entry from the cache
     # it only decrements the number of agents on the edge.
@@ -227,15 +242,12 @@ defmodule Edges.Service do
           }
 
           %EdgeInit{} =
-            new_edge = %EdgeInit{
-              old_edge
-              | stats: new_stats
-            }
+            new_edge = %EdgeInit{old_edge | stats: new_stats, edge_status: @edge_status_detached}
 
           :edges_cache
           |> Cachex.update!(edge_id, new_edge)
 
-          notify_edges_updated({@edge_detached_v1, new_edge})
+          notify_edges_updated(cause)
 
           if new_edge.stats.nbr_of_agents == 0 do
             Process.send_after(self(), {:remove_edge, new_edge}, 10_000)
@@ -257,24 +269,23 @@ defmodule Edges.Service do
     {:noreply, state}
   end
 
+  ################### SUBSCRIPTIONS FALLTHROUGH ###################
   @impl GenServer
-  def handle_info(_msg, state), do: {:noreply, state}
+  def handle_info(_msg, state),
+    do: {:noreply, state}
 
   ############ INTERNALS ########
   defp notify_edges_updated(cause),
     do:
       Swai.PubSub
-      |> PubSub.broadcast!(
-        @edges_cache_updated_v1,
-        cause
-      )
+      |> PubSub.broadcast!(@edges_cache_facts, cause)
 
   ########### PLUMBING ##########
 
-  def child_spec(),
+  def child_spec,
     do: %{
       id: __MODULE__,
-      start: {__MODULE__, :start_link, []},
+      start: {__MODULE__, :start, []},
       type: :worker,
       restart: :permanent
     }

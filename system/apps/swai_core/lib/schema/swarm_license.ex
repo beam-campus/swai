@@ -5,18 +5,17 @@ defmodule Schema.SwarmLicense do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Scape.Init, as: ScapeInit
+  alias Arena.Init, as: ArenaInit
   alias Edge.Init, as: EdgeInit
   alias Hive.Init, as: HiveInit
-  alias Arena.Init, as: ArenaInit
-
+  alias Scape.Init, as: ScapeInit
 
   alias Swai.Defaults, as: Defaults
 
   @standard_cost_in_tokens Defaults.standard_cost_in_tokens()
 
   alias Schema.SwarmLicense, as: SwarmLicense
-  alias Schema.SwarmLicense.Status, as: Status
+  alias Schema.SwarmLicense.Status, as: LicenseStatus
 
   @all_fields [
     :license_id,
@@ -79,7 +78,7 @@ defmodule Schema.SwarmLicense do
   schema "swarm_licenses" do
     field(:license_id, :binary_id, primary_key: true)
 
-    field(:status, :integer, default: Status.unknown())
+    field(:status, :integer, default: LicenseStatus.unknown())
     field(:status_string, :string, virtual: true)
     field(:user_id, :binary_id)
 
@@ -112,7 +111,7 @@ defmodule Schema.SwarmLicense do
     embeds_one(:arena, ArenaInit, on_replace: :delete)
   end
 
-  defp calculate_cost_in_tokens(%Ecto.Changeset{} = changeset) do
+  defp calculate_cost_in_tokens(changeset) do
     #    new_license =
     #  changeset
     #  |> apply_changes()
@@ -126,13 +125,13 @@ defmodule Schema.SwarmLicense do
     new_changeset
   end
 
-  defp calculate_status_string(%Ecto.Changeset{} = changeset) do
+  defp calculate_status_string(changeset) do
     new_training =
       changeset
       |> apply_changes()
 
     new_status_string =
-      Status.to_string(new_training.status)
+      LicenseStatus.to_string(new_training.status)
 
     new_changeset =
       changeset
@@ -157,14 +156,14 @@ defmodule Schema.SwarmLicense do
     )
   end
 
-  def changeset(swarm_license, map)
+  def changeset(seed, map)
       when is_struct(map),
-      do: changeset(swarm_license, Map.from_struct(map))
+      do: changeset(seed, Map.from_struct(map))
 
-  def changeset(swarm_license, map)
+  def changeset(seed, map)
       when is_map(map),
       do:
-        swarm_license
+        seed
         |> cast(map, @flat_fields)
         |> validate_required(@required_fields)
         |> calculate_cost_in_tokens()
@@ -175,13 +174,19 @@ defmodule Schema.SwarmLicense do
   def from_map(_seed, nil),
     do: {:ok, nil}
 
-  def from_map(%SwarmLicense{} = seed, map)
+  def from_map(seed, map)
       when is_struct(map),
       do: from_map(seed, Map.from_struct(map))
 
-  def from_map(%SwarmLicense{} = seed, map)
+  def from_map(%SwarmLicense{license_id: license_id} = seed, %{license_id: nil} = map)
       when is_map(map) do
-    case(changeset(seed, map)) do
+    map = Map.put(map, :license_id, license_id)
+    from_map(seed, map)
+  end
+
+  def from_map(seed, map)
+      when is_map(map) do
+    case changeset(seed, map) do
       %{valid?: true} = changeset ->
         {:ok, apply_changes(changeset)}
 

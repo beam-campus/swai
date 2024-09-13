@@ -1,7 +1,6 @@
 defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
   use SwaiWeb, :live_component
 
-  alias Edge.Init, as: EdgeInit
 
   @impl true
   def update(assigns, socket) do
@@ -10,13 +9,6 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
       socket
       |> assign(assigns)
     }
-  end
-
-  defp get_edge_by_id(edges, edge_id) do
-    case Enum.find(edges, fn edge -> edge.id == edge_id end) do
-      nil -> EdgeInit.default()
-      edge -> edge
-    end
   end
 
   @impl true
@@ -29,11 +21,11 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
       </div>
 
       <div class="grid grid-cols-1 gap-4 mt-3">
-        <%= for swarm_license <- @swarm_licenses do %>
+        <%= for license <- @licenses do %>
           <.live_component
-            id={"swarm-training-card-#{swarm_license.license_id}"}
+            id={"swarm-training-card-#{license.license_id}"}
             module={SwaiWeb.MyWorkspaceLive.SwarmLicenseCard}
-            swarm_license={swarm_license}
+            license={license}
             current_user={@current_user}
           />
         <% end %>

@@ -25,34 +25,45 @@ defmodule SwaiWeb.HiveDispatcher do
     Logger.info("HiveDispatcher.detach_scape: #{inspect(scape_id)}")
   end
 
-  defp do_reserve_license(%{license_id: agg_id} = license) do
+  defp do_decorate_license(%License{} = license, %HiveInit{} = hive_init) do
+    case License.from_map(license, hive_init) do
+      {:ok, license} ->
+        license
+
+      {:error, changeset} ->
+        Logger.error("invalid HIVE input map, reason: #{inspect(changeset)}")
+        nil
+    end
+  end
+
+  defp do_reserve_license(%{license_id: agg_id} = license, hive_init) do
+    reserved_license = do_decorate_license(license, hive_init)
+
     reserve_license = %ReserveLicense{
       agg_id: agg_id,
       version: 1,
-      payload: license
+      payload: reserved_license
     }
 
     ProcApp.dispatch(reserve_license)
   end
 
-  defp try_claim_license(hive_init) do
+  defp do_try_claim_license(hive_init) do
     case Licenses.claim_license(hive_init) do
       nil ->
         nil
 
       license ->
-        do_reserve_license(license)
+        do_reserve_license(license, hive_init)
         license
     end
   end
 
   ## Reserve a license for a hive
   def try_reserve_license(envelope) do
-    Logger.alert("HiveDispatcher.try_reserve_license: #{inspect(envelope)}")
-
     case HiveInit.from_map(%HiveInit{}, envelope["hive_init"]) do
       {:ok, hive_init} ->
-        try_claim_license(hive_init)
+        do_try_claim_license(hive_init)
 
       {:error, changeset} ->
         Logger.error("invalid envelope, reason: #{inspect(changeset)}")
@@ -73,12 +84,15 @@ defmodule SwaiWeb.HiveDispatcher do
     end
   end
 
-  defp start_license_on_hive(
+  defp do_start_license_on_hive(
          %HiveInit{
+           hive_id: hive_id,
            license_id: license_id,
            license: license
          } = hive
        ) do
+    Logger.warning("Starting license [#{license_id}] on hive: #{hive_id}")
+
     start_info =
       case License.from_map(license, hive) do
         {:ok, license} ->
@@ -104,7 +118,7 @@ defmodule SwaiWeb.HiveDispatcher do
       {:ok, hive_init} ->
         start_license =
           Task.async(fn ->
-            start_license_on_hive(hive_init)
+            do_start_license_on_hive(hive_init)
           end)
 
         SwaiPubSub

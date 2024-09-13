@@ -1,9 +1,9 @@
 defmodule SwaiWeb.MyWorkspaceLive.SwarmLicenseCard do
   use SwaiWeb, :live_component
 
+  alias Edge.Init, as: EdgeInit
   alias Schema.SwarmLicense, as: License
   alias Schema.SwarmLicense.Status, as: Status
-  alias Edge.Init, as: EdgeInit
 
   @impl true
   def update(assigns, socket) do
@@ -14,14 +14,14 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicenseCard do
     }
   end
 
-  attr(:swarm_license, License)
+  attr(:license, License)
 
   defp biotope_box(assigns) do
     ~H"""
     <div class="flex flex-row text-swBrand-dark font-regular mb-2">
-      <p><%= @swarm_license.biotope_name %> [<%= @swarm_license.algorithm_name %>]</p>
+      <p><%= @license.biotope_name %> [<%= @license.algorithm_name %>]</p>
       <p class="font-regular uppercase text-swBrand-light ml-auto" id="license_theme">
-        <%= @swarm_license.theme %>
+        <%= @license.theme %>
       </p>
     </div>
     """
@@ -32,19 +32,19 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicenseCard do
   defp get_edge(%{edge: nil}), do: EdgeInit.default()
   defp get_edge(%{edge: edge}), do: edge
 
-  attr(:swarm_license, License)
+  attr(:license, License)
   attr(:edge, Edge)
 
   defp status_box(assigns) do
     ~H"""
     <div class="flex flex-row">
       <div class="font-Brand font-regular text-white-600 text-xs">
-        <p>License: <%= @swarm_license.license_id %></p>
-        <p>Swarm: <%= @swarm_license.swarm_name %></p>
+        <p>License: <%= @license.license_id %></p>
+        <p>Swarm: <%= @license.swarm_name %></p>
       </div>
       <div class="ml-auto flex flex-col">
         <div class="flex flex-row text-white font-regular text-xs gap-1 mb-auto ml-auto">
-          <%= for status <- Status.to_list(@swarm_license.status) do %>
+          <%= for status <- Status.to_list(@license.status) do %>
             <div class={"badge rounded border m-1 p-1 #{status}-status"}><%= status %></div>
           <% end %>
         </div>
@@ -53,11 +53,11 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicenseCard do
     """
   end
 
-  attr(:swarm_license, License)
+  attr(:license, License)
 
   def scape_minimap(assigns) do
     ~H"""
-    <div id={"scape-thumbnail-#{@swarm_license.license_id}"} class="scape-minimap">
+    <div id={"scape-thumbnail-#{@license.license_id}"} class="scape-minimap">
       <p class="text-center text-white">Scape Minimap</p>
     </div>
     """
@@ -122,16 +122,16 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicenseCard do
     """
   end
 
-  attr(:swarm_license, License)
+  attr(:license, License)
 
   defp card_header(assigns) do
     ~H"""
     <div class="section-card-header">
-      <.biotope_box swarm_license={@swarm_license} />
+      <.biotope_box license={@license} />
       <img
         class="h-24 w-full object-cover opacity-80 rounded radius-10"
-        src={"#{@swarm_license.image_url}"}
-        alt={"#{@swarm_license.biotope_id}"}
+        src={"#{@license.image_url}"}
+        alt={"#{@license.biotope_id}"}
       />
     </div>
     """
@@ -142,33 +142,33 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicenseCard do
   defp scape_card(assigns) do
     ~H"""
     <div class="section-card-body">
-      <.scape_minimap swarm_license={@scape} />
+      <.scape_minimap license={@scape} />
     </div>
     """
   end
 
   attr :edge, EdgeInit
-  attr :swarm_license, License
+  attr :license, License
 
   defp scape_box(assigns) do
     ~H"""
     <div class="flex flex-row text-white font-mono font-regular text-sm mb-2">
       <fieldset class="border p-2 rounded radius-20 w-full">
         <legend class="font-regular ml-2">Scape</legend>
-        <.scape_card scape={@swarm_license} />
+        <.scape_card scape={@license} />
       </fieldset>
     </div>
     """
   end
 
-  attr :swarm_license, License
+  attr :license, License
 
   defp card_body(assigns) do
     ~H"""
     <div class="section-card-body">
-      <.status_box swarm_license={@swarm_license} />
-      <.scape_box swarm_license={@swarm_license} />
-      <.edge_box edge={get_edge(@swarm_license)} />
+      <.status_box license={@license} />
+      <.scape_box license={@license} />
+      <.edge_box edge={get_edge(@license)} />
     </div>
     """
   end
@@ -177,8 +177,8 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicenseCard do
   def render(assigns) do
     ~H"""
     <div class="section-card">
-      <.card_header swarm_license={@swarm_license} />
-      <.card_body swarm_license={@swarm_license} />
+      <.card_header license={@license} />
+      <.card_body license={@license} />
     </div>
     """
   end
