@@ -11,11 +11,11 @@ defmodule Swarms.Service do
   alias Phoenix.PubSub, as: PubSub
 
   #################### API ####################
-  def get_swarm(id),
+  def get_swarm(license_id),
     do:
       GenServer.call(
         __MODULE__,
-        {:get_swarm, id}
+        {:get_swarm, license_id}
       )
 
   def add_swarm(%Swarm{} = swarm),
@@ -43,11 +43,12 @@ defmodule Swarms.Service do
 
   ################### get_swarm ###################
   @impl true
-  def handle_call({:get_swarm, id}, _from, state) do
+  def handle_call({:get_swarm, license_id}, _from, state) do
+
     {
       :reply,
-      :swarms_cache
-      |> Cachex.get!(id),
+      :particles_cache
+      |> Cachex.get!(license_id),
       state
     }
   end

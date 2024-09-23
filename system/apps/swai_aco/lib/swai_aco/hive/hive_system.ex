@@ -7,6 +7,8 @@ defmodule Hive.System do
   alias Hive.Emitter, as: HiveEmitter
   alias Hive.Init, as: HiveInit
   alias Hive.Status, as: HiveStatus
+  alias Particle.Init, as: Particle
+
   alias Swai.Registry, as: SwaiRegistry
 
   require Logger
@@ -22,7 +24,14 @@ defmodule Hive.System do
 
   ## Count the number of particles
   def count_particles(hive_id) do
-    Supervisor.count_children(via_sup(hive_id))
+    case Supervisor.count_children(via_sup(hive_id)) do
+      %{active: count} when is_integer(count) ->
+        count
+
+      {:error, reason} ->
+        Logger.error("Failed to count particles in Hive [#{hive_id}]: #{inspect(reason)}")
+        0
+    end
   end
 
   #################### START  ####################
@@ -73,68 +82,132 @@ defmodule Hive.System do
     {:noreply, state}
   end
 
-  #################### HANDLE INFO ####################
+  #################### SPAWN PARTICLE ####################
+  defp do_spawn_particle(%{hive_id: hive_id} = hive) do
+    particle_id = "pt-#{UUID.uuid4()}"
+    seed = %Particle{particle_id: particle_id}
 
-  ## SPAWN PARTICLES
+    {:ok, particle_init} =
+      Particle.from_map(seed, hive)
 
-  ## GET PARTICLES
+    case Supervisor.start_child(
+           via_sup(hive_id),
+           {SwaiAco.Particle.System, particle_init}
+         ) do
+      {:ok, _pid} ->
+        Logger.debug("Particle spawned in Hive [#{hive_id}]")
 
-  ################### VACATED ##############################
+      {:error, reason} ->
+        Logger.error("Failed to spawn particle in Hive [#{hive_id}]: #{inspect(reason)}")
+    end
+
+    hive
+  end
+
+  defp do_vacate_hive(hive) do
+    hive =
+      %HiveInit{
+        hive
+        | hive_status: @hive_status_vacant,
+          user_id: nil,
+          license_id: nil,
+          license: nil
+      }
+
+    HiveEmitter.emit_hive_vacated(hive)
+    hive
+  end
+
+  ################### LIVE! ##############################
   @impl true
-  def handle_info(:LIVE, %{hive_id: hive_id} = state) do
-    state =
-      if count_particles(hive_id) <= 0 do
-        HiveEmitter.emit_hive_vacated(state)
+  def handle_info(
+        :LIVE,
+        %HiveInit{
+          hive_id: hive_id,
+          particles_cap: particles_cap,
+          hive_status: @hive_status_occupied
+        } = hive
+      ) do
+    new_hive =
+      cond do
+        count_particles(hive_id) == 0 ->
+          Process.send_after(self(), :CLAIM_LICENSE, 10_000)
+          do_vacate_hive(hive)
 
-        new_state = %HiveInit{
-          state
-          | hive_status: @hive_status_vacant,
-            license_id: nil,
-            license: nil
-        }
+        count_particles(hive_id) < particles_cap ->
+          Process.send_after(self(), :LIVE, 2_000)
+          do_spawn_particle(hive)
 
-        Process.send_after(self(), :CLAIM_LICENSE, 10_000)
-        new_state
-      else
-        Process.send_after(self(), :LIVE, 2_000)
-        state
+        true ->
+          Process.send_after(self(), :LIVE, 2_000)
+          hive
       end
 
-    {:noreply, state}
+    {:noreply, new_hive}
   end
 
   ##################### CLAIM LICENSE ######################
   @impl true
-  def handle_info(:CLAIM_LICENSE, %{hive_id: hive_id} = state) do
-    new_state =
-      case HiveEmitter.try_reserve_license(state) do
+  def handle_info(
+        :CLAIM_LICENSE,
+        %HiveInit{
+          hive_id: hive_id,
+          scape_id: scape_id,
+          license: nil,
+          hive_status: @hive_status_vacant
+        } = hive
+      ) do
+    new_hive =
+      case HiveEmitter.try_reserve_license(hive) do
         nil ->
-          Process.send_after(self(), :CLAIM_LICENSE, 30_000)
-          state
+          Process.send_after(self(), :CLAIM_LICENSE, 10_000)
+          hive
 
-        %{license_id: license_id} = license ->
+        %{license_id: license_id, user_id: user_id} = license ->
           Logger.warning(
-            "License [#{license_id}] assigned to Hive [#{hive_id}], #{Colors.hive_theme(self())}"
+            "License [#{license_id}] for user [#{user_id}] assigned to Hive [#{hive_id}], #{Colors.hive_theme(self())}"
           )
 
-          new_state =
-            %{
-              state
+          new_hive =
+            %HiveInit{
+              hive
               | license: license,
+                scape_id: scape_id,
+                user_id: user_id,
                 license_id: license_id,
                 hive_status: @hive_status_occupied
             }
 
-          HiveEmitter.emit_hive_occupied(new_state)
-
-          Process.send_after(self(), :LIVE, 5_000)
-          new_state
+          HiveEmitter.emit_hive_occupied(new_hive)
+          Process.send_after(self(), :START_SWARM, 2_000)
+          new_hive
       end
 
-    {:noreply, new_state}
+    {:noreply, new_hive}
+  end
+
+  ##################### START SWARM ######################
+  @impl true
+  def handle_info(:START_SWARM, %{hive_id: hive_id} = hive) do
+    Logger.debug("Starting Swarm in Hive [#{hive_id}]")
+
+    # new_hive =
+    #   do_spawn_particle(hive) TODO: Implement Swarm Spawning ##########
+
+    new_hive = hive
+
+    Process.send_after(self(), :LIVE, 2_000)
+    {:noreply, new_hive}
   end
 
   ################### PLUMBING ###################
+  @impl true
+  def terminate(_reason, hive) do
+    Logger.debug("hive.system terminated")
+    HiveEmitter.emit_hive_detached(hive)
+    :ok
+  end
+
   def to_name(key),
     do: "hive.system:#{key}"
 

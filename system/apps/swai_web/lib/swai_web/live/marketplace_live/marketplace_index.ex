@@ -2,13 +2,10 @@ defmodule SwaiWeb.MarketplaceLive.Index do
   @moduledoc """
   The live view for the training grounds index page.
   """
-
-  alias Swai.Defaults, as: Limits
-
-  alias Schema.SwarmLicense.Status, as: LicenseStatus
-  
   use SwaiWeb, :live_view
 
+  alias Swai.Defaults, as: Limits
+  alias Schema.SwarmLicense.Status, as: LicenseStatus
   alias Edges.Service, as: Edges
   alias Swai.Biotopes, as: Biotopes
   alias Schema.SwarmLicense, as: SwarmLicense

@@ -7,7 +7,6 @@ defmodule Caches do
   def swarms, do: :swarms_cache
   def particles, do: :particles_cache
 
-
   def licenses_path, do: "/volume/caches/swai_licenses.cache"
   def edges_path, do: "/volume/caches/swai_edges.cache"
   def scapes_path, do: "/volume/caches/swai_scapes.cache"

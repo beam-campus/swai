@@ -10,12 +10,13 @@ defmodule SwaiWeb.ScapesLive.Index do
   require Logger
 
   alias Edge.Facts, as: EdgeFacts
-  alias Scape.Facts, as: ScapeFacts
   alias Edges.Service, as: Edges
+
+  alias Scape.Facts, as: ScapeFacts
   alias Scapes.Service, as: Scapes
 
-  @edges_cache_updated_v1 EdgeFacts.edges_cache_updated_v1()
-  @scapes_cache_updated_v1 ScapeFacts.scapes_cache_updated_v1()
+  @edges_cache_facts EdgeFacts.edges_cache_facts()
+  @scapes_cache_facts ScapeFacts.scapes_cache_facts()
 
   @impl true
   def mount(_params, _session, socket) do
@@ -24,10 +25,10 @@ defmodule SwaiWeb.ScapesLive.Index do
         Logger.info("Connected")
 
         Swai.PubSub
-        |> PubSub.subscribe(@edges_cache_updated_v1)
+        |> PubSub.subscribe(@edges_cache_facts)
 
         Swai.PubSub
-        |> PubSub.subscribe(@scapes_cache_updated_v1)
+        |> PubSub.subscribe(@scapes_cache_facts)
 
         {:ok,
          socket
@@ -53,7 +54,7 @@ defmodule SwaiWeb.ScapesLive.Index do
   ########## CALLBACKS ##########
 
   @impl true
-  def handle_info({@scapes_cache_updated_v1, _payload}, socket) do
+  def handle_info({:scapes, _}, socket) do
     {
       :noreply,
       socket
@@ -63,7 +64,7 @@ defmodule SwaiWeb.ScapesLive.Index do
   end
 
   @impl true
-  def handle_info({@edges_cache_updated_v1, _payload}, socket) do
+  def handle_info({:edges, _}, socket) do
     {
       :noreply,
       socket

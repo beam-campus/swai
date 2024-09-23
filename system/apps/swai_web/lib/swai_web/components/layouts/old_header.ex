@@ -1,4 +1,5 @@
 defmodule SwaiWeb.Layouts.OldHeader do
+  @moduledoc false
   use SwaiWeb, :live_component
 
   @impl true

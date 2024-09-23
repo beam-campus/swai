@@ -1,4 +1,7 @@
 defmodule SwaiWeb.UserBox do
+  @moduledoc """
+  The UserBox is a live component that renders a box for a User.
+  """
   use SwaiWeb, :live_component
 
 

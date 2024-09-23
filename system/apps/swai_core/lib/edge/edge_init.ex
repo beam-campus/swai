@@ -175,8 +175,8 @@ defmodule Edge.Init do
   embedded_schema do
     field(:edge_id, :string)
     field(:edge_status, :integer, default: @edge_status_unknown)
-    field(:scapes_cap, :integer)
-    field(:hives_cap, :integer)
+    field(:scapes_cap, :integer, default: 1)
+    field(:hives_cap, :integer, default: 2)
     field(:particles_cap, :integer)
     field(:biotope_id, :binary_id)
     field(:biotope_name, :string)

@@ -15,21 +15,20 @@ defmodule Swai.Seeds do
   """
   alias Swai.Repo, as: Repo
   alias Schema.Biotope, as: Biotope
-  alias Schema.Algorithm, as: Algorithm
   alias Schema.AlgorithmId, as: AlgorithmId
 
-  @aco_algorithm_id AlgorithmId.aco_algorithm_id
-  @bfo_algorithm_id AlgorithmId.bfo_algorithm_id
-  @neat_algorithm_id AlgorithmId.neat_algorithm_id
-  @bso_algorithm_id AlgorithmId.bso_algorithm_id
-  @pso_algorithm_id AlgorithmId.pso_algorithm_id
-  @cuso_algorithm_id AlgorithmId.cuso_algorithm_id
-  @caho_algorithm_id AlgorithmId.caho_algorithm_id
+  @aco_algorithm_id AlgorithmId.aco_algorithm_id()
+  @bfo_algorithm_id AlgorithmId.bfo_algorithm_id()
+  @neat_algorithm_id AlgorithmId.neat_algorithm_id()
+  @bso_algorithm_id AlgorithmId.bso_algorithm_id()
+  @pso_algorithm_id AlgorithmId.pso_algorithm_id()
+  @cuso_algorithm_id AlgorithmId.cuso_algorithm_id()
+  @caho_algorithm_id AlgorithmId.caho_algorithm_id()
+  @ico_algorithm_id AlgorithmId.ico_algorithm_id()
 
-
-  @planet_of_ants_id "b105f59e-42ce-4e85-833e-d123e36ce943"
-  @milk_factory_id "db1563be-b269-4f6c-8ae9-daed364a8624"
-
+  @planet_of_ants_id    "b105f59e-42ce-4e85-833e-d123e36ce943"
+  @traders_of_macao_id  "b206f68e-21da-3d85-833e-a234e47ba025"
+  @milk_factory_id      "db1563be-b269-4f6c-8ae9-daed364a8624"
 
   @algorithms [
     %Schema.Algorithm{
@@ -108,7 +107,7 @@ defmodule Swai.Seeds do
         "Particle Swarm Optimization (PSO) is a metaheuristic optimization algorithm inspired by the foraging behavior of birds. PSO is used to solve optimization problems.",
       tags: "optimization, birds, foraging"
     },
-    %Schema.Algorithm{
+     %Schema.Algorithm{
       id: @cuso_algorithm_id,
       acronym: "CuSO",
       name: "Cuckoo Search Optimization",
@@ -118,6 +117,21 @@ defmodule Swai.Seeds do
       definition:
         "Cuckoo Search Optimization (CHO) is a metaheuristic optimization algorithm inspired by the brood parasitism of some cuckoo species. CHO is used to solve optimization problems.",
       tags: "optimization, cuckoo, brood parasitism"
+    },
+   %Schema.Algorithm{
+      id: @ico_algorithm_id,
+      acronym: "ICO",
+      name: "Investor's Club Optimization",
+      description: "
+        Investor's Club Optimization (ICO) is inspired by the behavior of investors in the stock market.
+        The algorithm seeks to optimize the Return on Investment of the interactions between investors, their decisions, and the overall performance of the club's investments.
+        Participants in the club can buy, sell, and hold stocks based on their strategies and the market conditions.
+        In order for the particles deemed fit, they must be able to generate a  minimum profit for the club.
+        ",
+      image_url: "/images/trade_wars1.jpg",
+      definition:
+        "Investor's Club Optimization (CHO) is a metaheuristic optimization algorithm inspired by the behavior of an investment club. ICO is used train a swarm to optimize the return on investment.",
+      tags: "optimization, money, investment, stocks, finance"
     },
     %Schema.Algorithm{
       id: @caho_algorithm_id,
@@ -150,7 +164,6 @@ defmodule Swai.Seeds do
     }
   ]
 
-
   @biotopes [
     %Biotope{
       id: @planet_of_ants_id,
@@ -171,7 +184,25 @@ defmodule Swai.Seeds do
       is_active?: true,
       is_realistic?: true
     },
-    %Biotope{
+     %Biotope{
+      id: @traders_of_macao_id,
+      algorithm_id: @ico_algorithm_id,
+      algorithm_acronym: "ICO",
+      algorithm_name: "Investor's Club Optimization",
+      name: "Traders of Macao",
+      description:
+        "Traders of Macao is a simulation of an investment club.",
+      image_url: "/images/trade_wars1.jpg",
+      theme: "MONEY",
+      tags: "stocks, investment, finance, money",
+      objectives:
+        "The objective is to optimize the return on investment of the club's portfolio.",
+      environment: "The environment is the real world. This ecosystem will get its input data in near-real time from a number of trading systems.",
+      challenges: "The challenges are to make the right investment decisions and manage the club's portfolio.",
+      is_active?: false,
+      is_realistic?: true
+    },
+   %Biotope{
       id: @milk_factory_id,
       algorithm_id: @caho_algorithm_id,
       algorithm_acronym: "CaHO",
@@ -193,12 +224,10 @@ defmodule Swai.Seeds do
     }
   ]
 
-
   def run do
     seed_algorithms()
     seed_biotopes()
   end
-
 
   defp seed_algorithm(%Schema.Algorithm{} = algorithm) do
     case Repo.get_by(Schema.Algorithm, acronym: algorithm.acronym) do
@@ -231,6 +260,4 @@ defmodule Swai.Seeds do
         :ok
     end
   end
-
-
 end

@@ -16,11 +16,22 @@ defmodule Hive.Init do
   require Logger
   require Jason.Encoder
 
-  @hive_status_unknown HiveStatus.unknown()
+  @hive_colors %{
+    1 => "blue",
+    2 => "red",
+    3 => "green",
+    4 => "orange",
+    5 => "yellow",
+    6 => "indigo"
+  }
+
+  #  @hive_status_unknown HiveStatus.unknown()
+  @hive_status_vacant HiveStatus.hive_vacant()
 
   @all_fields [
     :hive_id,
     :hive_name,
+    :hive_color,
     :particles_cap,
     :hive_status,
     :edge_id,
@@ -28,6 +39,7 @@ defmodule Hive.Init do
     :biotope_id,
     :hive_no,
     :license_id,
+    :user_id,
     :scape_name,
     :hexa,
     :license
@@ -36,6 +48,7 @@ defmodule Hive.Init do
   @flat_fields [
     :hive_id,
     :hive_name,
+    :hive_color,
     :particles_cap,
     :hive_status,
     :edge_id,
@@ -43,6 +56,7 @@ defmodule Hive.Init do
     :biotope_id,
     :hive_no,
     :license_id,
+    :user_id,
     :scape_name
   ]
 
@@ -61,7 +75,9 @@ defmodule Hive.Init do
   embedded_schema do
     # HiveInit ID
     field(:hive_id, :string, default: "hive-#{UUID.uuid4()}")
-    field(:hive_status, :integer, default: @hive_status_unknown)
+    field(:hive_status, :integer, default: @hive_status_vacant, virtual: true)
+    field(:hive_status_string, :string, virtual: true)
+    field(:hive_color, :string)
     field(:particles_cap, :integer)
     field(:hive_name, :string)
     field(:edge_id, :string)
@@ -69,10 +85,19 @@ defmodule Hive.Init do
     field(:biotope_id, :string)
     field(:hive_no, :integer, default: 1)
     field(:license_id, :binary_id, default: nil)
+    field(:user_id, :binary_id, default: nil)
     field(:scape_name, :string)
     embeds_one(:hexa, Hexa, on_replace: :delete)
     embeds_one(:license, License, on_replace: :delete)
   end
+
+  def hive_colors(),
+    do: @hive_colors
+
+  def get_hive_color(hive_no),
+    do:
+      @hive_colors
+      |> Map.get(rem(hive_no, map_size(@hive_colors)) + 1)
 
   def changeset(seed, struct)
       when is_struct(struct),
@@ -85,6 +110,23 @@ defmodule Hive.Init do
     |> cast_embed(:license, with: &License.changeset/2)
     |> cast_embed(:hexa, with: &Hexa.changeset/2)
     |> validate_required(@required_fields)
+    |> calculate_hive_color()
+    |> calculate_hive_status_string()
+  end
+
+  defp calculate_hive_status_string(changeset) do
+    changeset
+    |> put_change(:hive_status_string, HiveStatus.to_string(get_field(changeset, :hive_status)))
+  end
+
+  defp calculate_hive_color(changeset) do
+    case get_field(changeset, :hive_no) do
+      nil ->
+        changeset
+
+      hive_no ->
+        changeset |> put_change(:hive_color, get_hive_color(hive_no))
+    end
   end
 
   def from_map(seed, map) do
@@ -101,7 +143,7 @@ defmodule Hive.Init do
   def default,
     do: %HiveInit{
       hive_id: "hive-#{UUID.uuid4()}",
-      hive_status: @hive_status_unknown,
+      hive_status: @hive_status_vacant,
       particles_cap: 0,
       edge_id: "N/A",
       scape_id: "N/A",
@@ -119,7 +161,7 @@ defmodule Hive.Init do
       hive_id: "hive-#{UUID.uuid4()}",
       hive_no: hive_no,
       hexa: ScapeUtils.get_hive_hexa(hive_no),
-      hive_status: @hive_status_unknown,
+      hive_status: @hive_status_vacant,
       hive_name: "#{scape_name}-#{hive_no}"
     }
     |> from_map(scape_init)

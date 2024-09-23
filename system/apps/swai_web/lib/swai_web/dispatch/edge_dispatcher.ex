@@ -18,8 +18,8 @@ defmodule SwaiWeb.EdgeDispatcher do
   def pub_edge_detached(payload) do
     case EdgeInit.from_map(EdgeInit.default(), payload["edge_init"]) do
       {:ok, %EdgeInit{edge_id: edge_id} = edge_init} ->
-        ScapeDispatcher.detach_edge(edge_id)
-        LicenseDispatcher.detach_edge(edge_id)
+        ScapeDispatcher.detach_scapes(edge_id)
+        LicenseDispatcher.pause_licenses(edge_id)
 
         Swai.PubSub
         |> PubSub.broadcast!(@edge_facts, {@edge_detached_v1, edge_init})

@@ -9,18 +9,36 @@ defmodule Hives.Service do
   alias Hive.Init, as: HiveInit
   alias Hive.Status, as: HiveStatus
   alias Phoenix.PubSub, as: PubSub
+
+  alias Scape.Facts, as: ScapeFacts
+  alias Scape.Init, as: Scape
+
   alias Schema.SwarmLicense, as: License
 
   @hive_facts HiveFacts.hive_facts()
   @hive_initialized_v1 HiveFacts.hive_initialized_v1()
   @hive_occupied_v1 HiveFacts.hive_occupied_v1()
   @hive_vacated_v1 HiveFacts.hive_vacated_v1()
+  @hive_detached_v1 HiveFacts.hive_detached_v1()
 
-  def hydrate(license),
+  @scape_facts ScapeFacts.scape_facts()
+  @scape_detached_v1 ScapeFacts.scape_detached_v1()
+
+  def hydrate(%License{} = license),
     do:
       GenServer.call(
         __MODULE__,
         {:hydrate, license}
+      )
+
+  def hydrate_scape(nil),
+    do: nil
+
+  def hydrate_scape(%Scape{} = scape),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:hydrate_scape, scape}
       )
 
   def get_all,
@@ -30,10 +48,39 @@ defmodule Hives.Service do
         :get_all
       )
 
+  def get_for_scape!(nil),
+    do: []
+
+  def get_for_scape!(scape_id),
+    do:
+      GenServer.call(
+        __MODULE__,
+        {:get_for_scape, scape_id}
+      )
+
   defp notify_hives_cache_updated(cause),
     do:
       Swai.PubSub
-      |> PubSub.broadcast(@hive_facts, cause)
+      |> PubSub.broadcast(@hive_facts, {:hives, cause})
+
+  defp do_get_hives(scape_id),
+    do:
+      :hives_cache
+      |> Cachex.stream!()
+      |> Stream.filter(fn {:entry, _id, _internal, _nil, hive} ->
+        hive.scape_id == scape_id
+      end)
+      |> Stream.map(fn {:entry, _id, _internal, _nil, hive_init} -> hive_init end)
+      |> Enum.to_list()
+
+  ################### GET FOR SCAPE ##############################
+  @impl true
+  def handle_call({:get_for_scape, scape_id}, _from, state) do
+    reply =
+      do_get_hives(scape_id)
+
+    {:reply, reply, state}
+  end
 
   ## Handle get_all
   @impl true
@@ -47,19 +94,31 @@ defmodule Hives.Service do
     {:reply, reply, state}
   end
 
-  ############### CALL HYDRATE ############################
+  ############### CALL HYDRATE #####################################
   @impl true
-  def handle_call({:hydrate, %{hive_id: nil} = license}, _from, state) do
-    the_hive = HiveInit.default()
-   new_license = %License{license |
-      hive_id: the_hive.hive_id,
-      hive: the_hive
-    }
-    {:reply, new_license, state}
+  def handle_call({:hydrate_scape, nil}, _from, state) do
+    {:reply, nil, state}
   end
 
   @impl true
-  def handle_call({:hydrate, %{hive_id: hive_id} = license}, _from, state) do
+  def handle_call({:hydrate_scape, %Scape{scape_id: scape_id} = scape}, _from, state) do
+    new_scape =
+      %Scape{scape | hives: do_get_hives(scape_id)}
+
+    {:reply, new_scape, state}
+  end
+
+  #################### HYDRATE LICENSE ##########################
+  @impl true
+  def handle_call({:hydrate, %License{hive_id: nil} = license}, _from, state) do
+    the_hive = HiveInit.default()
+    new_license = %License{license | hive_id: the_hive.hive_id, hive: the_hive}
+    {:reply, new_license, state}
+  end
+
+  #################### HYDRATE LICENSE ###############################
+  @impl true
+  def handle_call({:hydrate, %License{hive_id: hive_id} = license}, _from, state) do
     the_hive =
       case :hives_cache |> Cachex.get(hive_id) do
         {:ok, nil} ->
@@ -102,7 +161,9 @@ defmodule Hives.Service do
         hive_init =
           %HiveInit{
             found_hive
-            | hive_status:
+            | license_id: nil,
+              user_id: nil,
+              hive_status:
                 found_hive.hive_status
                 |> unset(HiveStatus.hive_occupied())
                 |> set(HiveStatus.hive_vacant())
@@ -131,7 +192,7 @@ defmodule Hives.Service do
       seed ->
         new_hive = %HiveInit{
           hive_from_map(seed, hive_init)
-          | hive_status:
+          |   hive_status:
               seed.hive_status
               |> unset(HiveStatus.hive_vacant())
               |> set(HiveStatus.hive_occupied())
@@ -173,11 +234,51 @@ defmodule Hives.Service do
     {:noreply, state}
   end
 
+  ########################## HIVE DETACHED ########################
+  @impl true
+  def handle_info(
+        {@hive_detached_v1, %HiveInit{hive_id: hive_id}} = cause,
+        state
+      ) do
+    Logger.alert("Hive Detached: #{hive_id}")
+
+    :hives_cache
+    |> Cachex.del!(hive_id)
+
+    notify_hives_cache_updated(cause)
+    {:noreply, state}
+  end
+
+  ####################### SCAPE DETACHED ########################
+  @impl true
+  def handle_info(
+        {@scape_detached_v1, %Scape{scape_id: scape_id}} = cause,
+        state
+      ) do
+    Logger.alert("Scape Detached, deleting hives for #{scape_id}")
+
+    hives_to_delete =
+      :hives_cache
+      |> Cachex.stream!()
+      |> Stream.filter(fn {:entry, _id, _internal, _nil, hive_init} ->
+        hive_init.scape_id == scape_id
+      end)
+      |> Enum.to_list()
+
+    hives_to_delete
+    |> Enum.each(fn {:entry, hive_id, _internal, _nil, _} ->
+      :hives_cache
+      |> Cachex.del!(hive_id)
+    end)
+
+    notify_hives_cache_updated(cause)
+    {:noreply, state}
+  end
+
   ########################### FALLTHROUGHS #########################
   ## Handle Info Fallthrough
   @impl true
-  def handle_info(msg, state) do
-    Logger.warning("Unhandled Hive Fact: #{inspect(msg)}")
+  def handle_info(_msg, state) do
     {:noreply, state}
   end
 
@@ -188,6 +289,9 @@ defmodule Hives.Service do
 
     Swai.PubSub
     |> PubSub.subscribe(@hive_facts)
+
+    Swai.PubSub
+    |> PubSub.subscribe(@scape_facts)
 
     {:ok, cache_file}
   end

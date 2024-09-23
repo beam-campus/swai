@@ -97,7 +97,7 @@ config :swai_web, dev_routes: true
 # Do not include metadata nor timestamps in development logs
 
 # Disable logging for phoenix
-config :phoenix, :logger, false
+config :phoenix, :logger, true
 
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime

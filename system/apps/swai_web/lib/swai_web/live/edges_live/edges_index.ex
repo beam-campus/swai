@@ -64,14 +64,20 @@ defmodule SwaiWeb.EdgesLive.Index do
   end
 
   @impl true
+  def handle_info({:edges, _}, socket) do
+    {
+      :noreply,
+      socket
+      |> assign(edges: EdgesCache.get_all())
+      |> put_flash(:success, "Edges updated")
+    }
+  end
+
+  @impl true
   def handle_info(_msg, socket) do
     {
       :noreply,
       socket
-      |> assign(
-        edges: EdgesCache.get_all(),
-        now: DateTime.utc_now()
-      )
     }
   end
 

@@ -6,15 +6,11 @@ defmodule Licenses.Service do
 
   alias Colors, as: Colors
   alias Phoenix.PubSub, as: PubSub
+  alias License.Facts, as: LicenseFacts
   alias Schema.SwarmLicense, as: SwarmLicense
   alias Schema.SwarmLicense.Status, as: Status
 
-  alias License.Facts, as: LicenseFacts
-
-  alias Arenas.Service, as: Arenas
   alias Edges.Service, as: Edges
-  alias Hives.Service, as: Hives
-  alias Scapes.Service, as: Scapes
 
   alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
   alias TrainSwarmProc.BlockLicense.EvtV1, as: LicenseBlocked
@@ -78,90 +74,23 @@ defmodule Licenses.Service do
 
   ################## API ##################
 
-  def get_for_edge(edge_id),
-    do:
-      GenServer.call(
-        __MODULE__,
-        {:get_for_edge, edge_id}
-      )
-
-  def count,
-    do:
-      GenServer.call(
-        __MODULE__,
-        :count
-      )
-
-  def claim_license(hive),
-    do:
-      GenServer.call(
-        __MODULE__,
-        {:claim_license, hive}
-      )
-
-  def get_all,
-    do:
-      GenServer.call(
-        __MODULE__,
-        :get_all
-      )
-
-  def get_all_decorated,
-    do:
-      GenServer.call(
-        __MODULE__,
-        :get_all
-      )
-      |> Enum.map(&Edges.hydrate/1)
-      |> Enum.map(&Scapes.hydrate/1)
-      |> Enum.map(&Hives.hydrate/1)
-      |> Enum.map(&Arenas.hydrate/1)
-
-  def get_all_for_user(user_id),
-    do:
-      GenServer.call(
-        __MODULE__,
-        {:get_all_for_user, user_id}
-      )
-
-  def get_candidates(biotope_id),
-    do:
-      GenServer.call(
-        __MODULE__,
-        {:get_candidates, biotope_id}
-      )
-
-  def set_license_presented(license),
-    do:
-      GenServer.cast(
-        __MODULE__,
-        {:set_license_presented, license}
-      )
+  def get_for_edge!(edge_id), do: GenServer.call(__MODULE__, {:get_for_edge, edge_id})
+  def count, do: GenServer.call(__MODULE__, :count)
+  def claim_license(hive), do: GenServer.call(__MODULE__, {:claim_license, hive})
+  def get_all, do: GenServer.call(__MODULE__, :get_all)
+  def get_all_for_user(user_id), do: GenServer.call(__MODULE__, {:get_all_for_user, user_id})
+  def get_candidates(biotope_id), do: GenServer.call(__MODULE__, {:get_candidates, biotope_id})
 
   ############ INTERNALS ###############
   defp notify_swarm_licenses_updated(cause) do
     save_to_disk()
 
-    res =
-      Swai.PubSub
-      |> PubSub.broadcast!(@licenses_cache_facts, cause)
-
-    Logger.warning("Notified SwarmLicense Cache Updated #{inspect(cause)} => #{inspect(res)}")
+    Swai.PubSub
+    |> PubSub.broadcast!(@licenses_cache_facts, {:licenses, cause})
   end
 
-  def save_to_disk do
-    GenServer.cast(
-      __MODULE__,
-      {:save_to_disk}
-    )
-  end
-
-  def read_from_disk(path) do
-    GenServer.cast(
-      __MODULE__,
-      {:read_from_disk, path}
-    )
-  end
+  def save_to_disk, do: GenServer.cast(__MODULE__, {:save_to_disk})
+  def read_from_disk(path), do: GenServer.cast(__MODULE__, {:read_from_disk, path})
 
   ################# READ_FROM_DISK ##############
   @impl true
@@ -176,7 +105,7 @@ defmodule Licenses.Service do
       |> Cachex.load!(path)
     end
 
-    notify_swarm_licenses_updated({:license, :read_from_disk, path})
+    notify_swarm_licenses_updated({:read_from_disk, path})
 
     {:noreply, state}
   end
@@ -193,17 +122,16 @@ defmodule Licenses.Service do
   ################# GET_FOR_EDGE ##############
   @impl true
   def handle_call({:get_for_edge, edge_id}, _from, state) do
-    {
-      :reply,
+    found_licenses =
       :licenses_cache
       |> Cachex.stream!()
       |> Stream.filter(fn {:entry, _key, _nil, _internal_id, lic} ->
-        check_queued_or_paused(lic) && lic.edge_id == edge_id
+        lic.edge_id == edge_id
       end)
       |> Stream.map(fn {:entry, _key, _nil, _internal_id, lic} -> lic end)
-      |> Enum.to_list(),
-      state
-    }
+      |> Enum.to_list()
+
+    {:reply, found_licenses, state}
   end
 
   ################# GET_CANDIDATES ##############
@@ -235,7 +163,17 @@ defmodule Licenses.Service do
 
   ################# CLAIM_LICENSE ##############
   @impl true
-  def handle_call({:claim_license, %{biotope_id: qry_biotope_id} = _hive}, _from, state) do
+  def handle_call(
+        {:claim_license,
+         %{
+           biotope_id: qry_biotope_id,
+           edge_id: edge_id,
+           scape_id: scape_id,
+           hive_id: hive_id
+         } = _hive},
+        _from,
+        state
+      ) do
     candidates =
       :licenses_cache
       |> Cachex.stream!()
@@ -258,16 +196,20 @@ defmodule Licenses.Service do
           claimed =
             %SwarmLicense{
               license
-              | status:
+              | edge_id: edge_id,
+                scape_id: scape_id,
+                hive_id: hive_id,
+                status:
                   license.status
                   |> unset_all([@license_queued_status, @license_paused_status])
                   |> set(@license_reserved_status)
             }
 
           :licenses_cache
-          |> Cachex.update!(license_id, claimed)
+          |> Cachex.put!(license_id, claimed)
 
-          notify_swarm_licenses_updated({:license, :claim_license, license})
+          notify_swarm_licenses_updated({:claim_license, claimed})
+
           claimed
       end
 
@@ -296,11 +238,7 @@ defmodule Licenses.Service do
         lic.user_id == user_id
       end)
       |> Stream.map(fn {:entry, _key, _nil, _internal_id, lic} -> lic end)
-      |> Stream.map(&Edges.hydrate/1)
-      |> Stream.map(&Scapes.hydrate/1)
-      |> Stream.map(&Hives.hydrate/1)
-      |> Stream.map(&Arenas.hydrate/1)
-      |> Enum.to_list()
+      |> Enum.map(&Edges.hydrate_license/1)
 
     {:reply, decorated_licenses, state}
   end
@@ -334,17 +272,18 @@ defmodule Licenses.Service do
       ) do
     Logger.warning("LICENSE [#{agg_id}] INITIALIZED")
 
-    seed = %SwarmLicense{
-      license_id: agg_id,
-      status: @license_initialized_status
-    }
+    seed =
+      %SwarmLicense{
+        license_id: agg_id,
+        status: @license_initialized_status
+      }
 
     case SwarmLicense.from_map(seed, payload) do
       {:ok, %SwarmLicense{} = license} ->
         :licenses_cache
         |> Cachex.put!(agg_id, license)
 
-        notify_swarm_licenses_updated({:license, @license_initialized_v1, license})
+        notify_swarm_licenses_updated({@license_initialized_v1, license})
 
       {:error, _reason} ->
         Logger.error("Failed to create SwarmLicense from #{inspect(payload)}")
@@ -371,17 +310,18 @@ defmodule Licenses.Service do
 
     case SwarmLicense.from_map(license, configuration) do
       {:ok, license} ->
-        license = %SwarmLicense{
-          license
-          | status:
-              license.status
-              |> set(@license_configured_status)
-        }
+        new_license =
+          %SwarmLicense{
+            license
+            | status:
+                license.status
+                |> set(@license_configured_status)
+          }
 
         :licenses_cache
-        |> Cachex.put!(agg_id, license)
+        |> Cachex.put!(agg_id, new_license)
 
-        notify_swarm_licenses_updated({:license, @license_configured_v1, license})
+        notify_swarm_licenses_updated({@license_configured_v1, new_license})
 
       {:error, _reason} ->
         Logger.error("Failed to update SwarmLicense from #{inspect(configuration)}")
@@ -410,18 +350,19 @@ defmodule Licenses.Service do
       :licenses_cache
       |> Cachex.get!(agg_id)
 
-    license = %SwarmLicense{
-      license
-      | status:
-          license.status
-          |> unset(@license_blocked_status)
-          |> set(@license_paid_status)
-    }
+    new_license =
+      %SwarmLicense{
+        license
+        | status:
+            license.status
+            |> unset(@license_blocked_status)
+            |> set(@license_paid_status)
+      }
 
     :licenses_cache
-    |> Cachex.put!(agg_id, license)
+    |> Cachex.put!(agg_id, new_license)
 
-    notify_swarm_licenses_updated({:license, @license_paid_v1, license})
+    notify_swarm_licenses_updated({@license_paid_v1, new_license})
 
     {:noreply, state}
   end
@@ -442,18 +383,19 @@ defmodule Licenses.Service do
       :licenses_cache
       |> Cachex.get!(agg_id)
 
-    license = %SwarmLicense{
-      license
-      | status:
-          license.status
-          |> unset(@license_blocked_status)
-          |> set(@licensed_activated_status)
-    }
+    new_license =
+      %SwarmLicense{
+        license
+        | status:
+            license.status
+            |> unset(@license_blocked_status)
+            |> set(@licensed_activated_status)
+      }
 
     :licenses_cache
-    |> Cachex.put!(agg_id, license)
+    |> Cachex.put!(agg_id, new_license)
 
-    notify_swarm_licenses_updated({:license, @license_activated_v1, license})
+    notify_swarm_licenses_updated({@license_activated_v1, new_license})
 
     {:noreply, state}
   end
@@ -474,22 +416,23 @@ defmodule Licenses.Service do
       :licenses_cache
       |> Cachex.get!(agg_id)
 
-    license = %SwarmLicense{
-      license
-      | status:
-          license.status
-          |> unset_all([
-            @license_started_status,
-            @license_paused_status,
-            @license_reserved_status
-          ])
-          |> set(@license_queued_status)
-    }
+    new_license =
+      %SwarmLicense{
+        license
+        | status:
+            license.status
+            |> unset_all([
+              @license_started_status,
+              @license_paused_status,
+              @license_reserved_status
+            ])
+            |> set(@license_queued_status)
+      }
 
     :licenses_cache
-    |> Cachex.put!(agg_id, license)
+    |> Cachex.put!(agg_id, new_license)
 
-    notify_swarm_licenses_updated({:license, @license_queued_v1, license})
+    notify_swarm_licenses_updated({@license_queued_v1, new_license})
 
     {:noreply, state}
   end
@@ -514,18 +457,21 @@ defmodule Licenses.Service do
       :licenses_cache
       |> Cachex.get!(agg_id)
 
-    license = %SwarmLicense{
-      license
-      | status:
-          license.status
-          |> set(@license_blocked_status)
-          |> unset(@license_paid_status)
-    }
+    new_license =
+      %SwarmLicense{
+        license
+        | reason: block_info.reason,
+          additional_info: block_info.additional_info,
+          status:
+            license.status
+            |> set(@license_blocked_status)
+            |> unset(@license_paid_status)
+      }
 
     :licenses_cache
-    |> Cachex.put!(agg_id, license)
+    |> Cachex.put!(agg_id, new_license)
 
-    notify_swarm_licenses_updated({:license, @license_blocked_v1, license, block_info})
+    notify_swarm_licenses_updated({@license_blocked_v1, new_license})
 
     {:noreply, state}
   end
@@ -554,8 +500,11 @@ defmodule Licenses.Service do
 
         new_license =
           %SwarmLicense{
-            start_info
-            | status:
+            stored_license
+            | scape_id: start_info.scape_id,
+              edge_id: start_info.edge_id,
+              hive_id: start_info.hive_id,
+              status:
                 stored_license.status
                 |> unset_all([
                   @license_queued_status,
@@ -568,7 +517,7 @@ defmodule Licenses.Service do
         :licenses_cache
         |> Cachex.put!(agg_id, new_license)
 
-        notify_swarm_licenses_updated({:license, @license_started_v1, new_license})
+        notify_swarm_licenses_updated({@license_started_v1, new_license})
 
       {:error, reason} ->
         Logger.error("Failed to create license from #{inspect(payload)} => #{inspect(reason)}")
@@ -593,10 +542,14 @@ defmodule Licenses.Service do
       :licenses_cache
       |> Cachex.get!(agg_id)
 
-    license =
+    new_license =
       %SwarmLicense{
         license
-        | status:
+        | edge_id: nil,
+          scape_id: nil,
+          hive_id: nil,
+          scape: nil,
+          status:
             license.status
             |> set(@license_paused_status)
             |> unset_all([
@@ -607,9 +560,9 @@ defmodule Licenses.Service do
       }
 
     :licenses_cache
-    |> Cachex.put!(agg_id, license)
+    |> Cachex.put!(agg_id, new_license)
 
-    notify_swarm_licenses_updated({:license, @license_paused_v1, license})
+    notify_swarm_licenses_updated({@license_paused_v1, new_license})
 
     {:noreply, state}
   end
@@ -619,7 +572,10 @@ defmodule Licenses.Service do
   def handle_info(
         {
           @license_reserved_v1,
-          %LicenseReserved{agg_id: agg_id},
+          %LicenseReserved{
+            agg_id: agg_id,
+            payload: reservation
+          },
           _metadata
         },
         state
@@ -630,10 +586,13 @@ defmodule Licenses.Service do
       :licenses_cache
       |> Cachex.get!(agg_id)
 
-    license =
+    new_license =
       %SwarmLicense{
         license
-        | status:
+        | edge_id: reservation.edge_id,
+          scape_id: reservation.scape_id,
+          hive_id: reservation.hive_id,
+          status:
             license.status
             |> set(@license_reserved_status)
             |> unset_all([
@@ -644,9 +603,9 @@ defmodule Licenses.Service do
       }
 
     :licenses_cache
-    |> Cachex.put!(agg_id, license)
+    |> Cachex.put!(agg_id, new_license)
 
-    notify_swarm_licenses_updated({:license, @license_reserved_v1, license})
+    notify_swarm_licenses_updated({@license_reserved_v1, new_license})
 
     {:noreply, state}
   end

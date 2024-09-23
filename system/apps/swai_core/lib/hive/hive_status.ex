@@ -1,4 +1,6 @@
 defmodule Hive.Status do
+
+  require Flags
   def unknown, do: 0
   def hive_initialized, do: 1
   def hive_configured, do: 2
@@ -21,4 +23,14 @@ defmodule Hive.Status do
       hive_available() => "available",
       hive_reserved() => "reserved"
     }
+
+    def to_list(status) do
+      Flags.to_list(status, map())
+    end
+
+    def to_string(status) do
+      Flags.to_string(status, map())
+    end
+
+
 end

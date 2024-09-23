@@ -23,6 +23,7 @@ defmodule Scape.Utils do
 
   def get_hive_hexa(n) do
     map = Hexa.cartesian_to_axial(get_hive_location(n), @hexa_size)
-    Hexa.from_map(%Hexa{}, map)
+    {:ok, hexa} = Hexa.from_map(%Hexa{}, map)
+    hexa
   end
 end

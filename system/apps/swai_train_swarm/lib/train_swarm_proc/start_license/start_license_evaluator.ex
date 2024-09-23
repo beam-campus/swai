@@ -1,4 +1,4 @@
-defmodule TrainSwarmPeoc.StartLicense.Evaluator do
+defmodule TrainSwarmProc.StartLicense.Evaluator do
   @moduledoc """
   This module is responsible for evaluating the start of a scape.
   """
@@ -15,7 +15,10 @@ defmodule TrainSwarmPeoc.StartLicense.Evaluator do
   import Flags
 
   @impl Commanded.Commands.Handler
-  def handle(%Agg{status: status}, %StartLicense{} = cmd) do
+  def handle(
+        %Agg{status: status},
+        %StartLicense{} = cmd
+      ) do
     if status
        |> has?(@license_reserved) do
       raise_license_started(cmd)

@@ -5,7 +5,6 @@ defmodule Arena.Element do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Arena.Element, as: ArenaElement
   alias Feature.Init, as: Feature
   alias Arena.Hexa, as: Hexa
 

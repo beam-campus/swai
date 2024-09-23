@@ -5,13 +5,21 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
   alias Swai.Accounts
   use SwaiWeb, :live_view
 
+  alias Edge.Facts, as: EdgeFacts
   alias Edges.Service, as: Edges
+  alias Hive.Facts, as: HiveFacts
   alias License.Facts, as: LicenseFacts
   alias Licenses.Service, as: Licenses
   alias Phoenix.PubSub, as: PubSub
+  alias Scape.Facts, as: ScapeFacts
   alias Schema.SwarmLicense, as: SwarmLicense
 
   @licenses_cache_facts LicenseFacts.licenses_cache_facts()
+  @scapes_cache_facts ScapeFacts.scapes_cache_facts()
+  @edges_cache_facts EdgeFacts.edges_cache_facts()
+  @hives_cache_facts HiveFacts.hives_cache_facts()
+
+
 
   require Logger
 
@@ -25,6 +33,15 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
 
         Swai.PubSub
         |> PubSub.subscribe(@licenses_cache_facts)
+
+        Swai.PubSub
+        |> PubSub.subscribe(@scapes_cache_facts)
+
+        Swai.PubSub
+        |> PubSub.subscribe(@edges_cache_facts)
+
+        Swai.PubSub
+        |> PubSub.subscribe(@hives_cache_facts)
 
         {
           :ok,
@@ -63,10 +80,13 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
     |> assign(:page_title, "Workspace")
   end
 
-   @impl true
-  def handle_info({:license, _evt, %SwarmLicense{user_id: the_user}}, socket) do
+
+
+  @impl true
+  def handle_info({:licenses, {_evt, %SwarmLicense{user_id: the_user}}}, socket) do
     if the_user == socket.assigns.current_user.id do
       new_user = Accounts.get_user!(the_user)
+
       licenses = Licenses.get_all_for_user(socket.assigns.current_user.id)
 
       {
@@ -82,9 +102,9 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
     end
   end
 
-  ########################### UNHANDLED MESSAGES ############################
+  ########################### SUBSCRIPTIONS FALLTHROUGH ############################
   @impl true
-  def handle_info({:license, _evt, _license}, socket) do
+  def handle_info(_msg, socket) do
     licenses = Licenses.get_all_for_user(socket.assigns.current_user.id)
     {
       :noreply,
@@ -95,11 +115,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
     {:noreply, socket}
   end
 
-  @impl true
-  def handle_info(_msg, socket) do
-    {:noreply, socket}
-  end
-
+  
   @impl true
   def render(assigns) do
     ~H"""

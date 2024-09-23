@@ -9,5 +9,5 @@ defmodule Scape.Facts do
   def scape_attached_v1, do: "scape_attached:v1"
   def scape_detached_v1, do: "scape_detached:v1"
 
-  def scapes_cache_updated_v1, do: "scapes_cache_updated:v1"
+  def scapes_cache_facts, do: "scapes_cache_facts:v1"
 end

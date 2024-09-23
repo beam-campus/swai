@@ -6,7 +6,6 @@ defmodule SwaiWeb.ScapeDispatcher do
   alias Scape.Facts, as: ScapeFacts
   alias Scape.Init, as: ScapeInit
   alias Scapes.Service, as: Scapes
-  alias SwaiWeb.HiveDispatcher, as: HiveDispatcher
 
   alias Phoenix.PubSub, as: PubSub
   alias Swai.PubSub, as: SwaiPubSub
@@ -18,19 +17,15 @@ defmodule SwaiWeb.ScapeDispatcher do
   @scape_initializing_v1 ScapeFacts.scape_initializing_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
 
-  def detach_edge(edge_id) do
+  def detach_scapes(edge_id) do
     case Scapes.get_for_edge(edge_id) do
       [] ->
         Logger.warning("detach_scapes: no scapes found for edge_id: #{edge_id}")
         []
 
       scapes ->
-        Enum.each(scapes, fn scape ->
-
-          HiveDispatcher.detach_scape(scape)
-
-
-
+        scapes
+        |> Enum.each(fn scape ->
           Swai.PubSub
           |> PubSub.broadcast!(
             @scape_facts,

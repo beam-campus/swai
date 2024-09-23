@@ -5,8 +5,9 @@ defmodule TrainSwarmProc.PauseLicense.EvtV1 do
   use Ecto.Schema
   import Ecto.Changeset
 
-  alias Scape.Init, as: ScapeInit
+  alias Schema.SwarmLicense, as: License
   alias TrainSwarmProc.PauseLicense.EvtV1, as: LicensePaused
+
   require Logger
   require Jason.Encoder
 
@@ -32,13 +33,13 @@ defmodule TrainSwarmProc.PauseLicense.EvtV1 do
   embedded_schema do
     field(:agg_id, :binary_id)
     field(:version, :integer, default: 1)
-    embeds_one(:payload, ScapeInit)
+    embeds_one(:payload, License)
   end
 
   def changeset(%LicensePaused{} = evt, %{} = attrs) do
     evt
     |> cast(attrs, @flat_fields)
-    |> cast_embed(:payload, with: &ScapeInit.changeset/2)
+    |> cast_embed(:payload, with: &License.changeset/2)
     |> validate_required(@required_fields)
   end
 
@@ -51,7 +52,7 @@ defmodule TrainSwarmProc.PauseLicense.EvtV1 do
         {:ok, apply_changes(changeset)}
 
       changeset ->
-        Logger.error("Failed to create LicensePaused from map: #{inspect(map)}")
+        Logger.error("Failed to create LicensePaused from map: #{inspect(changeset)}")
         {:error, changeset}
     end
   end

@@ -1,6 +1,7 @@
 defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
   use SwaiWeb, :live_component
 
+  alias Particles.Service, as: Particles
 
   @impl true
   def update(assigns, socket) do
@@ -22,10 +23,13 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicensesSection do
 
       <div class="grid grid-cols-1 gap-4 mt-3">
         <%= for license <- @licenses do %>
+          <% particles = Particles.get_swarm(license.license_id) %>
           <.live_component
             id={"swarm-training-card-#{license.license_id}"}
             module={SwaiWeb.MyWorkspaceLive.SwarmLicenseCard}
             license={license}
+            scape_id={license.scape_id}
+            particles={particles}
             current_user={@current_user}
           />
         <% end %>

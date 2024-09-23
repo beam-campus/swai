@@ -8,19 +8,28 @@ defmodule Arenas.Service do
   alias Arena.Init, as: ArenaInit
   alias Arena.Status, as: ArenaStatus
   alias Phoenix.PubSub, as: PubSub
+  alias Scape.Facts, as: ScapeFacts
   alias Schema.SwarmLicense, as: License
 
   @arena_facts ArenaFacts.arena_facts()
   @arenas_cache_facts ArenaFacts.arenas_cache_facts()
   @arena_initialized_v1 ArenaFacts.arena_initialized_v1()
-  @arena_status_initialized ArenaStatus.initialized()
+  @arena_status_initialized ArenaStatus.arena_initialized()
+
+  @scape_facts ScapeFacts.scape_facts()
+  @scape_detached_v1 ScapeFacts.scape_detached_v1()
 
   ## Public API
-  def hydrate(license),
+  def hydrate(license), do: GenServer.call(__MODULE__, {:hydrate, license})
+
+  def get_for_scape!(nil),
+    do: ArenaInit.default()
+
+  def get_for_scape!(scape_id),
     do:
       GenServer.call(
         __MODULE__,
-        {:hydrate, license}
+        {:get_for_scape, scape_id}
       )
 
   def get_all,
@@ -40,17 +49,6 @@ defmodule Arenas.Service do
     end
   end
 
-  ## INIT
-  @impl GenServer
-  def init(cache_file) do
-    Process.flag(:trap_exit, true)
-
-    Swai.PubSub
-    |> PubSub.subscribe(@arena_facts)
-
-    {:ok, cache_file}
-  end
-
   ## API CALLS
 
   ####################### HYDRATE #######################
@@ -65,16 +63,8 @@ defmodule Arenas.Service do
   @impl GenServer
   def handle_call({:hydrate, %{scape_id: scape_id} = license}, _from, cache_file) do
     the_arena =
-      case :arenas_cache |> Cachex.get(scape_id) do
-        {:ok, nil} ->
-          ArenaInit.default()
-
-        {:ok, arena_init} ->
-          arena_init
-
-        _ ->
-          ArenaInit.default()
-      end
+      :arenas_cache
+      |> Cachex.get!(scape_id)
 
     new_license = %License{license | arena: the_arena}
 
@@ -93,32 +83,52 @@ defmodule Arenas.Service do
     {:reply, reply, cache_file}
   end
 
+  ####################### GET FOR SCAPE #######################
+  @impl GenServer
+  def handle_call({:get_for_scape, scape_id}, _from, cache_file) do
+    arena =
+      :arenas_cache
+      |> Cachex.get!(scape_id)
+
+    {:reply, arena, cache_file}
+  end
+
   ####################### SUBSCRIBED FACTS ################
   @impl GenServer
   def handle_info(
         {@arena_initialized_v1,
          %Arena.Init{
-           arena_id: arena_id
+           scape_id: scape_id
          } = arena_init} = cause,
         state
       ) do
     new_arena =
-      case :arenas_cache |> Cachex.get!(arena_id) do
-        nil ->
-          arena_init
-
-        arena ->
-          arena
-      end
-
-    new_arena =
-      %ArenaInit{new_arena | arena_status: @arena_status_initialized}
+      %ArenaInit{arena_init | arena_status: @arena_status_initialized}
 
     :arenas_cache
-    |> Cachex.put!(arena_id, new_arena)
+    |> Cachex.put!(scape_id, new_arena)
 
     notify_cache_updated(cause)
 
+    {:noreply, state}
+  end
+
+  ################### SCAPE DETACHED ####################
+  @impl GenServer
+  def handle_info({@scape_detached_v1, %{scape_id: scape_id}} = cause, state) do
+    Logger.alert("Scape Detached, deleting arenas for #{scape_id}")
+
+    :arenas_cache
+    |> Cachex.stream!()
+    |> Stream.filter(fn {:entry, _, _, _, arena_init} ->
+      arena_init.scape_id == scape_id
+    end)
+    |> Enum.each(fn {:entry, arena_id, _, _, _} ->
+      :arenas_cache
+      |> Cachex.del!(arena_id)
+    end)
+
+    notify_cache_updated(cause)
     {:noreply, state}
   end
 
@@ -136,13 +146,20 @@ defmodule Arenas.Service do
     )
   end
 
-  ## plumbing
-  # def to_name(key),
-  #   do: "arenas.service.#{key}"
-  #
-  # def via(scape_id),
-  #   do: SwaiRegistry.via_tuple({:arenas, to_name(scape_id)})
-  #
+  ################### PLUMBING ####################
+  @impl GenServer
+  def init(cache_file) do
+    Process.flag(:trap_exit, true)
+
+    Swai.PubSub
+    |> PubSub.subscribe(@arena_facts)
+
+    Swai.PubSub
+    |> PubSub.subscribe(@scape_facts)
+
+    {:ok, cache_file}
+  end
+
   defp start_link(cache_file),
     do:
       GenServer.start_link(

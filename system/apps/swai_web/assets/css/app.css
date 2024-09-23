@@ -801,17 +801,23 @@ body {
 
 
 .scape-minimap {
-    width: 400px;
-    height: 300px;
-    background-color: #383838; /* Light gray background */
+    position: relative;
+    width: 800px;
+    height: 600px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 4px solid #0b123baf; /* Optional: border to make it more visible */    
-    border-radius: 10px;
-    margin-top: 10px;
-    margin-left: auto;
+    border: 2px solid #0b123baf; /* Optional: border to make it more visible */    
+    border-radius: 20px;
   }
+
+  .scape-minimap-inner {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+
 
 
   .edge-card {
@@ -824,13 +830,32 @@ body {
   }
   
   .edge-image {
-    width: 150px;
-    height: 100px;
+    width: 25px;
+    height: 15px;
     object-fit: stretch;
-    margin-left: 5px;
-    margin-right: 5px;
-    margin-top: 10px;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: 2px;
   }
+
+  .erlang-image {
+    width: 25px;
+    height: 25px;
+    object-fit: stretch;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: 5px;
+  }
+  
+  .docker-image {
+    width: 25px;
+    height: 25px;
+    object-fit: stretch;
+    margin-left: 2px;
+    margin-right: 2px;
+    margin-top: 1px;
+  }
+  
   
   .edge-details {
     padding: 16px;
@@ -876,3 +901,72 @@ body {
     background-color: #abf557;
   }
   
+  .license-section-card {
+    display: inline-block; /* Allows the div to resize based on its content */
+    width: auto; /* Ensures the width adjusts to the content */
+    height: auto; /* Ensures the height adjusts to the content */
+    padding: 1rem; /* Optional: Add padding for better appearance */
+    border: 1px solid #ccc; /* Optional: Add a border for better visibility */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Optional: Add a shadow for better appearance */
+    background-color: rgba(0, 125, 180, 0.1);
+    border-color: #00A1FE;
+    border-width: 2px;
+    border-radius: 10px;
+    padding-left: 20px;
+    padding-right: 20px;
+    padding-top: 20px;
+    margin: 20px;
+    box-shadow: 0 5px 30px rgba(255, 255, 255, 0.8);
+    transition: transform 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 1;
+}
+
+
+.license-section-card:hover {
+    transform: translateY(-5px);
+    /* Slight raise effect on hover */
+}
+
+.license-section-card-body {
+    display: flex;
+    flex-direction: column;
+    width: auto;
+    height: auto;
+    padding: 1rem;
+    border: 1px solid #ccc;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+  }
+  
+  #scape-mini-card-div {
+    margin-bottom: 1rem; /* Add some space between the two divs */
+  }
+  
+  #edge-box-div {
+    margin-bottom: 1rem; /* Add some space between the two divs */
+  }
+
+  .hive-box-container {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+    font-family: 'Monaco', monospace;
+    font-size: 0.875rem; /* text-sm */
+    margin-bottom: 0.5rem; /* mb-2 */
+    color: white;
+  }
+  
+  .hive-box-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 columns */
+    gap: 1rem; /* Space between columns */
+  }
+  
+  .hive-box-item {
+    background-color: rgba(255, 255, 255, 0.1); /* Optional: Add background color for better visibility */
+    padding: 0.5rem; /* Optional: Add padding for better appearance */
+    border-radius: 0.25rem; /* Optional: Add border radius for better appearance */
+  }

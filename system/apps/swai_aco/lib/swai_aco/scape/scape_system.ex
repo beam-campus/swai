@@ -13,7 +13,6 @@ defmodule Scape.System do
   alias Hive.Init, as: HiveInit
   alias Scape.Emitter, as: ScapeEmitter
   alias Scape.Init, as: ScapeInit
-  alias Scape.Facts, as: ScapeFacts
 
   ################# START HIVE #####################
   defp start_hives(%{hives_cap: hives_cap, scape_id: scape_id}) do

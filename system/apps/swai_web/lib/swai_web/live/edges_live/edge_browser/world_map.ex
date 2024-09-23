@@ -1,4 +1,7 @@
 defmodule SwaiWeb.EdgeBrowser.WorldMap do
+  @moduledoc """
+  The live component for the world map.
+  """
   use SwaiWeb, :live_component
 
   @impl true

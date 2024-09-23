@@ -33,6 +33,8 @@ defmodule Schema.SwarmLicense do
     :swarm_name,
     :cost_in_tokens,
     :available_tokens,
+    :reason,
+    :additional_info,
     :scape_id,
     :scape_name,
     :edge_id,
@@ -56,6 +58,8 @@ defmodule Schema.SwarmLicense do
     :swarm_name,
     :cost_in_tokens,
     :available_tokens,
+    :reason,
+    :additional_info,
     :scape_id,
     :scape_name,
     :edge_id,
@@ -99,12 +103,14 @@ defmodule Schema.SwarmLicense do
 
     field(:cost_in_tokens, :integer, default: @standard_cost_in_tokens)
     field(:available_tokens, :integer, default: 0)
+    field(:reason, :string, default: nil)
+    field(:additional_info, :string, default: nil)
 
-    field(:scape_id, :string)
-    field(:scape_name, :string)
-    field(:edge_id, :string)
+    field(:scape_id, :string, default: nil)
+    field(:scape_name, :string, default: nil)
+    field(:edge_id, :string, default: nil)
     field(:hive_id, :string)
-    field(:hive_no, :integer)
+    field(:hive_no, :integer, default: 1)
     embeds_one(:scape, ScapeInit, on_replace: :delete)
     embeds_one(:edge, EdgeInit, on_replace: :delete)
     embeds_one(:hive, HiveInit, on_replace: :delete)
@@ -147,7 +153,7 @@ defmodule Schema.SwarmLicense do
     |> validate_format(
       :swarm_name,
       ~r/^[a-zA-Z0-9_]+$/,
-      message: "can only contain letters, numbers, and underscores"
+      message: "can only contain letters, numbers and underscores"
     )
     |> validate_format(
       :swarm_name,
@@ -171,8 +177,8 @@ defmodule Schema.SwarmLicense do
         |> calculate_status_string()
         |> validate_swarm_name()
 
-  def from_map(_seed, nil),
-    do: {:ok, nil}
+  def from_map(seed, nil),
+    do: {:ok, seed}
 
   def from_map(seed, map)
       when is_struct(map),

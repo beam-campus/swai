@@ -29,6 +29,8 @@ import { Alpine } from "alpinejs"
 import topbar from "../vendor/topbar"
 import { TheMap, EdgesChanged } from "../vendor/edges_world_map"
 
+import {TheArena, ArenaMapChanged, ParticlesChanged, HivesChanged} from "../vendor/arena_map"
+
 
 window.Alpine = Alpine
 Alpine.start()
@@ -37,6 +39,12 @@ let hooks = {};
 
 hooks.TheMap = TheMap;
 hooks.EdgesChanged = EdgesChanged;
+
+hooks.TheArena = TheArena;
+hooks.ArenaMapChanged = ArenaMapChanged;
+hooks.ParticlesChanged = ParticlesChanged;
+hooks.HivesChanged = HivesChanged;
+
 
 let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
 

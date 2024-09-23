@@ -39,76 +39,26 @@ defmodule Edges.Service do
     end
   end
 
-  def count,
-    do:
-      GenServer.call(
-        __MODULE__,
-        :count
-      )
+  def count, do: GenServer.call(__MODULE__, :count)
+  def get_all, do: GenServer.call(__MODULE__, :get_all)
+  def get_stats, do: GenServer.call(__MODULE__, :get_stats)
+  def get_by_id(edge_id), do: GenServer.call(__MODULE__, {:get_by_id, edge_id})
+  def get_by_id!(edge_id), do: GenServer.call(__MODULE__, {:get_by_id, edge_id})
+  def hydrate_license(license), do: GenServer.call(__MODULE__, {:hydrate_license, license})
+  defp do_get_edge!(%{edge_id: edge_id}), do: :edges_cache |> Cachex.get!(edge_id)
 
-  def get_all,
-    do:
-      GenServer.call(
-        __MODULE__,
-        :get_all
-      )
-
-  def get_stats,
-    do:
-      GenServer.call(
-        __MODULE__,
-        :get_stats
-      )
-
-  def get_edge_stats(edge_id),
-    do:
-      GenServer.call(
-        __MODULE__,
-        {:get_edge_stats, edge_id}
-      )
-
-  def get_by_id(edge_id),
-    do:
-      GenServer.call(
-        __MODULE__,
-        {:get_by_id, edge_id}
-      )
-
-  def hydrate(license),
-    do:
-      GenServer.call(
-        __MODULE__,
-        {:hydrate, license}
-      )
-
-  defp get_edge(%{edge_id: edge_id} = _edge_init) do
-    case :edges_cache
-         |> Cachex.get!(edge_id) do
-      nil ->
-        nil
-
-      edge ->
-        edge
-    end
-  end
 
   ############## CALLBACKS #########
   @impl GenServer
   def init(args \\ []) do
-    Logger.warning("Edges.Service is up => #{Colors.edge_theme(self())}")
-
-    Swai.PubSub
-    |> PubSub.subscribe(@edge_facts)
-
+    Logger.warning("Edges.Service is up
+    => #{Colors.edge_theme(self())}")
+    Swai.PubSub |> PubSub.subscribe(@edge_facts)
     {:ok, args}
   end
 
   @impl GenServer
-  def handle_call(:count, _from, state),
-    do:
-      {:reply,
-       :edges_cache
-       |> Cachex.size!(), state}
+  def handle_call(:count, _from, state), do: {:reply, :edges_cache |> Cachex.size!(), state}
 
   @impl GenServer
   def handle_call(:get_all, _from, state),
@@ -119,68 +69,40 @@ defmodule Edges.Service do
        |> Enum.map(fn {:entry, _key, _nil, _internal_key, edge} -> edge end), state}
 
   @impl GenServer
-  def handle_call({:get_by_id, edge_id}, _from, state) do
-    case :edges_cache
-         |> Cachex.get!(edge_id) do
-      nil ->
-        {:reply, nil, state}
+  def handle_call({:get_by_id, nil}, _from, state) do
+    {:reply, EdgeInit.default(), state}
+  end
 
-      edge ->
-        {:reply, edge, state}
+  @impl GenServer
+  def handle_call({:get_by_id, edge_id}, _from, state) do
+    case :edges_cache |> Cachex.get!(edge_id) do
+      nil -> {:reply, EdgeInit.default(), state}
+      edge -> {:reply, edge, state}
     end
   end
 
   @impl GenServer
   def handle_call(:get_stats, _from, state),
-    do:
-      {:reply,
-       :edges_cache
-       |> Cachex.stats!(), state}
-
-  @impl GenServer
-  def handle_call({:get_edge_stats, edge_id}, _from, state) do
-    case :edges_cache
-         |> Cachex.get!(edge_id) do
-      {:ok, nil} ->
-        {:error, "Edge not found"}
-
-      {:ok, edge} ->
-        num_of_sc =
-          :edges_cache
-          |> Cachex.stream!()
-          |> Enum.filter(fn {:entry, _, _, _, edge} -> edge.id == edge_id end)
-
-        {:reply, %{edge: edge, num_of_sc: num_of_sc}, state}
-    end
-  end
+    do: {:reply, :edges_cache |> Cachex.stats!(), state}
 
   ################### HYDRATE ###################
   @impl GenServer
-  def handle_call({:hydrate, %{edge_id: nil} = license}, _from, state) do
-    edge = EdgeInit.default()
-
-    new_license =
-      %License{license | edge_id: edge.edge_id, edge: edge}
-
-    {:reply, new_license, state}
-  end
+  def handle_call({:hydrate_license, %{edge_id: nil} = license}, _from, state),
+    do: {
+      :reply,
+      %License{
+        license
+        | edge_id: nil,
+          edge: EdgeInit.default()
+      },
+      state
+    }
 
   @impl GenServer
-  def handle_call({:hydrate, %{edge_id: edge_id} = license}, _from, state) do
-    edge =
-      case :edges_cache |> Cachex.get(edge_id) do
-        {:ok, nil} ->
-          EdgeInit.default()
+  def handle_call({:hydrate_license, %{edge_id: edge_id} = license}, _from, state) do
+    found_edge = :edges_cache |> Cachex.get!(edge_id)
 
-        {:ok, old} ->
-          old
-
-        _ ->
-          EdgeInit.default()
-      end
-
-    new_license =
-      %License{license | edge: edge}
+    new_license = %License{license | edge: found_edge}
 
     {:reply, new_license, state}
   end
@@ -189,27 +111,21 @@ defmodule Edges.Service do
   @impl GenServer
   def handle_info({@edge_attached_v1, %EdgeInit{edge_id: edge_id} = edge_init} = cause, _state) do
     state =
-      case get_edge(edge_init) do
+      case do_get_edge!(edge_init) do
         nil ->
-          new_edge = %EdgeInit{
-            edge_init
-            | stats: %EdgeStats{
-                nbr_of_agents: 1
-              },
-              edge_status: @edge_status_attached
-          }
+          new_edge =
+            %EdgeInit{
+              edge_init
+              | stats: %EdgeStats{nbr_of_agents: 1},
+                edge_status: @edge_status_attached
+            }
 
           :edges_cache
           |> Cachex.put!(edge_id, new_edge)
 
         old ->
           %{stats: %EdgeStats{} = old_stats} = old
-
-          new_stats = %EdgeStats{
-            old_stats
-            | nbr_of_agents: old_stats.nbr_of_agents + 1
-          }
-
+          new_stats = %EdgeStats{old_stats | nbr_of_agents: old_stats.nbr_of_agents + 1}
           new_edge = %EdgeInit{old | stats: new_stats, edge_status: @edge_status_attached}
 
           :edges_cache
@@ -221,31 +137,31 @@ defmodule Edges.Service do
   end
 
   @impl GenServer
-  def handle_info({@edge_detached_v1, %EdgeInit{} = edge_init} = cause, _state) do
-    ######################################################################
-    ## @edge_detached_v1 does not remove the edge entry from the cache
-    # it only decrements the number of agents on the edge.
-    ## If the number of agents on the edge is 0, the edge is removed from the cache.
+  def handle_info(
+        {@edge_detached_v1, %EdgeInit{} = edge_init} =
+          cause,
+        _state
+      ) do
+    ###################################################################### #
+    # @edge_detached_v1 does not remove the edge entry from the cache it only
+    # decrements the number of agents on the edge. # If the number of agents on
+    # the edge is 0, the edge is removed from the cache.
     ######################################################################
     # Logger.debug("Edge detached: #{inspect(edge_init)}")
     state =
-      case get_edge(%EdgeInit{edge_id: edge_id} = edge_init) do
+      case do_get_edge!(%EdgeInit{edge_id: edge_id} = edge_init) do
         nil ->
           "nothing to detach"
 
         old_edge ->
           %{stats: %EdgeStats{} = old_stats} = old_edge
 
-          new_stats = %EdgeStats{
-            old_stats
-            | nbr_of_agents: old_stats.nbr_of_agents - 1
-          }
+          new_stats = %EdgeStats{old_stats | nbr_of_agents: old_stats.nbr_of_agents - 1}
 
           %EdgeInit{} =
             new_edge = %EdgeInit{old_edge | stats: new_stats, edge_status: @edge_status_detached}
 
-          :edges_cache
-          |> Cachex.update!(edge_id, new_edge)
+          :edges_cache |> Cachex.update!(edge_id, new_edge)
 
           notify_edges_updated(cause)
 
@@ -261,9 +177,7 @@ defmodule Edges.Service do
 
   @impl GenServer
   def handle_info({:remove_edge, %EdgeInit{edge_id: edge_id} = edge_init}, _state) do
-    state =
-      :edges_cache
-      |> Cachex.del!(edge_id)
+    state = :edges_cache |> Cachex.del!(edge_id)
 
     notify_edges_updated({:remove_edge, edge_init})
     {:noreply, state}
@@ -271,30 +185,18 @@ defmodule Edges.Service do
 
   ################### SUBSCRIPTIONS FALLTHROUGH ###################
   @impl GenServer
-  def handle_info(_msg, state),
-    do: {:noreply, state}
+  def handle_info(_msg, state), do: {:noreply, state}
 
   ############ INTERNALS ########
   defp notify_edges_updated(cause),
     do:
       Swai.PubSub
-      |> PubSub.broadcast!(@edges_cache_facts, cause)
+      |> PubSub.broadcast!(@edges_cache_facts, {:edges, cause})
 
   ########### PLUMBING ##########
 
   def child_spec,
-    do: %{
-      id: __MODULE__,
-      start: {__MODULE__, :start, []},
-      type: :worker,
-      restart: :permanent
-    }
+    do: %{id: __MODULE__, start: {__MODULE__, :start, []}, type: :worker, restart: :permanent}
 
-  def start_link(_args),
-    do:
-      GenServer.start_link(
-        __MODULE__,
-        nil,
-        name: __MODULE__
-      )
+  def start_link(_args), do: GenServer.start_link(__MODULE__, nil, name: __MODULE__)
 end

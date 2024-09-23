@@ -9,6 +9,8 @@ defmodule Scape.Init do
   require Jason.Encoder
   require Logger
 
+  alias Arena.Init, as: ArenaInit
+  alias Hive.Init, as: HiveInit
   alias Scape.Init, as: ScapeInit
   alias Scape.Status, as: ScapeStatus
 
@@ -27,7 +29,8 @@ defmodule Scape.Init do
     :theme,
     :tags,
     :algorithm_name,
-    :algorithm_acronym
+    :algorithm_acronym,
+    :hives
   ]
 
   @flat_fields [
@@ -65,8 +68,8 @@ defmodule Scape.Init do
   embedded_schema do
     field(:scape_id, :string, default: "scape-#{UUID.uuid4()}")
     field(:scape_no, :integer)
-    field(:hives_cap, :integer)
-    field(:particles_cap, :integer)
+    field(:hives_cap, :integer, default: 4)
+    field(:particles_cap, :integer, default: 100)
     field(:edge_id, :string)
     field(:biotope_id, :binary_id)
     field(:algorithm_id, :binary_id)
@@ -79,14 +82,16 @@ defmodule Scape.Init do
     field(:tags, :string)
     field(:algorithm_name, :string)
     field(:algorithm_acronym, :string)
+    embeds_one(:arena, ArenaInit, on_replace: :delete)
+    embeds_many(:hives, HiveInit, on_replace: :delete)
   end
 
   def default,
     do: %ScapeInit{
       scape_id: "scape-#{UUID.uuid4()}",
       scape_no: 0,
-      hives_cap: 0,
-      particles_cap: 0,
+      hives_cap: 4,
+      particles_cap: 100,
       edge_id: "",
       biotope_id: UUID.uuid4(),
       algorithm_id: UUID.uuid4(),
@@ -98,7 +103,8 @@ defmodule Scape.Init do
       theme: "N/A",
       tags: "",
       algorithm_name: "N/A",
-      algorithm_acronym: "N/A"
+      algorithm_acronym: "N/A",
+      hives: []
     }
 
   def changeset(%ScapeInit{} = seed, %{} = args)
@@ -109,7 +115,17 @@ defmodule Scape.Init do
       when is_map(args) do
     seed
     |> cast(args, @flat_fields)
+    |> cast_embed(:hives, with: &HiveInit.changeset/2)
     |> validate_required(@required_fields)
+    |> validate_hives_cap_must_be_greater_than_zero()
+  end
+
+  defp validate_hives_cap_must_be_greater_than_zero(changeset) do
+    case get_field(changeset, :hives_cap) do
+      nil -> changeset
+      hives_cap when hives_cap > 0 -> changeset
+      _ -> changeset |> add_error(:hives_cap, "must be greater than 0")
+    end
   end
 
   def from_map(%ScapeInit{} = seed, map) do
@@ -125,8 +141,15 @@ defmodule Scape.Init do
     end
   end
 
-  defp random_scape_name(),
+  defp random_scape_name,
     do: "scape_" <> MnemonicSlugs.generate_slug(2)
+
+  def display_name(%ScapeInit{scape_name: scape_name}) do
+    scape_name
+    |> String.replace("scape_", "")
+    |> String.replace("-", " ")
+    |> String.capitalize()
+  end
 
   def new(scape_no, edge_init) do
     %ScapeInit{

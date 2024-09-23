@@ -18,6 +18,4 @@ defmodule Edge.Facts do
   def license_presented_v1, do: "license_presented:v1"
 
   def hive_vacancy_requested_v1, do: "hive_vacancy_requested:v1"
-
-  def edges_cache_updated_v1, do: "edges_cache_updated:v1"
 end

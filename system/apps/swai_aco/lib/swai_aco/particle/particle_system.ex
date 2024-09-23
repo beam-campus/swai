@@ -5,13 +5,11 @@ defmodule SwaiAco.Particle.System do
   use GenServer
 
   alias Particle.Init, as: ParticleInit
+  alias Particle.Emitter, as: ParticleEmitter
   alias Swai.Registry, as: SwaiRegistry
-  alias SwaiAco.Settings, as: Settings
 
   require Logger
   require Colors
-
-  @freq_hz Settings.model_frequency_hz()
 
   def start(particle_init) do
     case start_link(particle_init) do
@@ -30,27 +28,34 @@ defmodule SwaiAco.Particle.System do
   end
 
   @impl true
-  def init(%ParticleInit{} = particle_init) do
+  def init(%ParticleInit{particle_id: particle_id} = particle) do
     Process.flag(:trap_exit, true)
 
-    Process.send_after(self(), :tick, round(1_000 / @freq_hz))
-    Logger.debug("#{__MODULE__} is up: #{Colors.particle_theme(self())} id: #{particle_init.id}")
+    sub_systems = []
 
-    {:ok, particle_init}
+    Supervisor.start_link(
+      sub_systems,
+      name: via_sup(particle_id),
+      strategy: :one_for_one
+    )
+
+    Process.send_after(self(), :HEART_BEAT, 2_000)
+    Logger.debug("Particle is up => #{Colors.particle_theme(self())}")
+    ParticleEmitter.emit_particle_initialized(particle)
+
+    {:ok, particle}
   end
 
   ### HEARTBEAT
   @impl true
-  def handle_info(:tick, state) do
-    Logger.debug("TICK: #{inspect(self())}")
-
-    Process.send_after(self(), :tick, round(1_000 / @freq_hz))
-    {:noreply, state}
+  def handle_info(:HEART_BEAT, particle) do
+    Process.send_after(self(), :HEART_BEAT, round(1_000))
+    {:noreply, particle}
   end
 
   ### PLUMBING 
   def to_name(particle_id),
-    do: "#{__MODULE__}.#{particle_id}"
+    do: "particle.system:#{particle_id}"
 
   def via(key),
     do: SwaiRegistry.via_tuple({__MODULE__, to_name(key)})
@@ -58,24 +63,24 @@ defmodule SwaiAco.Particle.System do
   def via_sup(key),
     do: SwaiRegistry.via_tuple({:particle_sup, to_name(key)})
 
-  def child_spec(%{id: particle_id} = particle_init) do
+  def child_spec(%ParticleInit{particle_id: part_id} = particle) do
     %{
-      id: to_name(particle_id),
-      start: {__MODULE__, :start, [particle_init]},
+      id: to_name(part_id),
+      start: {__MODULE__, :start, [particle]},
       type: :supervisor,
-      restart: :transient
+      restart: :temporary
     }
   end
 
-  def which_children(particle_id) do
-    Supervisor.which_children(via_sup(particle_id))
+  def which_children(part_id) do
+    Supervisor.which_children(via_sup(part_id))
   end
 
-  def start_link(%{id: particle_id} = particle_init),
+  def start_link(%ParticleInit{particle_id: part_id} = particle),
     do:
       GenServer.start_link(
         __MODULE__,
-        particle_init,
-        name: via(particle_id)
+        particle,
+        name: via(part_id)
       )
 end

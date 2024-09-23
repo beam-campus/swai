@@ -14,6 +14,18 @@ defmodule Hive.Emitter do
   @hive_initialized_v1 HiveFacts.hive_initialized_v1()
   @hive_occupied_v1 HiveFacts.hive_occupied_v1()
   @hive_vacated_v1 HiveFacts.hive_vacated_v1()
+  @hive_detached_v1 HiveFacts.hive_detached_v1()
+
+  def do_deserialize_license_map!(license_map) do
+    case License.from_map(%License{}, license_map) do
+      {:ok, license} ->
+        license
+
+      {:error, changeset} ->
+        Logger.error("invalid LICENSE input map, reason: #{inspect(changeset)}")
+        raise "invalid LICENSE input map, reason: #{inspect(changeset)}"
+    end
+  end
 
   def try_reserve_license(%HiveInit{edge_id: edge_id} = hive_init) do
     case Client.request(
@@ -21,25 +33,20 @@ defmodule Hive.Emitter do
            @reserve_license_v1,
            %{hive_init: hive_init}
          ) do
-      {:ok, license} ->
-        license =
-          case License.from_map(%License{}, license) do
-            {:ok, nil} ->
-              nil
-
-            {:ok, license} ->
-              license
-
-            {:error, changeset} ->
-              Logger.alert("Bad License Map Returned: #{inspect(changeset)}")
-              nil
-          end
-
-        license
-
-      _ ->
+      {:ok, nil} ->
         nil
+
+      {:ok, license_map} ->
+        do_deserialize_license_map!(license_map)
     end
+  end
+
+  def emit_hive_detached(%HiveInit{edge_id: edge_id} = hive) do
+    Client.publish(
+      edge_id,
+      @hive_detached_v1,
+      %{hive_init: hive}
+    )
   end
 
   def emit_hive_initialized(%HiveInit{edge_id: edge_id} = hive_init),

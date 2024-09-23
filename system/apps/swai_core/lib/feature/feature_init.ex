@@ -59,15 +59,13 @@ defmodule Feature.Init do
     |> validate_required(@required_fields)
   end
 
-  def from_map(seed, struct)
-      when is_struct(struct),
-      do: from_map(seed, Map.from_struct(struct))
-
   def from_map(feature, args)
       when is_map(args) do
     case changeset(feature, args) do
-      {:ok, feature} -> feature
-      {:error, changeset} -> changeset
+      %{valid?: true} = changeset ->
+        {:ok, apply_changes(changeset)}
+      changeset  ->
+        {:error, changeset}
     end
   end
 end

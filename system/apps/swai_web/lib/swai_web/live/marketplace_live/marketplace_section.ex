@@ -1,9 +1,6 @@
 defmodule SwaiWeb.MarketplaceLive.ModelsSection do
   use SwaiWeb, :live_component
 
-  alias Schema.Biotope, as: Biotope
-
-
   @impl true
   def update(assigns, socket) do
     {:ok,
@@ -16,8 +13,8 @@ defmodule SwaiWeb.MarketplaceLive.ModelsSection do
     ~H"""
     <div id="marketplace-models-section" class="mx-4">
       <div class="px-5 text-white">
-        <h2> <%= @section_title %> </h2>
-        <p class="text-sm font-brand"> <%= @section_description %> </p>
+        <h2><%= @section_title %></h2>
+        <p class="text-sm font-brand"><%= @section_description %></p>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-3">
         <%= for biotope <- @biotopes do %>
@@ -33,6 +30,4 @@ defmodule SwaiWeb.MarketplaceLive.ModelsSection do
     </div>
     """
   end
-
-
 end

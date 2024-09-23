@@ -7,7 +7,6 @@ defmodule TrainSwarmProc.CommandedApp do
   require Logger
   require Colors
 
-
   @impl true
   def init(config) do
     Logger.debug("TrainSwarmProc.CommandedApp: has started #{Colors.edge_theme(self())}")
@@ -15,7 +14,4 @@ defmodule TrainSwarmProc.CommandedApp do
   end
 
   router(TrainSwarmProc.Router)
-
-
-
 end

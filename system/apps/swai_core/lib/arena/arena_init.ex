@@ -64,6 +64,7 @@ defmodule Arena.Init do
     field(:arena_status, :integer, default: @arena_status_unknown)
     embeds_one(:dimensions, Vector, on_replace: :delete)
     embeds_one(:arena_map, ArenaMap, on_replace: :delete)
+    embeds_many(:hives, HiveInit, on_replace: :delete)
   end
 
   def changeset(seed, struct)
@@ -97,7 +98,7 @@ defmodule Arena.Init do
         edge_id: "edge-#{UUID.uuid4()}",
         scape_id: "scape-#{UUID.uuid4()}",
         biotope_id: UUID.uuid4(),
-        hives_cap: 0,
+        hives_cap: 4,
         scape_name: "N/A",
         arena_map:
           ArenaMap.generate(
@@ -105,7 +106,7 @@ defmodule Arena.Init do
             @map_height,
             @hexa_size,
             @maze_density,
-            0
+            1
           ),
         dimensions: ArenaMap.default_dimensions()
       }

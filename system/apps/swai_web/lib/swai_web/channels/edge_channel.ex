@@ -13,6 +13,7 @@ defmodule SwaiWeb.EdgeChannel do
   alias SwaiWeb.EdgePresence, as: EdgePresence
   alias SwaiWeb.HiveDispatcher, as: HiveDispatcher
   alias SwaiWeb.ScapeDispatcher, as: ScapeDispatcher
+  alias SwaiWeb.ParticleDispatcher, as: ParticleDispatcher
 
   alias Edge.Facts, as: EdgeFacts
 
@@ -20,6 +21,7 @@ defmodule SwaiWeb.EdgeChannel do
   alias Hive.Facts, as: HiveFacts
   alias Hive.Hopes, as: HiveHopes
   alias Scape.Facts, as: ScapeFacts
+  alias Particle.Facts, as: ParticleFacts
 
   @hope_shout "hope:shout"
   @hope_ping "ping"
@@ -32,11 +34,14 @@ defmodule SwaiWeb.EdgeChannel do
   @scape_initializing_v1 ScapeFacts.scape_initializing_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
 
+  @hive_detached_v1 HiveFacts.hive_detached_v1()
   @hive_initialized_v1 HiveFacts.hive_initialized_v1()
   @hive_occupied_v1 HiveFacts.hive_occupied_v1()
   @hive_vacated_v1 HiveFacts.hive_vacated_v1()
 
   @arena_initialized_v1 ArenaFacts.arena_initialized_v1()
+
+  @particle_initialized_v1 ParticleFacts.particle_initialized_v1()
 
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
   @edge_lobby "edge:lobby"
@@ -163,6 +168,13 @@ defmodule SwaiWeb.EdgeChannel do
     {:noreply, socket}
   end
 
+  ################### HIVE DETACHED ##############################
+  @impl true
+  def handle_in(@hive_detached_v1, payload, socket) do
+    HiveDispatcher.pub_hive_detached(payload)
+    {:noreply, socket}
+  end
+
   ########## IN HIVE ARENA INITIALIZED ##########################
   @impl true
   def handle_in(@arena_initialized_v1, payload, socket) do
@@ -177,6 +189,15 @@ defmodule SwaiWeb.EdgeChannel do
     {:reply, {:ok, reply}, socket}
   end
 
+  ############# IN PARTICLE INITIALIZED ########################
+  @impl true
+  def handle_in(@particle_initialized_v1, envelope, socket) do
+    ParticleDispatcher.pub_particle_initialized(envelope)
+    {:noreply, socket}
+  end
+  
+
+  ##################### CHANNEL FALLTHROUGH ######################
   @impl true
   def handle_in(msg, payload, socket) do
     Logger.info("
@@ -187,4 +208,16 @@ defmodule SwaiWeb.EdgeChannel do
       #{inspect(payload)}")
     {:noreply, socket}
   end
+
+ 
+
+
+
+  ##################### TERMINATE ##############################
+  @impl true
+  def terminate(reason, socket) do
+    Logger.info("Terminating EdgeChannel: #{inspect(reason)}")
+    {:ok, socket}
+  end
+  
 end

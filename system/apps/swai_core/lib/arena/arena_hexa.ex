@@ -31,7 +31,7 @@ defmodule Arena.Hexa do
   end
 
   def changeset(seed, nil),
-    do: seed
+    do: {:ok, seed}
 
   def changeset(hexa, attrs)
       when is_struct(attrs),
@@ -49,8 +49,12 @@ defmodule Arena.Hexa do
       %{valid?: true} = changes ->
         {:ok, apply_changes(changes)}
 
-      {:error, default} ->
+      {:ok, default} ->
         {:ok, default}
+
+      {:error, changeset} ->
+        Logger.error("Failed to create hexa: #{inspect(changeset)}")
+        {:error, changeset}
     end
   end
 

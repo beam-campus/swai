@@ -13,24 +13,28 @@ defmodule TrainSwarmProc.PauseLicense.Evaluator do
   require Logger
 
   @license_started LicenseStatus.license_started()
+  @license_reserved LicenseStatus.license_reserved()
+  @license_queued LicenseStatus.license_queued()
 
   @impl Commanded.Commands.Handler
   def handle(%{status: status} = _agg, %PauseLicense{} = cmd) do
-    if status |> has?(@license_started) do
+    if status
+      |> has_any?([@license_reserved, @license_queued,  @license_started]) do
       Logger.info("PauseLicense: pausing license")
-      raise_scape_paused(cmd)
+      raise_license_paused(cmd)
     else
-      Logger.error("PauseLicense: license not started")
-      {:error, "License not started"}
+      Logger.error("PauseLicense: license not started, reserved or queued")
+      {:error, "License not started, reserved or queued"}
     end
   end
 
-  defp raise_scape_paused(cmd) do
+  defp raise_license_paused(cmd) do
     case LicensePaused.from_map(%LicensePaused{}, cmd) do
       {:ok, evt} ->
         evt
 
       {:error, reason} ->
+        Logger.error("PauseLicense: invalid Pause License command")
         {:error, reason}
     end
   end

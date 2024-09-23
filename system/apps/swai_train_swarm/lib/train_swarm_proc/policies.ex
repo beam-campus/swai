@@ -23,17 +23,17 @@ defmodule TrainSwarmProc.Policies do
 
   alias TrainSwarmProc.ConfigureLicense.EvtV1, as: LicenseConfigured
 
-  alias TrainSwarmProc.PayLicense.CmdV1, as: PayLicense
-  alias Schema.SwarmLicense, as: Payment
-  alias TrainSwarmProc.PayLicense.EvtV1, as: Paid
-  alias TrainSwarmProc.PayLicense.BudgetReachedV1, as: BudgetReached
-  alias TrainSwarmProc.ActivateLicense.CmdV1, as: Activate
   alias Schema.SwarmLicense, as: Activation
-  alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
-  alias TrainSwarmProc.QueueLicense.CmdV1, as: QueueLicense
-  alias TrainSwarmProc.PauseLicense.CmdV1, as: PauseLicense
-  alias TrainSwarmProc.DetachScape.EvtV1, as: ScapeDetached
   alias Schema.SwarmLicense, as: License
+  alias Schema.SwarmLicense, as: Payment
+  alias TrainSwarmProc.ActivateLicense.CmdV1, as: Activate
+  alias TrainSwarmProc.ActivateLicense.EvtV1, as: LicenseActivated
+  alias TrainSwarmProc.DetachScape.EvtV1, as: ScapeDetached
+  alias TrainSwarmProc.PauseLicense.CmdV1, as: PauseLicense
+  alias TrainSwarmProc.PayLicense.BudgetReachedV1, as: BudgetReached
+  alias TrainSwarmProc.PayLicense.CmdV1, as: PayLicense
+  alias TrainSwarmProc.PayLicense.EvtV1, as: Paid
+  alias TrainSwarmProc.QueueLicense.CmdV1, as: QueueLicense
 
   require Logger
 
@@ -42,7 +42,6 @@ defmodule TrainSwarmProc.Policies do
   def interested?(%BudgetReached{} = event), do: {:start, event}
   def interested?(%LicenseActivated{} = event), do: {:start, event}
   def interested?(%ScapeDetached{} = event), do: {:start, event}
-  
 
   def interested?(_event), do: false
 
