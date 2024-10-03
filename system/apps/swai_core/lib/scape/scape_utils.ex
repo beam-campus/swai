@@ -26,4 +26,16 @@ defmodule Scape.Utils do
     {:ok, hexa} = Hexa.from_map(%Hexa{}, map)
     hexa
   end
+
+  def get_hive_orientation(n) do
+    case n do
+      1 -> "SE"
+      2 -> "SW"
+      3 -> "NW"
+      4 -> "NE"
+      5 -> "S"
+      6 -> "N"
+      _ -> raise("Invalid hive number....must be between 1 and 6")
+    end
+  end
 end

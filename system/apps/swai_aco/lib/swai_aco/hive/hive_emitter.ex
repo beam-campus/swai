@@ -57,11 +57,11 @@ defmodule Hive.Emitter do
         %{hive_init: hive_init}
       )
 
-  def emit_hive_occupied(%HiveInit{edge_id: edge_id} = hive_init) do
+  def emit_hive_occupied(%HiveInit{edge_id: edge_id} = hive) do
     Client.publish(
       edge_id,
       @hive_occupied_v1,
-      %{hive_init: hive_init}
+      %{hive_init: hive}
     )
   end
 

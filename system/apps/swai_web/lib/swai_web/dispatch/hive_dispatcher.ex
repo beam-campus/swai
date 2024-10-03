@@ -30,6 +30,14 @@ defmodule SwaiWeb.HiveDispatcher do
     |> PubSub.broadcast!(@hive_facts, {@hive_detached_v1, hive_init})
   end
 
+  def detach_edge(edge_id) do
+    Hives.get_all()
+    |> Enum.filter(fn hive -> hive.edge_id == edge_id end)
+    |> Enum.each(fn hive ->
+      do_detach_hive(hive)
+    end)
+  end
+
   def detach_scape(%{scape_id: scape_id}) do
     Hives.get_all()
     |> Enum.filter(fn hive -> hive.scape_id == scape_id end)
@@ -38,16 +46,16 @@ defmodule SwaiWeb.HiveDispatcher do
     end)
   end
 
-  defp do_decorate_license(%License{} = license, %HiveInit{} = hive_init) do
-    case License.from_map(license, hive_init) do
-      {:ok, license} ->
-        license
-
-      {:error, changeset} ->
-        Logger.error("invalid HIVE input map, reason: #{inspect(changeset)}")
-        nil
-    end
-  end
+  # defp do_decorate_license(%License{} = license, %HiveInit{} = hive_init) do
+  #   case License.from_map(license, hive_init) do
+  #     {:ok, license} ->
+  #       license
+  #
+  #     {:error, changeset} ->
+  #       Logger.error("invalid HIVE input map, reason: #{inspect(changeset)}")
+  #       nil
+  #   end
+  # end
 
   defp do_reserve_license(%{license_id: agg_id} = claimed_license) do
     reserve_license = %ReserveLicense{
@@ -111,10 +119,16 @@ defmodule SwaiWeb.HiveDispatcher do
          %HiveInit{
            hive_id: hive_id,
            license_id: license_id,
+           user_alias: user_alias,
            license: license
          } = hive
        ) do
-    Logger.warning("Starting license [#{license_id}] on hive: #{hive_id}")
+    Logger.warning("
+      Starting license [#{license_id}] 
+      for user \"#{user_alias}\" 
+      on hive: #{hive_id}    
+      #{inspect(license)}
+      ")
 
     start_info =
       case License.from_map(license, hive) do
@@ -136,8 +150,8 @@ defmodule SwaiWeb.HiveDispatcher do
   end
 
   ######## HIVE OCCUPIED ########
-  def pub_hive_occupied(envelope) do
-    case HiveInit.from_map(%HiveInit{}, envelope["hive_init"]) do
+  def pub_hive_occupied(%{"hive_init" => hive_map}) do
+    case HiveInit.from_map(%HiveInit{}, hive_map) do
       {:ok, hive_init} ->
         start_license =
           Task.async(fn ->
@@ -150,7 +164,7 @@ defmodule SwaiWeb.HiveDispatcher do
         Task.await(start_license)
 
       {:error, changeset} ->
-        Logger.error("invalid envelope, reason: #{inspect(changeset)}")
+        Logger.error("invalid HIVE_INIT envelope, reason: #{inspect(changeset)}")
         {:error, changeset}
     end
   end

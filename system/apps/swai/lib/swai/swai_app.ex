@@ -21,6 +21,9 @@ defmodule Swai.Application do
       {Swai.CachesSystem, name: Web.CachesSystem}
     ]
 
-    Supervisor.start_link(children, strategy: :one_for_one, name: Swai.Supervisor)
+    Supervisor.start_link(
+      children, 
+      strategy: :one_for_one, 
+      name: Swai.Supervisor)
   end
 end

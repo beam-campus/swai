@@ -17,54 +17,6 @@ defmodule Edge.Init do
 
   @edge_status_unknown EdgeStatus.unknown()
 
-  @all_fields [
-    :edge_id,
-    :edge_status,
-    :scapes_cap,
-    :hives_cap,
-    :particles_cap,
-    :biotope_id,
-    :biotope_name,
-    :algorithm_acronym,
-    :algorithm_id,
-    :api_key,
-    :is_container,
-    :ip_address,
-    :continent,
-    :continent_code,
-    :country,
-    :country_code,
-    :country_ccn3,
-    :country_cca2,
-    :country_cca3,
-    :country_cioc,
-    :region,
-    :region_name,
-    :city,
-    :district,
-    :zip,
-    :lat,
-    :lon,
-    :timezone,
-    :offset,
-    :currency,
-    :isp,
-    :org,
-    :as,
-    :asname,
-    :reverse,
-    :mobile,
-    :proxy,
-    :hosting,
-    :connected_since,
-    :online_since,
-    :image_url,
-    :flag,
-    :flag_svg,
-    :stats,
-    :socket
-  ]
-
   @json_fields [
     :edge_id,
     :edge_status,
@@ -291,7 +243,7 @@ defmodule Edge.Init do
 
   def from_environment do
     {:ok, chost} = :inet.gethostname()
-    edge_id = "#{to_string(chost)}-" <> "#{inspect(UUID.uuid4())}"
+    edge_id = "e-#{to_string(chost)}-#{inspect(UUID.uuid4())}"
 
     api_key = System.get_env(EnvVars.swai_edge_api_key(), "no-api-key")
 
@@ -368,7 +320,7 @@ defmodule Edge.Init do
       continent: ip_info["continent"],
       continent_code: ip_info["continentCode"],
       country: country,
-      country_code: ip_info["countryCode"],
+      country_code: country_code,
       country_ccn3: country_info["ccn3"],
       country_cca2: country_info["cca2"],
       country_cca3: country_info["cca3"],

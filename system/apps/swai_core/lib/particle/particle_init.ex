@@ -18,35 +18,22 @@ defmodule Particle.Init do
     :particle_id,
     :license_id,
     :user_id,
-    :scape_id,
-    :edge_id,
-    :hive_id,
-    :hive_no,
-    :age,
-    :health,
-    :energy,
-    :position,
-    :momentum,
-    :orientation,
-    :hexa
-  ]
-
-  @all_fields [
-    :particle_id,
-    :license_id,
-    :user_id,
-    :edge_id,
-    :scape_id,
-    :hive_id,
-    :hive_no,
+    :user_alias,
     :hive_color,
+    :scape_id,
+    :edge_id,
+    :hive_id,
+    :hive_no,
     :age,
     :health,
     :energy,
     :position,
     :momentum,
     :orientation,
-    :hexa
+    :hexa,
+    :ticks,
+    #    :hive_position,
+    :hive_hexa
   ]
 
   @required_fields [
@@ -55,20 +42,25 @@ defmodule Particle.Init do
     :user_id,
     :scape_id,
     :hive_id,
-    :hive_no
+    :hive_no,
+    :user_alias
   ]
 
   @flat_fields [
     :particle_id,
     :license_id,
     :user_id,
+    :user_alias,
     :edge_id,
     :scape_id,
     :hive_id,
     :hive_no,
     :age,
     :health,
-    :energy
+    :energy,
+    :ticks,
+    :orientation,
+    :momentum
   ]
 
   @primary_key false
@@ -77,6 +69,7 @@ defmodule Particle.Init do
     field(:particle_id, :binary_id, primary_key: true, default: UUID.uuid4())
     field(:license_id, :binary_id)
     field(:user_id, :binary_id)
+    field(:user_alias, :string)
     field(:edge_id, :binary_id)
     field(:scape_id, :binary_id)
     field(:hive_id, :binary_id)
@@ -85,10 +78,13 @@ defmodule Particle.Init do
     field(:age, :integer, default: 0)
     field(:health, :integer, default: 100)
     field(:energy, :integer, default: 100)
-    embeds_one(:position, Vector)
-    embeds_one(:momentum, Vector)
-    embeds_one(:orientation, Vector)
-    embeds_one(:hexa, Hexa)
+    field(:ticks, :integer, default: 0, virtual: true)
+    field(:orientation, :string, default: "O")
+    field(:momentum, :integer, default: 1)
+    embeds_one(:position, Vector, on_replace: :delete)
+    embeds_one(:hexa, Hexa, on_replace: :delete)
+    # embeds_one(:hive_position, Vector, on_replace: :delete)
+    embeds_one(:hive_hexa, Hexa, on_replace: :delete)
   end
 
   def calaculate_hive_color(changeset) do
@@ -112,8 +108,8 @@ defmodule Particle.Init do
     |> cast(attrs, @flat_fields)
     |> cast_embed(:hexa, with: &Hexa.changeset/2)
     |> cast_embed(:position, with: &Vector.changeset/2)
-    |> cast_embed(:momentum, with: &Vector.changeset/2)
-    |> cast_embed(:orientation, with: &Vector.changeset/2)
+    |> cast_embed(:hive_hexa, with: &Hexa.changeset/2)
+    #    |> cast_embed(:hive_position, with: &Vector.changeset/2)
     |> calaculate_hive_color()
     |> validate_required(@required_fields)
   end
@@ -123,11 +119,8 @@ defmodule Particle.Init do
       %{valid?: true} = changes ->
         {:ok, apply_changes(changes)}
 
-      {:ok, default} ->
-        {:ok, default}
-
-      {:error, changeset} ->
-        Logger.error("Failed to create particle: #{inspect(changeset)}")
+      changeset ->
+        Logger.error("Failed to create particle: #{inspect(changeset, pretty: true)}")
         {:error, changeset}
     end
   end

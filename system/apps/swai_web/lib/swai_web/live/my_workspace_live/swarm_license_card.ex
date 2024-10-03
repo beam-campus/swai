@@ -26,11 +26,6 @@ defmodule SwaiWeb.MyWorkspaceLive.SwarmLicenseCard do
           license={@license}
           scape_id={@license.scape_id}
         />
-        <div class="text-white border">
-          <p>
-            Scape: <%= @license.user_id %>
-          </p>
-        </div>
       </div>
     </div>
     """

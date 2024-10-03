@@ -12,23 +12,19 @@ defmodule Hive.Init do
   alias Scape.Init, as: ScapeInit
   alias Scape.Utils, as: ScapeUtils
   alias Schema.SwarmLicense, as: License
+  alias Swai.Defaults, as: Defaults
 
   require Logger
   require Jason.Encoder
 
-  @hive_colors %{
-    1 => "blue",
-    2 => "red",
-    3 => "green",
-    4 => "orange",
-    5 => "yellow",
-    6 => "indigo"
-  }
+  #  @hexa_directions Defaults.hexa_directions()
+
+  @hive_colors Defaults.hive_colors()
 
   #  @hive_status_unknown HiveStatus.unknown()
   @hive_status_vacant HiveStatus.hive_vacant()
 
-  @all_fields [
+  @json_fields [
     :hive_id,
     :hive_name,
     :hive_color,
@@ -40,9 +36,12 @@ defmodule Hive.Init do
     :hive_no,
     :license_id,
     :user_id,
+    :user_alias,
     :scape_name,
     :hexa,
-    :license
+    :license,
+    :orientation
+    #    :position
   ]
 
   @flat_fields [
@@ -57,7 +56,9 @@ defmodule Hive.Init do
     :hive_no,
     :license_id,
     :user_id,
-    :scape_name
+    :user_alias,
+    :scape_name,
+    :orientation
   ]
 
   @required_fields [
@@ -68,10 +69,11 @@ defmodule Hive.Init do
     :biotope_id,
     :hive_no,
     :hexa
+    #   :position
   ]
 
   @primary_key false
-  @derive {Jason.Encoder, only: @all_fields}
+  @derive {Jason.Encoder, only: @json_fields}
   embedded_schema do
     # HiveInit ID
     field(:hive_id, :string, default: "hive-#{UUID.uuid4()}")
@@ -86,7 +88,10 @@ defmodule Hive.Init do
     field(:hive_no, :integer, default: 1)
     field(:license_id, :binary_id, default: nil)
     field(:user_id, :binary_id, default: nil)
+    field(:user_alias, :string, default: "FREE")
     field(:scape_name, :string)
+    field(:orientation, :string, default: "SE")
+    #    embeds_one(:position, Vector, on_replace: :delete, virtual: true)
     embeds_one(:hexa, Hexa, on_replace: :delete)
     embeds_one(:license, License, on_replace: :delete)
   end
@@ -109,17 +114,76 @@ defmodule Hive.Init do
     |> cast(attrs, @flat_fields)
     |> cast_embed(:license, with: &License.changeset/2)
     |> cast_embed(:hexa, with: &Hexa.changeset/2)
+    #    |> cast_embed(:position, with: &Vector.changeset/2)
     |> validate_required(@required_fields)
-    |> calculate_hive_color()
-    |> calculate_hive_status_string()
+    |> do_calculate_hive_color()
+    |> do_calculate_hive_status_string()
+    #    |> do_calculate_hive_image()
+    |> do_calculate_hive_orientation()
+    #    |> do_calculate_hive_position()
+    |> do_calculate_hive_hexa()
   end
 
-  defp calculate_hive_status_string(changeset) do
+  defp do_calculate_hive_hexa(changeset) do
+    case get_field(changeset, :hive_no) do
+      nil ->
+        Logger.debug("No hive_no found in HiveInit changeset")
+        changeset
+
+      hive_no ->
+        changeset |> put_change(:hexa, ScapeUtils.get_hive_hexa(hive_no))
+    end
+  end
+
+  # defp do_calculate_hive_position(changeset) do
+  #   case get_field(changeset, :hive_no) do
+  #     nil ->
+  #       Logger.debug("No hive_no found in HiveInit changeset")
+  #       changeset
+  #
+  #     hive_no ->
+  #       changeset |> put_change(:position, ScapeUtils.get_hive_location(hive_no))
+  #   end
+  # end
+  #
+  defp do_calculate_hive_orientation(changeset) do
+    case get_field(changeset, :hive_no) do
+      nil ->
+        Logger.debug("No hive_no found in HiveInit changeset")
+        changeset
+
+      hive_no ->
+        changeset
+        |> put_change(:orientation, ScapeUtils.get_hive_orientation(hive_no))
+    end
+  end
+
+  # defp do_calculate_hive_image(changeset) do
+  #   case get_field(changeset, :user_alias) do
+  #     nil ->
+  #       Logger.debug("No user_alias found in HiveInit changeset")
+  #       changeset
+  #
+  #     user_alias ->
+  #       changeset |> put_change(:hive_image, do_get_hive_image(user_alias))
+  #   end
+  # end
+  #
+  # defp do_get_hive_image(nil),
+  #   do: "https://api.dicebear.com/8.x/bottts/svg?seed=guest00000000000000"
+  #
+  # defp do_get_hive_image("FREE"),
+  #   do: "https://api.dicebear.com/8.x/bottts/svg?seed=guest00000000000000"
+  #
+  # defp do_get_hive_image(user_alias),
+  #   do: "https://api.dicebear.com/8.x/bottts/svg?seed=#{user_alias}"
+  #
+  defp do_calculate_hive_status_string(changeset) do
     changeset
     |> put_change(:hive_status_string, HiveStatus.to_string(get_field(changeset, :hive_status)))
   end
 
-  defp calculate_hive_color(changeset) do
+  defp do_calculate_hive_color(changeset) do
     case get_field(changeset, :hive_no) do
       nil ->
         changeset
@@ -142,7 +206,7 @@ defmodule Hive.Init do
 
   def default,
     do: %HiveInit{
-      hive_id: "hive-#{UUID.uuid4()}",
+      hive_id: "h-#{UUID.uuid4()}",
       hive_status: @hive_status_vacant,
       particles_cap: 0,
       edge_id: "N/A",
@@ -158,9 +222,11 @@ defmodule Hive.Init do
 
   def new(hive_no, %ScapeInit{scape_name: scape_name} = scape_init) do
     %HiveInit{
-      hive_id: "hive-#{UUID.uuid4()}",
+      hive_id: "hiv-#{UUID.uuid4()}",
       hive_no: hive_no,
       hexa: ScapeUtils.get_hive_hexa(hive_no),
+      #  position: ScapeUtils.get_hive_location(hive_no),
+      orientation: ScapeUtils.get_hive_orientation(hive_no),
       hive_status: @hive_status_vacant,
       hive_name: "#{scape_name}-#{hive_no}"
     }

@@ -10,6 +10,7 @@ defmodule SwaiAco.EdgeApp do
 
   alias Edge.Init, as: EdgeInit
   alias Schema.AlgorithmId, as: AlgorithmId
+  alias Swai.Defaults, as: Defaults
 
   @planet_of_ants_id "b105f59e-42ce-4e85-833e-d123e36ce943"
   @biotope_id @planet_of_ants_id
@@ -18,9 +19,9 @@ defmodule SwaiAco.EdgeApp do
   @algorithm_acronym "ACO"
   @algorithm_id AlgorithmId.aco_algorithm_id()
 
-  @scapes_cap 2
-  @hives_cap 4
-  @particles_cap 1_000
+  @scapes_cap Defaults.scapes_cap()
+  @hives_cap Defaults.hives_cap()
+  @particles_cap Defaults.particles_cap()
 
   def start_edge(edge_init) do
     Supervisor.start_child(
@@ -47,7 +48,8 @@ defmodule SwaiAco.EdgeApp do
 
     IO.puts("\n\n\n
     +----------------------------------------------+
-    |           ANT COLONY OPTIMIZATION            |
+    |           MACULA EDGE RUNTIME                |
+    |        Ant Colony Optimization (ACO)         |
     +----------------------------------------------+
 
     edge_id:\t\t#{edge_init.edge_id}
@@ -73,7 +75,6 @@ defmodule SwaiAco.EdgeApp do
            strategy: :one_for_one
          ) do
       {:ok, pid} ->
-        #        start_edge(edge_init)
         {:ok, pid}
 
       {:error, {:already_started, pid}} ->

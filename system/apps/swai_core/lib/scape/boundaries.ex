@@ -3,7 +3,6 @@ defmodule Scape.Boundaries do
 
   import Ecto.Changeset
 
-  alias Scape.Boundaries, as: ScapeQuery
   alias Scape.Boundaries, as: Boundaries
 
   require Logger

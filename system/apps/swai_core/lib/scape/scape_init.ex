@@ -13,6 +13,7 @@ defmodule Scape.Init do
   alias Hive.Init, as: HiveInit
   alias Scape.Init, as: ScapeInit
   alias Scape.Status, as: ScapeStatus
+  alias NameUtils, as: NameUtils
 
   @all_fields [
     :scape_id,
@@ -60,13 +61,13 @@ defmodule Scape.Init do
     :biotope_id,
     :algorithm_id,
     :scape_status,
-    :has_vacancy?
+    :has_vacancy? 
   ]
 
   @derive {Jason.Encoder, only: @all_fields}
   @primary_key false
   embedded_schema do
-    field(:scape_id, :string, default: "scape-#{UUID.uuid4()}")
+    field(:scape_id, :string, default: "scp-#{UUID.uuid4()}")
     field(:scape_no, :integer)
     field(:hives_cap, :integer, default: 4)
     field(:particles_cap, :integer, default: 100)
@@ -134,15 +135,10 @@ defmodule Scape.Init do
         {:ok, apply_changes(changeset)}
 
       changeset ->
-        Logger.error("Failed to create Scape.Init:
-        #{inspect(changeset)}
-        ")
+        Logger.error("Failed to create Scape.Init: #{inspect(changeset)}")
         {:error, changeset}
     end
   end
-
-  defp random_scape_name,
-    do: "scape_" <> MnemonicSlugs.generate_slug(2)
 
   def display_name(%ScapeInit{scape_name: scape_name}) do
     scape_name
@@ -155,7 +151,7 @@ defmodule Scape.Init do
     %ScapeInit{
       scape_id: "scape-#{UUID.uuid4()}",
       scape_no: scape_no,
-      scape_name: random_scape_name()
+      scape_name: NameUtils.random_name(2)
     }
     |> from_map(edge_init)
   end

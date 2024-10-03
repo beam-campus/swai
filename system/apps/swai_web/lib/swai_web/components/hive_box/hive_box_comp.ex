@@ -17,7 +17,7 @@ defmodule SwaiWeb.HiveBox do
   def render(assigns) do
     ~H"""
     <div class="hive-box-container">
-      <div class="hive-box-grid border rounded">
+      <div class="hive-box-grid">
         <div>
           <%= if @hive.license do %>
             <p class={"text-#{@hive.hive_color}-400"}><%= @hive.license.swarm_name %></p>

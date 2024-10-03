@@ -1,6 +1,6 @@
 defmodule Particles.Service do
   @moduledoc """
-  The ParticlesService is a GenServer that manages the particles system.
+  The ParticlesService is a GenServer that manages the particles cache.
   """
   use GenServer
 
@@ -10,7 +10,10 @@ defmodule Particles.Service do
   alias Phoenix.PubSub, as: PubSub
 
   @particle_facts ParticleFacts.particle_facts()
-  @particle_initialized_v1 ParticleFacts.particle_initialized_v1()
+  @particles_cache_facts ParticleFacts.particles_cache_facts()
+  @particle_spawned_v1 ParticleFacts.particle_spawned_v1()
+  @particle_changed_v1 ParticleFacts.particle_changed_v1()
+  @particle_died_v1 ParticleFacts.particle_died_v1()
 
   def start(args) do
     case start_link(args) do
@@ -24,6 +27,13 @@ defmodule Particles.Service do
         Logger.error("Particles.Service failed to start: #{reason}")
         {:error, reason}
     end
+  end
+
+  def get_all() do
+    GenServer.call(
+      __MODULE__,
+      :get_all
+    )
   end
 
   def get_for_scape!(nil), do: []
@@ -40,6 +50,17 @@ defmodule Particles.Service do
       __MODULE__,
       {:get_swarm, license_id}
     )
+  end
+
+  @impl GenServer
+  def handle_call(:get_all, _from, state) do
+    particles =
+      :particles_cache
+      |> Cachex.stream!()
+      |> Stream.map(fn {:entry, _, _, _, particle} -> particle end)
+      |> Enum.to_list()
+
+    {:reply, particles, state}
   end
 
   @impl GenServer
@@ -71,16 +92,57 @@ defmodule Particles.Service do
   def handle_info(
         {
           :particle,
-          @particle_initialized_v1,
+          @particle_spawned_v1,
           %{particle_id: particle_id} = particle
-        },
+        } = cause,
         state
       ) do
     :particles_cache
     |> Cachex.put!(particle_id, particle)
 
+    do_notify_particles_cache_changed(cause)
+
     {:noreply, state}
   end
+
+  @impl GenServer
+  def handle_info(
+        {
+          :particle,
+          @particle_changed_v1,
+          %{particle_id: particle_id} = particle
+        } = cause,
+        state
+      ) do
+    :particles_cache
+    |> Cachex.put!(particle_id, particle)
+
+    do_notify_particles_cache_changed(cause)
+
+    {:noreply, state}
+  end
+
+  @impl GenServer
+  def handle_info(
+        {
+          :particle,
+          @particle_died_v1,
+          %{particle_id: particle_id}
+        } = cause,
+        state
+      ) do
+    :particles_cache
+    |> Cachex.del!(particle_id)
+
+    do_notify_particles_cache_changed(cause)
+
+    {:noreply, state}
+  end
+
+  defp do_notify_particles_cache_changed(cause),
+    do:
+      Swai.PubSub
+      |> PubSub.broadcast(@particles_cache_facts, {:particles, cause})
 
   #################### PLUMBING ####################
   @impl GenServer

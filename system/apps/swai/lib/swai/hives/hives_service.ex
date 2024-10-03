@@ -192,7 +192,7 @@ defmodule Hives.Service do
       seed ->
         new_hive = %HiveInit{
           hive_from_map(seed, hive_init)
-          |   hive_status:
+          | hive_status:
               seed.hive_status
               |> unset(HiveStatus.hive_vacant())
               |> set(HiveStatus.hive_occupied())
@@ -260,16 +260,11 @@ defmodule Hives.Service do
     hives_to_delete =
       :hives_cache
       |> Cachex.stream!()
-      |> Stream.filter(fn {:entry, _id, _internal, _nil, hive_init} ->
-        hive_init.scape_id == scape_id
-      end)
-      |> Enum.to_list()
+      |> Stream.filter(fn {:entry, _, _, _, hive} -> hive.scape_id == scape_id end)
+      |> Enum.map(fn {:entry, hive_id, _, _, _} -> hive_id end)
 
     hives_to_delete
-    |> Enum.each(fn {:entry, hive_id, _internal, _nil, _} ->
-      :hives_cache
-      |> Cachex.del!(hive_id)
-    end)
+    |> Enum.each(&Cachex.del!(:hives_cache, &1))
 
     notify_hives_cache_updated(cause)
     {:noreply, state}

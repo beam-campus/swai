@@ -6,20 +6,13 @@ defmodule Arena.Hexa do
   import Ecto.Changeset
 
   alias Arena.Hexa, as: Hexa
+  alias Swai.Defaults, as: Defaults
 
   require Logger
   require Jason.Encoder
 
-  @directions %{
-    west: {-1, 0},
-    northwest: {0, -1},
-    north: {1, -1},
-    northeast: {1, 0},
-    east: {1, 1},
-    southeast: {0, 1},
-    south: {-1, 1},
-    southwest: {-1, 0}
-  }
+  @hexa_directions Defaults.hexa_directions()
+  @hexa_reverse_directions Defaults.hexa_reverse_directions()
 
   @all_fields [:q, :r]
 
@@ -29,6 +22,9 @@ defmodule Arena.Hexa do
     field(:q, :integer, default: 0)
     field(:r, :integer, default: 0)
   end
+
+  def directive(from, to),
+    do: @hexa_reverse_directions[{to.q - from.q, to.r - from.r}]
 
   def changeset(seed, nil),
     do: {:ok, seed}
@@ -49,104 +45,41 @@ defmodule Arena.Hexa do
       %{valid?: true} = changes ->
         {:ok, apply_changes(changes)}
 
-      {:ok, default} ->
-        {:ok, default}
-
-      {:error, changeset} ->
+      changeset ->
         Logger.error("Failed to create hexa: #{inspect(changeset)}")
         {:error, changeset}
     end
   end
 
-  def new(q, r) do
-    %Hexa{q: q, r: r}
-  end
-
+  def new(q, r), do: %Hexa{q: q, r: r}
   def cartesian_to_axial(nil, _), do: nil
 
-  @doc """
-  Converts Cartesian coordinates (x, y) to axial coordinates (q, r).
-
-  ## Parameters
-    - width: Width of the grid
-    - height: Height of the grid
-    - hexagon_size: Size of the hexagon
-    - point: Tuple representing the Cartesian coordinates (x, y)
-
-  ## Returns
-    - A tuple of axial coordinates (q, r)
-  """
-  def cartesian_to_axial(%{x: x, y: y}, hexagon_size) do
-    # Calculate the horizontal and vertical spacing
-    horizontal_spacing = hexagon_size * 3 / 2
-    vertical_spacing = hexagon_size * :math.sqrt(3)
-
-    # Calculate the axial coordinates (q, r)
-    q = x / horizontal_spacing
-    r = (y * 2 / vertical_spacing - q) / 2
-
-    %{q: round(q), r: round(r)}
-  end
+  def cartesian_to_axial(%{x: x, y: y}, hexagon_size),
+    do: %{q: x_to_q(x, hexagon_size), r: y_to_r(y, hexagon_size)}
 
   def axial_to_cartesian(nil), do: nil
 
-  @doc """
-  Converts axial coordinates (q, r) to Cartesian coordinates (x, y).
+  def axial_to_cartesian(%{q: q, r: r}, hexagon_size),
+    do: %{x: q_to_x(q, hexagon_size), y: r_to_y(r, hexagon_size), z: 0.0}
 
-  ## Parameters
-    - hexagon_size: Size of the hexagon
-    - {q, r}: Tuple representing the axial coordinates (q, r)
+  def distance({q1, r1}, {q2, r2}), do: (abs(q1 - q2) + abs(q1 + r1 - q2 - r2) + abs(r1 - r2)) / 2
+  def x_to_q(x, hexagon_size), do: round(x / (hexagon_size * 3 / 2))
+  def y_to_r(y, hexagon_size), do: round(y / (hexagon_size * :math.sqrt(3)))
+  def q_to_x(q, hexagon_size), do: q * hexagon_size * 3 / 2
+  def r_to_y(r, hexagon_size), do: r * hexagon_size * :math.sqrt(3)
 
-  ## Returns
-    - A tuple of Cartesian coordinates (x, y)
-  """
-  def axial_to_cartesian(hexagon_size, %{q: q, r: r}) do
-    # Calculate the horizontal and vertical spacing
-    horizontal_spacing = hexagon_size * 3 / 2
-    vertical_spacing = hexagon_size * :math.sqrt(3)
-
-    # Calculate Cartesian coordinates (x, y)
-    x = q * horizontal_spacing
-    y = (r + q / 2) * vertical_spacing
-
-    %{x: x, y: y}
-  end
-
-  @doc """
-  Moves in the specified direction from the given axial coordinates (q, r) for N steps.
-
-  ## Parameters
-    - {q, r}: Tuple representing the starting axial coordinates (q, r)
-    - direction: One of :west, :northwest, :north, :northeast, :east, :southeast, :south, :southwest
-    - steps: Number of steps to move in the given direction
-
-  ## Returns
-    - A tuple of new axial coordinates (q, r) after movement
-  """
-  def move({q, r}, direction, steps) when is_integer(steps) and steps >= 0 do
-    {dq, dr} = Map.get(@directions, direction)
-
+  def move_hexa(%Hexa{q: q, r: r}, direction, steps \\ 1)
+      when is_integer(steps) and steps >= 0 do
+    {dq, dr} = @hexa_directions[direction]
     new_q = q + dq * steps
     new_r = r + dr * steps
-
-    {new_q, new_r}
+    %Hexa{q: new_q, r: new_r}
   end
 
-  @doc """
-  Moves in the specified directions from the given axial coordinates (q, r) for N steps.
-  This function accepts a list of directions to move sequentially.
-
-  ## Parameters
-    - {q, r}: Tuple representing the starting axial coordinates (q, r)
-    - directions: List of directions to move in
-    - steps: Number of steps to move in the specified directions
-
-  ## Returns
-    - A tuple of new axial coordinates (q, r) after movement
-  """
-  def move_multiple({q, r}, directions, steps) when is_integer(steps) and steps >= 0 do
+  def move_multiple_hexa({q, r}, directions, steps)
+      when is_integer(steps) and steps >= 0 do
     Enum.reduce(directions, {q, r}, fn direction, {current_q, current_r} ->
-      move({current_q, current_r}, direction, steps)
+      move_hexa({current_q, current_r}, direction, steps)
     end)
   end
 end

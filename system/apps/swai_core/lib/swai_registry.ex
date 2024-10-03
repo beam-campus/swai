@@ -3,6 +3,9 @@ defmodule Swai.Registry do
   Swai.Registry is a simple key-value store that allows processes to be registered
   """
   ############ INTERFACE ###########
+  def unregister(key),
+    do: Registry.unregister(__MODULE__, key)
+
   def register(key, pid),
     do: Registry.register(__MODULE__, key, pid)
 

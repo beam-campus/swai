@@ -41,7 +41,9 @@ defmodule SwaiWeb.EdgeChannel do
 
   @arena_initialized_v1 ArenaFacts.arena_initialized_v1()
 
-  @particle_initialized_v1 ParticleFacts.particle_initialized_v1()
+  @particle_spawned_v1 ParticleFacts.particle_spawned_v1()
+  @particle_changed_v1 ParticleFacts.particle_changed_v1()
+  @particle_died_v1 ParticleFacts.particle_died_v1()
 
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
   @edge_lobby "edge:lobby"
@@ -189,12 +191,27 @@ defmodule SwaiWeb.EdgeChannel do
     {:reply, {:ok, reply}, socket}
   end
 
-  ############# IN PARTICLE INITIALIZED ########################
+  ############# IN PARTICLE SPAWNED ########################
   @impl true
-  def handle_in(@particle_initialized_v1, envelope, socket) do
-    ParticleDispatcher.pub_particle_initialized(envelope)
+  def handle_in(@particle_spawned_v1, envelope, socket) do
+    ParticleDispatcher.pub_particle_spawned(envelope)
     {:noreply, socket}
   end
+
+  ############# IN PARTICLE CHANGED ########################
+  @impl true
+  def handle_in(@particle_changed_v1, envelope, socket) do
+    ParticleDispatcher.pub_particle_changed(envelope)
+    {:noreply, socket}
+  end
+  
+  ############# IN PARTICLE DIED ########################
+  @impl true
+  def handle_in(@particle_died_v1, envelope, socket) do
+    ParticleDispatcher.pub_particle_died(envelope)
+    {:noreply, socket}
+  end
+  
   
 
   ##################### CHANNEL FALLTHROUGH ######################

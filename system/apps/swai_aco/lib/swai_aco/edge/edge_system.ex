@@ -44,18 +44,29 @@ defmodule Edge.System do
         :get_scapes
       )
 
-  defp start_scapes(%EdgeInit{edge_id: edge_id, scapes_cap: scapes_cap} = edge_init) do
+  defp do_start_scape(%{edge_id: edge_id, scape_id: scape_id} = scape_init) do
+    case Supervisor.start_child(
+           via_sup(edge_id),
+           {Scape.System, scape_init}
+         ) do
+      {:ok, _pid} ->
+        Logger.info("Scape started: [#{scape_id}]")
+
+      {:error, reason} ->
+        Logger.error("Error starting scape: #{inspect(reason, pretty: true)}")
+    end
+  end
+
+  ##################### START SCAPES ####################
+  defp do_start_scapes(%EdgeInit{scapes_cap: scapes_cap} = edge_init) do
     1..scapes_cap
     |> Enum.each(fn scape_no ->
       case ScapeInit.new(scape_no, edge_init) do
         {:ok, scape_init} ->
-          Supervisor.start_child(
-            via_sup(edge_id),
-            {Scape.System, scape_init}
-          )
+          do_start_scape(scape_init)
 
         {:error, reason} ->
-          Logger.error("Error starting scape: #{inspect(reason)}")
+          Logger.error("Error creating Scape initialization: #{inspect(reason, pretty: true)}")
       end
     end)
   end
@@ -68,7 +79,7 @@ defmodule Edge.System do
     EdgeEmitter.emit_initializing_edge(edge_init)
 
     start_scapes =
-      Task.async(fn -> start_scapes(edge_init) end)
+      Task.async(fn -> do_start_scapes(edge_init) end)
 
     case Supervisor.start_link(
            [],
@@ -80,11 +91,13 @@ defmodule Edge.System do
         {:ok, pid}
 
       {:error, reason} ->
-        Logger.error("Error starting edge system: #{inspect(reason)}")
+        Logger.error("Error starting edge system: #{inspect(reason, pretty: true)}")
         {:stop, reason}
     end
 
     EdgeEmitter.emit_edge_initialized(edge_init)
+
+    Logger.debug("#{__MODULE__}:[#{edge_id}] is up: #{Colors.edge_theme(self())}")
 
     :edge_pubsub
     |> PubSub.subscribe(@edge_facts)
@@ -102,7 +115,10 @@ defmodule Edge.System do
   ###################### PROCESS_MESSAGE ##############
   @impl true
   def handle_cast({:process_message, {room, message, params}}, state) do
-    Logger.warning("EdgeSystem received message: #{inspect({room, message, params})}")
+    Logger.warning(
+      "EdgeSystem received message: #{inspect({room, message, params}, pretty: true)}"
+    )
+
     {:noreply, state}
   end
 

@@ -10,21 +10,21 @@ defmodule SwaiWeb.ScapeViewLive.ScapeDetailCard do
     }
   end
 
-  attr :scape, ScapeInit
+  attr(:scape, ScapeInit)
 
   defp scape_detail_header(assigns) do
     ~H"""
-    <div class="px-5 text-white">
+    <div class="px-1 text-white">
       <p class="text-lg font-brand"><%= @scape.scape_name %></p>
     </div>
     """
   end
 
-  attr :hives, :list
+  attr(:hives, :list)
 
   defp scape_detail_hives(assigns) do
     ~H"""
-    <div class="grid grid-cols-1 md:grid-cols-1 gap-4 mt-3">
+    <div class="grid grid-cols-1 md:grid-cols-1 gap-2 mt-1">
       <%= for hive <- @hives do %>
         <.live_component id={"hive-box-#{hive.hive_id}"} module={SwaiWeb.HiveBox} hive={hive} />
       <% end %>
@@ -39,16 +39,18 @@ defmodule SwaiWeb.ScapeViewLive.ScapeDetailCard do
 
   def scape_detail_arena(assigns) do
     ~H"""
-    <div id={"scape-thumbnail-#{@scape.scape_id}"} class="scape-minimap">
-      <div class="scape-minimap-inner">
-        <.live_component
-          id={"arena-map-#{@scape.scape_id}"}
-          module={SwaiWeb.ArenaMapView}
-          scape={@scape}
-          particles={@particles}
-          arena={@arena}
-          hives={@hives}
-        />
+    <div id={"scape-thumbnail-#{@scape.scape_id}"} class="scape-minimap-container">
+      <div class="scape-minimap">
+        <div class="scape-minimap-inner">
+          <.live_component
+            id={"arena-map-#{@scape.scape_id}"}
+            module={SwaiWeb.ArenaMapView}
+            scape={@scape}
+            particles={@particles}
+            arena={@arena}
+            hives={@hives}
+          />
+        </div>
       </div>
     </div>
     """

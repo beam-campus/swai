@@ -4,43 +4,41 @@ defmodule SwaiAco.Particle.AIWorker do
   """
   use GenServer
 
-  alias Particle.Init, as: ParticleInit
   alias Swai.Registry, as: SwaiRegistry
+  alias Swai.Defaults, as: Limits
+
+  @particle_heartbeat Limits.particle_heartbeat()
 
   require Logger
   require Colors
 
-  def start(particle_init) do
-    case start_link(particle_init) do
+  def start(state) do
+    case start_link(state) do
       {:ok, pid} ->
-        Logger.debug("Started [#{__MODULE__} > #{inspect(pid)}]]")
         {:ok, pid}
 
       {:error, {:already_started, pid}} ->
-        Logger.warning("Already Started [#{__MODULE__} > #{inspect(pid)}]]")
         {:ok, pid}
 
       {:error, reason} ->
-        Logger.error("Failed to start #{__MODULE__}: #{reason}")
+        Logger.error("Failed to start #{__MODULE__}: #{inspect(reason, pretty: true)}")
         {:error, reason}
     end
   end
 
   ################## INIT  ##################
   @impl true
-  def init(%ParticleInit{} = particle_init) do
+  def init(%{id: particle_id} = state) do
     Process.flag(:trap_exit, true)
-    Process.send_after(self(), :tick, 1_000)
+    Process.send_after(self(), :tick, @particle_heartbeat)
 
-    Logger.debug("#{__MODULE__} is up: #{Colors.particle_theme(self())} id: #{particle_init.id}")
-    {:ok, particle_init}
+    Logger.debug("#{__MODULE__} is up: #{Colors.particle_theme(self())} id: #{particle_id}")
+    {:ok, state}
   end
 
   @impl true
   def handle_info(:tick, state) do
-    Logger.debug("TICK: #{inspect(self())}")
-
-    Process.send_after(self(), :tick, 1_000)
+    Process.send_after(self(), :tick, @particle_heartbeat)
     {:noreply, state}
   end
 
@@ -54,21 +52,19 @@ defmodule SwaiAco.Particle.AIWorker do
   def via_sup(key),
     do: SwaiRegistry.via_tuple({:particle_sup, to_name(key)})
 
-  def child_spec(%{id: particle_id} = particle_init) do
-    %{
+  def child_spec(%{id: particle_id} = state),
+    do: %{
       id: to_name(particle_id),
-      start: {__MODULE__, :start, [particle_init]},
+      start: {__MODULE__, :start, [state]},
       type: :worker,
       restart: :transient
     }
-  end
 
-
-  def start_link(%{id: particle_id} = particle_init),
+  def start_link(%{id: particle_id} = state),
     do:
       GenServer.start_link(
         __MODULE__,
-        particle_init,
+        state,
         name: via(particle_id)
       )
 end

@@ -8,6 +8,8 @@ defmodule Hive.System do
   alias Hive.Init, as: HiveInit
   alias Hive.Status, as: HiveStatus
   alias Particle.Init, as: Particle
+  # alias Arena.Hexa, as: Hexa
+  alias Swai.Defaults, as: Limits
 
   alias Swai.Registry, as: SwaiRegistry
 
@@ -16,6 +18,12 @@ defmodule Hive.System do
 
   @hive_status_vacant HiveStatus.hive_vacant()
   @hive_status_occupied HiveStatus.hive_occupied()
+  @hive_cycle Limits.hive_cycle()
+  @initial_claim_delay Limits.initial_claim_delay()
+  @normal_claim_delay Limits.normal_claim_delay()
+  @start_swarm_delay Limits.start_swarm_delay()
+
+  # @arena_hexa_size Limits.arena_hexa_size()
 
   ## Get the swarm of particles
   def get_particles(hive_id) do
@@ -24,14 +32,8 @@ defmodule Hive.System do
 
   ## Count the number of particles
   def count_particles(hive_id) do
-    case Supervisor.count_children(via_sup(hive_id)) do
-      %{active: count} when is_integer(count) ->
-        count
-
-      {:error, reason} ->
-        Logger.error("Failed to count particles in Hive [#{hive_id}]: #{inspect(reason)}")
-        0
-    end
+    %{active: count} = Supervisor.count_children(via_sup(hive_id))
+    count
   end
 
   #################### START  ####################
@@ -60,19 +62,21 @@ defmodule Hive.System do
       ) do
     Process.flag(:trap_exit, true)
 
-    Supervisor.start_link(
-      [],
-      name: via_sup(hive_id),
-      strategy: :one_for_one
-    )
+    case Supervisor.start_link(
+           [],
+           name: via_sup(hive_id),
+           strategy: :one_for_one
+         ) do
+      {:ok, _} ->
+        HiveEmitter.emit_hive_initialized(hive_init)
+        Process.send_after(self(), :CLAIM_LICENSE, @initial_claim_delay)
+        Logger.debug("hive[#{scape_name}][#{hive_no}] is up => #{Colors.particle_theme(self())}")
+        {:ok, hive_init}
 
-    Logger.debug("hive[#{scape_name}][#{hive_no}] is up => #{Colors.particle_theme(self())}")
-
-    HiveEmitter.emit_hive_initialized(hive_init)
-
-    Process.send_after(self(), :CLAIM_LICENSE, 30_000)
-
-    {:ok, hive_init}
+      {:error, reason} ->
+        Logger.error("Failed to start Hive subsystems: #{inspect(reason, pretty: true)}")
+        {:stop, reason}
+    end
   end
 
   #################### HANDLE CAST ####################
@@ -87,19 +91,26 @@ defmodule Hive.System do
     particle_id = "pt-#{UUID.uuid4()}"
     seed = %Particle{particle_id: particle_id}
 
-    {:ok, particle_init} =
-      Particle.from_map(seed, hive)
+    particle_init =
+      case Particle.from_map(seed, hive) do
+        {:ok, particle} ->
+          particle
 
-    case Supervisor.start_child(
-           via_sup(hive_id),
-           {SwaiAco.Particle.System, particle_init}
-         ) do
-      {:ok, _pid} ->
-        Logger.debug("Particle spawned in Hive [#{hive_id}]")
+        {:error, changeset} ->
+          Logger.error("Invalid Hive: #{inspect(changeset, pretty: true)}")
+          seed
+      end
 
-      {:error, reason} ->
-        Logger.error("Failed to spawn particle in Hive [#{hive_id}]: #{inspect(reason)}")
-    end
+    particle =
+      %Particle{
+        particle_init
+        | hive_hexa: particle_init.hexa
+      }
+
+    Supervisor.start_child(
+      via_sup(hive_id),
+      {SwaiAco.Particle.System, particle}
+    )
 
     hive
   end
@@ -110,6 +121,7 @@ defmodule Hive.System do
         hive
         | hive_status: @hive_status_vacant,
           user_id: nil,
+          user_alias: nil,
           license_id: nil,
           license: nil
       }
@@ -131,15 +143,15 @@ defmodule Hive.System do
     new_hive =
       cond do
         count_particles(hive_id) == 0 ->
-          Process.send_after(self(), :CLAIM_LICENSE, 10_000)
+          Process.send_after(self(), :CLAIM_LICENSE, @normal_claim_delay)
           do_vacate_hive(hive)
 
         count_particles(hive_id) < particles_cap ->
-          Process.send_after(self(), :LIVE, 2_000)
+          Process.send_after(self(), :LIVE, @hive_cycle)
           do_spawn_particle(hive)
 
         true ->
-          Process.send_after(self(), :LIVE, 2_000)
+          Process.send_after(self(), :LIVE, @hive_cycle)
           hive
       end
 
@@ -153,63 +165,65 @@ defmodule Hive.System do
         %HiveInit{
           hive_id: hive_id,
           scape_id: scape_id,
+          scape_name: scape_name,
           license: nil,
           hive_status: @hive_status_vacant
         } = hive
       ) do
-    new_hive =
-      case HiveEmitter.try_reserve_license(hive) do
-        nil ->
-          Process.send_after(self(), :CLAIM_LICENSE, 10_000)
-          hive
+    case HiveEmitter.try_reserve_license(hive) do
+      nil ->
+        Process.send_after(self(), :CLAIM_LICENSE, @normal_claim_delay)
+        {:noreply, hive}
 
-        %{license_id: license_id, user_id: user_id} = license ->
-          Logger.warning(
-            "License [#{license_id}] for user [#{user_id}] assigned to Hive [#{hive_id}], #{Colors.hive_theme(self())}"
-          )
+      %{
+        license_id: license_id,
+        user_id: user_id,
+        user_alias: user_alias
+      } = license ->
+        Logger.warning(
+          "License [#{license_id}] for user [#{user_alias}]  assigned to Hive [#{hive_id}] => #{Colors.hive_theme(self())}"
+        )
 
-          new_hive =
-            %HiveInit{
-              hive
-              | license: license,
-                scape_id: scape_id,
-                user_id: user_id,
-                license_id: license_id,
-                hive_status: @hive_status_occupied
-            }
+        new_hive =
+          %HiveInit{
+            hive
+            | license: license,
+              scape_id: scape_id,
+              scape_name: scape_name,
+              user_id: user_id,
+              user_alias: user_alias,
+              license_id: license_id,
+              hive_status: @hive_status_occupied
+          }
 
-          HiveEmitter.emit_hive_occupied(new_hive)
-          Process.send_after(self(), :START_SWARM, 2_000)
-          new_hive
-      end
-
-    {:noreply, new_hive}
+        HiveEmitter.emit_hive_occupied(new_hive)
+        Process.send_after(self(), :START_SWARM, @start_swarm_delay)
+        {:noreply, new_hive}
+    end
   end
 
   ##################### START SWARM ######################
   @impl true
-  def handle_info(:START_SWARM, %{hive_id: hive_id} = hive) do
-    Logger.debug("Starting Swarm in Hive [#{hive_id}]")
+  def handle_info(:START_SWARM, %{hive_id: hive_id, user_alias: user_alias} = hive) do
+    Logger.alert("Starting Swarm in Hive [#{hive_id}] for user [#{user_alias}]")
 
-    # new_hive =
-    #   do_spawn_particle(hive) TODO: Implement Swarm Spawning ##########
+    new_hive =
+      do_spawn_particle(hive)
 
-    new_hive = hive
-
-    Process.send_after(self(), :LIVE, 2_000)
+    Process.send_after(self(), :LIVE, @hive_cycle)
     {:noreply, new_hive}
   end
 
   ################### PLUMBING ###################
   @impl true
-  def terminate(_reason, hive) do
-    Logger.debug("hive.system terminated")
+  def terminate(reason, %HiveInit{hive_no: hive_no, scape_name: scape_name} = hive) do
+    Logger.debug("Hive [#{scape_name}][#{hive_no}] terminated. #{inspect(reason, pretty: true)}")
     HiveEmitter.emit_hive_detached(hive)
     :ok
   end
 
   def to_name(key),
-    do: "hive.system:#{key}"
+    do: "#{__MODULE__}:#{key}"
 
   def via(key),
     do: SwaiRegistry.via_tuple({:hive_sys, to_name(key)})

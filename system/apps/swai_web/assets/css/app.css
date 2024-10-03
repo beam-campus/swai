@@ -799,13 +799,26 @@ body {
     margin-top: 10px;
 }
 
+.scape-minimap-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: auto;
+    height: auto;
+    margin: 2px;
+    padding: 10px;
+
+}
+
 
 .scape-minimap {
     position: relative;
-    width: 800px;
-    height: 600px;
+    width: 815px;
+    height: 615px;
     display: flex;
-    border: 2px solid #0b123baf; /* Optional: border to make it more visible */    
+    justify-content: center;
+    align-items: center;    
+    border: 4px solid #0b123baf; /* Optional: border to make it more visible */    
     border-radius: 20px;
   }
 
@@ -813,8 +826,8 @@ body {
     position: absolute;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
+    width: auto;
+    height: auto;
   }
 
 
@@ -955,7 +968,7 @@ body {
     text-align: left;
     font-family: 'Monaco', monospace;
     font-size: 0.875rem; /* text-sm */
-    margin-bottom: 0.5rem; /* mb-2 */
+    margin-bottom: 0.1rem; /* mb-2 */
     color: white;
   }
   

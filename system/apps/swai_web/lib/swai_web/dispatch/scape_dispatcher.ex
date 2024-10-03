@@ -17,7 +17,15 @@ defmodule SwaiWeb.ScapeDispatcher do
   @scape_initializing_v1 ScapeFacts.scape_initializing_v1()
   @scape_initialized_v1 ScapeFacts.scape_initialized_v1()
 
-  def detach_scapes(edge_id) do
+  defp do_detach_scape(%ScapeInit{} = scape_init) do
+    Logger.warning("Detaching scape: #{inspect(scape_init)}")
+
+    SwaiPubSub
+    |> PubSub.broadcast!(@scape_facts, {@scape_detached_v1, scape_init})
+  end
+
+
+  def detach_edge(edge_id) do
     case Scapes.get_for_edge(edge_id) do
       [] ->
         Logger.warning("detach_scapes: no scapes found for edge_id: #{edge_id}")
@@ -25,13 +33,7 @@ defmodule SwaiWeb.ScapeDispatcher do
 
       scapes ->
         scapes
-        |> Enum.each(fn scape ->
-          Swai.PubSub
-          |> PubSub.broadcast!(
-            @scape_facts,
-            {@scape_detached_v1, scape}
-          )
-        end)
+        |> Enum.each(&do_detach_scape/1)
 
         scapes
     end

@@ -2,7 +2,6 @@ defmodule Arena.ArenaMap do
   @moduledoc """
   This module is responsible for managing the arena map in the system.
   """
-
   use Ecto.Schema
   import Ecto.Changeset
 
@@ -59,7 +58,7 @@ defmodule Arena.ArenaMap do
     # field(:collectibles, {:array, :map}, default: [])
     # field(:particles, {:array, :map}, default: [])
     # field(:threats, {:array, :map}, default: [])
-    # field(:hives, {:array, :map}, default: [])
+    embeds_many(:hives, HiveInit, on_replace: :delete)
     embeds_many(:elements, ArenaElement, on_replace: :delete)
   end
 
@@ -67,8 +66,8 @@ defmodule Arena.ArenaMap do
     do: seed
 
   def changeset(arena_map, data)
-    when is_struct(data),
-    do: changeset(arena_map, Map.from_struct(data))
+      when is_struct(data),
+      do: changeset(arena_map, Map.from_struct(data))
 
   def changeset(arena_map, attrs)
       when is_map(attrs) do
@@ -86,13 +85,13 @@ defmodule Arena.ArenaMap do
       maze_density: maze_density,
       elements: []
     }
-    |> initialize_maze(maze_density)
-    |> initialize_hives(hives_cap)
+    |> do_initialize_maze(maze_density)
+    |> do_initialize_hives(hives_cap)
 
     #    |> initialize_hives(hives_cap)
   end
 
-  defp initialize_hives(map, hives_cap) do
+  defp do_initialize_hives(map, hives_cap) do
     %ArenaMap{
       map
       | elements: map.elements |> generate_hives(hives_cap)
@@ -117,7 +116,7 @@ defmodule Arena.ArenaMap do
     end)
   end
 
-  defp initialize_maze(
+  defp do_initialize_maze(
          %ArenaMap{
            width: width,
            height: height,

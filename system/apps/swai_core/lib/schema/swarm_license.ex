@@ -22,6 +22,7 @@ defmodule Schema.SwarmLicense do
     :status,
     :status_string,
     :user_id,
+    :user_alias,
     :algorithm_id,
     :algorithm_name,
     :algorithm_acronym,
@@ -47,6 +48,7 @@ defmodule Schema.SwarmLicense do
     :status,
     :status_string,
     :user_id,
+    :user_alias,
     :algorithm_id,
     :algorithm_name,
     :algorithm_acronym,
@@ -70,6 +72,7 @@ defmodule Schema.SwarmLicense do
   @required_fields [
     :license_id,
     :user_id,
+    :user_alias,
     :biotope_id,
     :biotope_name,
     :algorithm_id,
@@ -85,6 +88,7 @@ defmodule Schema.SwarmLicense do
     field(:status, :integer, default: LicenseStatus.unknown())
     field(:status_string, :string, virtual: true)
     field(:user_id, :binary_id)
+    field(:user_alias, :string, default: nil)
 
     field(:algorithm_id, :binary_id)
     field(:algorithm_name, :string)

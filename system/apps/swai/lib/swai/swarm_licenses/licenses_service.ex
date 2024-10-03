@@ -169,8 +169,9 @@ defmodule Licenses.Service do
            biotope_id: qry_biotope_id,
            edge_id: edge_id,
            scape_id: scape_id,
+           scape_name: scape_name,
            hive_id: hive_id
-         } = _hive},
+         }},
         _from,
         state
       ) do
@@ -198,6 +199,7 @@ defmodule Licenses.Service do
               license
               | edge_id: edge_id,
                 scape_id: scape_id,
+                scape_name: scape_name,
                 hive_id: hive_id,
                 status:
                   license.status

@@ -96,6 +96,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
       license_id: UUID.uuid4(),
       status: LicenseStatus.unknown(),
       user_id: user_id,
+      user_alias: user_alias,
       cost_in_tokens: Limits.standard_cost_in_tokens(),
       available_tokens: available_tokens,
       swarm_name: get_swarm_name(user_alias, biotope_name),
@@ -115,7 +116,7 @@ defmodule SwaiWeb.MarketplaceLive.Index do
               live_action: :overview
             )
             |> redirect(to: ~p"/my_workspace")
-            |> put_flash(:info, "Swarm Started")
+            |> put_flash(:info, "Swarm Queued for Launch")
 
           _msg ->
             socket

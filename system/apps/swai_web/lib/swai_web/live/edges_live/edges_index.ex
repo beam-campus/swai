@@ -31,7 +31,7 @@ defmodule SwaiWeb.EdgesLive.Index do
           :ok,
           socket
           |> assign(
-            page_title: "Hives",
+            page_title: "Mesh",
             edges: EdgesCache.get_all(),
             now: DateTime.utc_now(),
             nbr_of_msgs: count_messages()
@@ -45,7 +45,7 @@ defmodule SwaiWeb.EdgesLive.Index do
           :ok,
           socket
           |> assign(
-            page_title: "Hives",
+            page_title: "Mesh",
             edges: EdgesCache.get_all(),
             now: DateTime.utc_now(),
             nbr_of_msgs: count_messages()

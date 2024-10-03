@@ -54,7 +54,7 @@ defmodule Scape.System do
         {:ok, scape_init}
 
       {:error, reason} ->
-        Logger.error("Failed to start Arena.System: #{reason}")
+        Logger.error("Failed to start Arena.System: #{inspect(reason, pretty: true)}")
         {:stop, reason}
     end
 
@@ -70,11 +70,10 @@ defmodule Scape.System do
         {:ok, pid}
 
       {:error, {:already_started, pid}} ->
-        Logger.warning("Already Started [#{__MODULE__} > #{inspect(pid)}]]")
         {:ok, pid}
 
       {:error, reason} ->
-        Logger.error("Failed to start #{__MODULE__}: #{reason}")
+        Logger.error("Failed to start #{__MODULE__}: #{inspect(reason, pretty: true)}")
         {:error, reason}
     end
   end
@@ -108,7 +107,7 @@ defmodule Scape.System do
         %ScapeInit{} = scape_init
       ) do
     Logger.info(
-      "#{Colors.red_on_black()}EXIT received from #{inspect(from_pid)} reason: #{inspect(reason)}#{Colors.reset()}"
+      "#{Colors.red_on_black()}EXIT received from #{inspect(from_pid)} reason: #{inspect(reason, pretty: true)}#{Colors.reset()}"
     )
 
     {:noreply, scape_init}
@@ -125,7 +124,7 @@ defmodule Scape.System do
   @impl GenServer
   def terminate(reason, scape_init) do
     Logger.warning(
-      "#{Colors.red_on_black()}Terminating Scape.System with reason: #{inspect(reason)}#{Colors.reset()}"
+      "#{Colors.red_on_black()}Terminating Scape.System with reason: #{inspect(reason, pretty: true)}#{Colors.reset()}"
     )
 
     ScapeEmitter.emit_scape_detached(scape_init)

@@ -11,7 +11,6 @@ defmodule SwaiWeb.ScapeViewLive.Index do
   alias Hives.Service, as: Hives
   alias Scapes.Service, as: Scapes
   alias Particles.Service, as: Particles
-  alias Swai.Accounts, as: Accounts
 
   alias Scape.Init, as: ScapeInit
 
@@ -27,23 +26,25 @@ defmodule SwaiWeb.ScapeViewLive.Index do
 
   defp do_refresh(socket, scape_id) do
     %ScapeInit{
-      edge_id: edge_id
+      edge_id: edge_id,
+      scape_name: scape_name
     } = scape = Scapes.get_by_id!(scape_id)
 
     edge = Edges.get_by_id!(edge_id)
     arena = Arenas.get_for_scape!(scape_id)
-
+    particles = Particles.get_for_scape!(scape_id)
+    hives = Hives.get_for_scape!(scape_id)
 
     socket
     |> assign(
       scape_id: scape_id,
       edge: edge,
       scape: scape,
-      page_title: "Scape",
+      page_title: "Scape: #{scape_name}",
       now: DateTime.utc_now(),
       arena: arena,
-      hives: Hives.get_for_scape!(scape_id),
-      particles: Particles.get_for_scape!(scape_id)
+      hives: hives,
+      particles: particles
     )
   end
 
@@ -86,11 +87,21 @@ defmodule SwaiWeb.ScapeViewLive.Index do
     |> do_refresh(scape_id)
   end
 
+  @impl true
+  def handle_info({:particles, _}, socket) do
+    scape_id = socket.assigns.scape_id
+
+    {
+      :noreply,
+      socket
+      |> do_refresh(scape_id)
+    }
+  end
+
   ############# SUBSCRIPTIONS FALLTHROUGH #############
   @impl true
   def handle_info(_msg, socket) do
     scape_id = socket.assigns.scape_id
-
     {
       :noreply,
       socket

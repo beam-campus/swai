@@ -82,6 +82,9 @@ defmodule Colors do
   def particle_theme(pid),
     do: "#{white_on_magenta()}#{inspect(pid)}#{reset()}"
 
+  def particle_life_worker_theme(pid),
+    do: "#{green_on_black()}#{inspect(pid)}#{reset()}"
+
   def server_theme(pid),
     do: "#{yellow_on_black()}#{inspect(pid)}#{reset()}"
 
