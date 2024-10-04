@@ -14,7 +14,8 @@ defmodule SwaiWeb.Layouts.OldFooter do
         <div class="flex items-center pb-10 mt-2 space-x-2">
           <img src="/images/discomco-logo.png" alt="DisComCo Logo image-only" class="h-7 w-7" />
           <p class="text-sm text-white font-brand font-regular">
-            with ❤️ from <a href="https://discomco.pl" class="font-regular hover:underline">DisComCo</a>
+            with ❤️ from
+            <a href="https://discomco.pl" class="font-regular hover:underline">DisComCo</a>
           </p>
           <div class="px-4 space-x-3 text-xs text-ltOrange-light font-brand">
             <a href={~p"/mission"} class="hover:underline">
@@ -26,11 +27,13 @@ defmodule SwaiWeb.Layouts.OldFooter do
             <a href={~p"/"} class="hover:underline">
               Privacy
             </a>
+            <a href="https://github.com/beam-campus/swai" class="hover:underline">
+              GitHub
+            </a>
           </div>
         </div>
       </div>
     </footer>
     """
   end
-
 end
