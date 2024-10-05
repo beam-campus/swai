@@ -53,7 +53,7 @@ defmodule SwaiCore.MixProject do
       {:ecto, "~> 3.11.2"},
       {:elixir_uuid, "~> 1.2", override: true},
       {:jason, "~> 1.4.3"},
-      {:req, "~> 0.4.14"},
+      {:req, "~> 0.5"},
       {:hackney, "~> 1.20.1"},
       {:mnemonic_slugs, "~> 0.0.3"}
     ]

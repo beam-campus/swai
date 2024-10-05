@@ -1,6 +1,7 @@
-defmodule SwaiAco.Macula.WebRtcPeer do
+defmodule Macula.Ringcaster do
   @moduledoc """
-  WebRTC peer
+  Madcula Ringcaster is the WebRTC Edge component that establishes a WebRTC ring connection with users' browsers.
+  It is responsible for streaming events to the browsers, for the purose of visualizing Edge data.
   """
   use GenServer
 
@@ -19,7 +20,7 @@ defmodule SwaiAco.Macula.WebRtcPeer do
 
       {:error, reason} ->
         Logger.error(
-          "web_rtc_peer:#{edge_id} failed to start, reason: #{inspect(reason, pretty: true)}"
+          "macula-ringcaster:#{edge_id} failed to start, reason: #{inspect(reason, pretty: true)}"
         )
 
         {:error, reason}
@@ -35,7 +36,7 @@ defmodule SwaiAco.Macula.WebRtcPeer do
 
   ######## PLUMBING ########
   def to_name(key),
-    do: "web_rtc_peer:#{key}"
+    do: "macula-ringcaster:#{key}"
 
   def via(key),
     do: EdgeRegistry.via_tuple({:web_rtc_peer, to_name(key)})

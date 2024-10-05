@@ -8,10 +8,11 @@ defmodule SwaiAco.EdgeApp do
 
   require Logger
 
+  alias Macula.Ringcaster
   alias Edge.Init, as: EdgeInit
   alias Schema.AlgorithmId, as: AlgorithmId
   alias Swai.Defaults, as: Defaults
-  alias SwaiAco.Macula.WebRtcPeer, as: WebRtcPeer
+  alias Macula.Ringcaster, as: Ringcaster
 
   @planet_of_ants_id "b105f59e-42ce-4e85-833e-d123e36ce943"
   @biotope_id @planet_of_ants_id
@@ -68,7 +69,7 @@ defmodule SwaiAco.EdgeApp do
       {Swai.Registry, name: EdgeRegistry},
       {Phoenix.PubSub, name: :edge_pubsub},
       {Edge.Client, edge_init},
-      {WebRtcPeer, edge_init}
+      {Ringcaster, edge_init}
     ]
 
     case Supervisor.start_link(
