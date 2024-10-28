@@ -10,4 +10,5 @@ defmodule Scape.Facts do
   def scape_detached_v1, do: "scape_detached:v1"
 
   def scapes_cache_facts, do: "scapes_cache_facts:v1"
+  def scapes_presence_changed_v1, do: "scapes_presence_changed:v1"
 end

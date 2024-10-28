@@ -4,7 +4,6 @@ defmodule Service.Scapes.System do
   @moduledoc """
   Service.Scapes.System contains the GenServer for the System.
   """
-
   ################ CALLBACKS ################
   @impl GenServer
   def terminate(_reason, _state) do

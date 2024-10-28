@@ -24,10 +24,10 @@ defmodule SwaiWeb.Router do
     get("/", PageController, :home)
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", Web do
-  #   pipe_through :api
-  # end
+
+  pipeline :auth do
+    plug :admin_auth
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:swai_web, :dev_routes) do
@@ -51,6 +51,8 @@ defmodule SwaiWeb.Router do
 
     get("/identicon/:input", IdenticonController, :show)
     get("/biotope_images/:id/image_url", RemoteImageController, :image_url)
+    post("/rings", RingsController, :register_offer)
+    get("/rings/:scape_id", RingsController, :get_ring_offer)
     # get "/countries", CountriesController, :index
   end
 
@@ -123,4 +125,11 @@ defmodule SwaiWeb.Router do
       live("/users/confirm", UserConfirmationInstructionsLive, :new)
     end
   end
+
+  defp admin_auth(conn, _opts) do
+    username = Application.fetch_env!(:broadcaster, :admin_username)
+    password = Application.fetch_env!(:broadcaster, :admin_password)
+    Plug.BasicAuth.basic_auth(conn, username: username, password: password)
+  end
+
 end

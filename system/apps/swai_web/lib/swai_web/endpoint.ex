@@ -21,6 +21,11 @@ defmodule SwaiWeb.Endpoint do
     longpoll: false
   )
 
+  socket("/ring", SwaiWeb.RingSocket,
+    websocket: true,
+    longpoll: false
+  )
+
   plug(CORSPlug, origin: "*")
   # Serve at "/" the static files from "priv/static" directory.
   #

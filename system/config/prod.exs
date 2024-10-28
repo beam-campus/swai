@@ -25,6 +25,13 @@ config :swai_edge, Edge.Client,
   uri: "wss://swarm-wars.ai/edge_socket/websocket",
   reconnect_after_msec: [200, 500, 1_000, 2_000]
 
+config :swai_edge, Macula.SignalClient,
+  rings_url: "http://swarm-wars.ai/api/rings"
+
+config :swai_edge, Macula.Ringcaster,
+  ring_socket_uri: "ws://swarm-wars.ai/ring_socket/websocket"
+
+
 config :swai_train_swarm, TrainSwarmProc.CommandedApp,
   event_store: [
     adapter: Commanded.EventStore.Adapters.Extreme,

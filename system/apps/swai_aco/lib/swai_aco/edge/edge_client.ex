@@ -19,6 +19,8 @@ defmodule Edge.Client do
   @presence_changed_v1 EdgeFacts.presence_changed_v1()
   @edge_facts EdgeFacts.edge_facts()
 
+  @scape_lobby "scape:lobby"
+
   # @socket_reconnect_delay 1_000
 
   # @joined_edge_lobby "edge:lobby:joined"
@@ -48,6 +50,13 @@ defmodule Edge.Client do
     end
   end
 
+  def join_ring(edge_id, scape_init) do
+    GenServer.cast(
+      via(edge_id),
+      {:join_ring, scape_init}
+    )
+  end
+
   ############# CALLBACKS ################
   @impl Slipstream
   def handle_call({:request, topic, hope, payload}, _from, socket) do
@@ -74,6 +83,16 @@ defmodule Edge.Client do
       _push_ref ->
         {:noreply, socket}
     end
+  end
+
+  @impl Slipstream
+  def handle_cast({:join_ring, %{scape_id: scape_id} = scape_init}, socket) do
+    Logger.debug("Edge.Client JOIN RING: #{inspect(scape_id, pretty: true)}")
+
+    socket
+    |> join(@scape_lobby, scape_init)
+
+    {:noreply, socket}
   end
 
   @impl Slipstream

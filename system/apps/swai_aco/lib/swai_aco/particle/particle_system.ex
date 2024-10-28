@@ -1,4 +1,4 @@
-defmodule SwaiAco.Particle.System do
+defmodule Particle.System do
   @moduledoc """
   This module is responsible for managing the particles in the system.
   """
@@ -15,7 +15,7 @@ defmodule SwaiAco.Particle.System do
   require Colors
 
   @particle_facts ParticleFacts.particle_facts()
-  @particle_moved_v1 ParticleFacts.particle_moved_v1()
+  @particle_moved_v1 {:particle, ParticleFacts.particle_moved_v1()}
   @heart_beat Limits.particle_heartbeat()
 
   ################### INTERNALS ##################
@@ -83,8 +83,8 @@ defmodule SwaiAco.Particle.System do
     Process.flag(:trap_exit, true)
 
     sub_systems = [
-      {SwaiAco.Particle.MoveActuator, particle},
-      {SwaiAco.Particle.AIWorker, %{id: particle_id}}
+      {Particle.MoveActuator, particle},
+      {Particle.AIWorker, %{id: particle_id}}
     ]
 
     case Supervisor.start_link(
@@ -141,7 +141,6 @@ defmodule SwaiAco.Particle.System do
           particle
       end
 
-    ParticleEmitter.emit_particle_changed(new_particle)
     {:noreply, new_particle}
   end
 

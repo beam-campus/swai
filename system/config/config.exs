@@ -60,6 +60,12 @@ config :swai_train_swarm, TrainSwarmProc.CommandedApp,
 config :github_proxy,
   github_token: System.get_env("GITHUB_PAT_SWARM_WARS_SCAPE")
 
+config :swai_edge, Macula.SignalClient,
+  rings_url: "http://localhost:4000/api/rings"
+
+config :swai_edge, Macula.Ringcaster,
+  ring_socket_uri: "ws://localhost:4000/ring_socket/websocket"
+
 config :swai_edge, Edge.Client,
   uri: "ws://localhost:4000/edge_socket/websocket",
   reconnect_after_msec: [

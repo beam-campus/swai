@@ -47,7 +47,6 @@ defmodule Edges.Service do
   def hydrate_license(license), do: GenServer.call(__MODULE__, {:hydrate_license, license})
   defp do_get_edge!(%{edge_id: edge_id}), do: :edges_cache |> Cachex.get!(edge_id)
 
-
   ############## CALLBACKS #########
   @impl GenServer
   def init(args \\ []) do
@@ -75,7 +74,8 @@ defmodule Edges.Service do
 
   @impl GenServer
   def handle_call({:get_by_id, edge_id}, _from, state) do
-    case :edges_cache |> Cachex.get!(edge_id) do
+    case :edges_cache
+         |> Cachex.get!(edge_id) do
       nil -> {:reply, EdgeInit.default(), state}
       edge -> {:reply, edge, state}
     end
@@ -100,7 +100,11 @@ defmodule Edges.Service do
 
   @impl GenServer
   def handle_call({:hydrate_license, %{edge_id: edge_id} = license}, _from, state) do
-    found_edge = :edges_cache |> Cachex.get!(edge_id)
+    found_edge =
+      case :edges_cache |> Cachex.get!(edge_id) do
+        nil -> EdgeInit.default()
+        edge -> edge
+      end
 
     new_license = %License{license | edge: found_edge}
 

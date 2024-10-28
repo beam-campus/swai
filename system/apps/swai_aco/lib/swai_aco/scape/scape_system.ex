@@ -13,6 +13,7 @@ defmodule Scape.System do
   alias Hive.Init, as: HiveInit
   alias Scape.Emitter, as: ScapeEmitter
   alias Scape.Init, as: ScapeInit
+  alias Macula.Ringcaster, as: Ringcaster
 
   ################# START HIVE #####################
   defp start_hives(%{hives_cap: hives_cap, scape_id: scape_id}) do
@@ -40,10 +41,12 @@ defmodule Scape.System do
         start_hives(scape_init)
       end)
 
-    {:ok, arena_init} = ArenaInit.new(scape_init)
+    {:ok, arena_init} = 
+      ArenaInit.new(scape_init)
 
     case Supervisor.start_link(
            [
+             {Ringcaster, scape_init},
              {Arena.System, arena_init}
            ],
            strategy: :one_for_one,
@@ -54,7 +57,7 @@ defmodule Scape.System do
         {:ok, scape_init}
 
       {:error, reason} ->
-        Logger.error("Failed to start Arena.System: #{inspect(reason, pretty: true)}")
+        Logger.error("Failed to start Scape.System: #{inspect(reason, pretty: true)}")
         {:stop, reason}
     end
 

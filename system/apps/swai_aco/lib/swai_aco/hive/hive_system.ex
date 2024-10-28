@@ -4,6 +4,7 @@ defmodule Hive.System do
   """
   use GenServer
 
+  alias Particle.System, as: ParticleSystem
   alias Hive.Emitter, as: HiveEmitter
   alias Hive.Init, as: HiveInit
   alias Hive.Status, as: HiveStatus
@@ -109,7 +110,7 @@ defmodule Hive.System do
 
     Supervisor.start_child(
       via_sup(hive_id),
-      {SwaiAco.Particle.System, particle}
+      {ParticleSystem, particle}
     )
 
     hive

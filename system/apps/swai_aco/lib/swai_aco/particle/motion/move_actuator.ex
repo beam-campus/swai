@@ -1,4 +1,4 @@
-defmodule SwaiAco.Particle.MoveActuator do
+defmodule Particle.MoveActuator do
   @moduledoc """
   This module is responsible for moving particles in the system.
   """
@@ -19,7 +19,7 @@ defmodule SwaiAco.Particle.MoveActuator do
   @auto_move true
   @move_every Defaults.move_every()
   @particle_facts ParticleFacts.particle_facts()
-  @particle_moved_v1 ParticleFacts.particle_moved_v1()
+  @particle_moved_v1 {:particle, ParticleFacts.particle_moved_v1()}
 
   ################## PUBLIC ##################
   def start(particle) do
@@ -103,6 +103,8 @@ defmodule SwaiAco.Particle.MoveActuator do
 
       :edge_pubsub
       |> PubSub.broadcast!(@particle_facts, {@particle_moved_v1, particle_moved})
+
+
     end
   end
 
@@ -121,6 +123,8 @@ defmodule SwaiAco.Particle.MoveActuator do
 
     :edge_pubsub
     |> PubSub.subscribe(@particle_facts)
+    
+    Logger.debug("#{__MODULE__} is UP => #{Colors.particle_theme(self())}")
 
     {:ok, state}
   end

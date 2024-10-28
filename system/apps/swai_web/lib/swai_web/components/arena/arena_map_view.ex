@@ -18,6 +18,7 @@ defmodule SwaiWeb.ArenaMapView do
       <div
       id={"arena-map-svg-#{@scape.scape_id}"}
       phx-hook="TheArena"
+      data-scape_id={@scape.scape_id}
       data-arena_map={Jason.encode!(@arena.arena_map)}
       data-particles={Jason.encode!(@particles)}
       data-hives={Jason.encode!(@hives)}

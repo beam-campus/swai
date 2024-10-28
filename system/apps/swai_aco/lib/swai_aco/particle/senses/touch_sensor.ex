@@ -34,7 +34,10 @@ defmodule SwaiAco.Particle.TouchSensor do
     Process.flag(:trap_exit, true)
     Process.send_after(self(), :tick, 1_000)
 
-    Logger.debug("#{__MODULE__} is up: #{Colors.particle_theme(self())} id: #{particle_init.id}")
+    Logger.debug(
+      "#{__MODULE__} is up: #{Colors.particle_theme(self())} id: #{particle_init.particle_id}"
+    )
+
     {:ok, particle_init}
   end
 
@@ -50,10 +53,8 @@ defmodule SwaiAco.Particle.TouchSensor do
   def to_name(particle_id),
     do: "#{__MODULE__}.#{particle_id}"
 
-
   def via(key),
     do: SwaiRegistry.via_tuple({__MODULE__, to_name(key)})
-
 
   def child_spec(%{id: particle_id} = particle_init) do
     %{
@@ -63,7 +64,6 @@ defmodule SwaiAco.Particle.TouchSensor do
       restart: :transient
     }
   end
-
 
   def start_link(%{id: particle_id} = particle_init),
     do:

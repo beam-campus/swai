@@ -15,7 +15,7 @@ Swarm Wars is a Research and Development Platform for Decentralized, Adaptive AI
   - [Architecture](#architecture)
     - [Macula Edge](#macula-edge)
     - [Macula Hub](#macula-hub)
-    - [Macula WebRTC Ring](#macula-webrtc-ring)
+    - [Macula Ring](#macula-ring)
 
 ## Introduction
 
@@ -29,4 +29,4 @@ Swarm Wars has 3 major parts:
 
 ### Macula Hub
 
-### Macula WebRTC Ring
+### Macula Ring

@@ -1,4 +1,4 @@
-defmodule SwaiAco.Particle.AIWorker do
+defmodule Particle.AIWorker do
   @moduledoc """
   This module is responsible for managing the particles in the system.
   """

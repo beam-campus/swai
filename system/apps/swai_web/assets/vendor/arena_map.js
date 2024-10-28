@@ -9,6 +9,75 @@ const size_factor = 1.8;
 const horizontal_scale = 3/2;
 const vertical_scale = Math.sqrt(3);
 
+const ringConfig = {
+  'iceServers': [
+    {
+      'urls': 'stun:stun.l.google.com:19302'
+    },
+  ]
+};
+
+const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+const get_offer = async (scape_id) => {
+  offer_url = `${window.location.protocol}//${window.location.host}/api/rings/${scape_id}`;
+  const response = await fetch(offer_url);
+  offer = await response.json();
+  console.log(`found SDP offer for scape ${scape_id} :`, offer);
+  return offer;
+};
+
+const start_connection = async (ringSocket, scape_id) => {
+  offer = await get_offer(scape_id);
+  
+  const pc = new RTCPeerConnection(ringConfig);
+
+  pc.setRemoteDescription(offer);
+
+  pc.onicecandidate = event => {
+    if (event.candidate === null) return;
+    console.log("Sent ICE candidate:", event.candidate);
+    ringSocket.send(JSON.stringify({ 
+      type: "ice", 
+      data: event.candidate,
+      scape_id: scape_id
+    }));
+  };
+
+  const dataChannel = pc.createDataChannel(scape_id);
+  dataChannel.onopen = _ => { console.log("Data channel is open"); }
+  dataChannel.onclose = _ => { console.log("Data channel is closed"); }
+  dataChannel.onmessage = event => {
+   console.log("Received message:", event.data);
+  }
+
+  pc.ondatachannel = event => {
+    const dataChannel = event.channel;
+    dataChannel.onmessage = event => {
+      console.log("OnDataChannel Received message:", event.data);
+    }
+  }
+
+  ringSocket.onmessage = async event => {
+    const { type, data } = JSON.parse(event.data);
+
+    switch (type) {
+      case "answer":
+        console.log("Received SDP answer:", data);
+        await pc.setRemoteDescription(data);
+        break;
+      case "ice":
+        console.log("Received ICE candidate:", data);
+        await pc.addIceCandidate(data);
+    }
+  };
+
+  const offer = await pc.createOffer();
+  await pc.setLocalDescription(offer);
+  console.log("Sent SDP offer:", offer);
+  ringSocket.send(JSON.stringify({ type: "offer", data: offer }));
+};
+
+
 let g = null;
 
 
@@ -72,7 +141,15 @@ function drawParticles(svg, particles) {
 
 // Usage in TheArena component
 export const TheArena = {
-  mounted() {
+  mounted() {    
+
+    // this.ringSocket = new WebSocket(`${proto}//${window.location.host}/ring_socket/websocket`);
+    // this.ringSocket.onopen = _ => start_connection(ringSocket, this.el.dataset.scape_id);
+    // this.ringSocket.onclose = event => console.log("Ring connection was terminated:", event);
+     
+
+    this.scape_id = this.el.dataset.scape_id;
+    connect_to_ring(this.scape_id);
     this.arena_map = JSON.parse(this.el.dataset.arena_map);
     this.particles = JSON.parse(this.el.dataset.particles);
     this.hives = JSON.parse(this.el.dataset.hives);

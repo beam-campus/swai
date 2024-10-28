@@ -12,8 +12,6 @@ defmodule Swai.CachesSystem do
   alias Caches
 
   @licenses_cache Caches.licenses_path()
-  @hives_cache "/volume/caches/swai_hives.cache"
-  @arenas_cache "/volume/caches/swai_arenas.cache"
   @particles_path Caches.particles_path()
 
   defp start_caches do
@@ -25,6 +23,7 @@ defmodule Swai.CachesSystem do
     Caches.licenses() |> Cachex.start()
     # Caches.swarms() |> Cachex.start()
     Caches.particles() |> Cachex.start()
+    Caches.rings() |> Cachex.start()
   end
 
   ################## CALLBACKS ############
@@ -37,6 +36,7 @@ defmodule Swai.CachesSystem do
       Scapes.Service,
       Hives.Service,
       Arenas.Service,
+      Rings.Service,
       {Licenses.Service, %{cache_file: @licenses_cache}},
       {Particles.Service, %{cache_file: @particles_path}}
     ]

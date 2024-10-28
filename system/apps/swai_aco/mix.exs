@@ -26,6 +26,8 @@ defmodule Aco.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
+      {:httpoison, "~> 1.8"},
+      {:jason, "~> 1.2"},
       {:slipstream, "~> 1.1.0"},
       {:axon, ">= 0.5.0"},
       {:ex_webrtc, "~> 0.5.0"},
