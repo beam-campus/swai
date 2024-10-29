@@ -4,6 +4,7 @@ defmodule Particle.System do
   """
   use GenServer
 
+  alias ErlUtils, as: ErlUtils
   alias Particle.Init, as: ParticleInit
   alias Particle.Emitter, as: ParticleEmitter
   alias Swai.Registry, as: SwaiRegistry
@@ -20,31 +21,17 @@ defmodule Particle.System do
 
   ################### INTERNALS ##################
 
-  defp do_live(_),
-    do: Process.send_after(self(), :HEART_BEAT, @heart_beat)
 
-  defp do_kill!(%ParticleInit{particle_id: particle_id} = particle) do
-    Logger.alert("[#{particle_id}] DIED!")
-
-    ParticleEmitter.emit_particle_died(particle)
-
-    SwaiRegistry.unregister(via(particle_id))
-    SwaiRegistry.unregister(via_sup(particle_id))
-
-    {:stop, :normal, particle}
-  end
+   
 
   defp do_age(%ParticleInit{particle_id: particle_id, age: age, ticks: ticks} = particle) do
     new_age =
-      if rem(age, Limits.particle_heartbeats_per_age()) == 0 do
-        Logger.info("[#{particle_id}] is AGEING: #{age}, ticks: #{ticks}")
+      if rem(ticks, Limits.particle_heartbeats_per_age()) == 0 do
         age + 1
       else
         age
       end
-
-    Process.send_after(self(), :HEART_BEAT, round(@heart_beat))
-
+      
     %ParticleInit{
       particle
       | age: new_age,
@@ -53,7 +40,7 @@ defmodule Particle.System do
   end
 
   defp must_die?(%ParticleInit{age: age, health: health, energy: energy}),
-    do: age >= Limits.particle_max_age() or health <= 0 or energy <= 0
+    do: age > Limits.particle_max_age() or health <= 0 or energy <= 0
 
   ###################### API ######################
   def get_particle(particle_id),
@@ -96,15 +83,15 @@ defmodule Particle.System do
         :edge_pubsub
         |> PubSub.subscribe(@particle_facts)
 
-        Logger.alert("SPAWNED: Particle [#{particle_id}] in Hive [#{hive_id}]")
-        do_live(2_000)
+        Logger.debug("SPAWNED: Particle [#{particle_id}] in Hive [#{hive_id}]")        
         Logger.debug("#{__MODULE__} is up => #{Colors.particle_theme(self())}")
         ParticleEmitter.emit_particle_spawned(particle)
+        Process.send_after(self(), :HEART_BEAT, @heart_beat)
         {:ok, particle}
 
       {:error, reason} ->
         Logger.error(
-          "Failed to start Particle subsystems for Particle :[#{particle_id}]:Reason: #{inspect(reason, pretty: true)}"
+          "Failed to start #{__MODULE__} for Particle :[#{particle_id}]:Reason: #{inspect(reason, pretty: true)}"
         )
 
         {:stop, reason}
@@ -113,19 +100,17 @@ defmodule Particle.System do
 
   ######################## HEARTBEAT ######################
   @impl true
-  def handle_info(:HEART_BEAT, particle) do
-    new_particle =
-      if must_die?(particle) do
-        particle
-        |> do_kill!()
-      else
-        do_live(1_000)
-
-        particle
-        |> do_age()
-      end
-
-    {:noreply, new_particle}
+  def handle_info(:HEART_BEAT, %{particle_id: particle_id} = particle) do
+    if must_die?(particle) do
+      Logger.alert("[#{particle_id}] DIED!")
+      ParticleEmitter.emit_particle_died(particle)
+      SwaiRegistry.unregister(via(particle_id))
+      SwaiRegistry.unregister(via_sup(particle_id))
+      {:stop, :normal, particle}
+    else
+      Process.send_after(self(), :HEART_BEAT, @heart_beat)
+      {:noreply, particle |> do_age()}
+    end
   end
 
   ################ MOVED ######################
@@ -137,7 +122,7 @@ defmodule Particle.System do
           new_particle
 
         {:error, changeset} ->
-          Logger.error("Invalid movment: #{inspect(changeset, pretty: true)}")
+          Logger.error("Invalid movement: #{inspect(changeset, pretty: true)}")
           particle
       end
 

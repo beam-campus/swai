@@ -1,31 +1,19 @@
 defmodule EdgeRepl do
-  alias Scape.Init, as: ScapeInit
-  alias Schema.SwarmLicense, as: License
-  alias Schema.SwarmLicense.Status, as: LicenseStatus
+  @moduledoc false
 
-  alias Scape.System, as: ScapeSystem
-  alias Edge.Init, as: EdgeInit
-  alias Edge.System, as: EdgeSystem
+  alias Particle.Init, as: ParticleInit
+  alias Particle.System, as: ParticleSystem
+  alias Arena.Hexa, as: Hexa
 
-  def start_test_scape() do
-    test_scape_init = Scape.Init.test_scape_init()
+  def particle1, do: %ParticleInit{particle_id: "particle1", hive_id: "hive1", age: 0, health: 100, energy: 100, ticks: 0, hexa: Hexa.new(0, 0)}
+  def particle2, do: %ParticleInit{particle_id: "particle2", hive_id: "hive1", age: 0, health: 100, energy: 100, ticks: 0, hexa: Hexa.new(0, 0)}
 
-    case ScapeSystem.start_link(test_scape_init) do
-      {:ok, _} -> IO.puts("ScapeSystem started")
-      {:error, _} -> IO.puts("ScapeSystem failed to start")
+
+  def start_particle(%{particle_id: particle_id} = particle) do
+    case ParticleSystem.start(particle) do
+      {:ok, _} -> IO.puts("Particle [#{particle_id}] started")
+      {:error, _} -> IO.puts("Particle [#{particle_id}] failed to start")
     end
   end
-
-  def start_test_edge() do
-    test_edge_init = %EdgeInit{
-      edge_id: "test_edge",
-      scapes_cap: 1,
-      hives_cap: 1
-    }
-
-    case EdgeSystem.start(test_edge_init) do
-      {:ok, _} -> IO.puts("EdgeSystem started")
-      {:error, _} -> IO.puts("EdgeSystem failed to start")
-    end
-  end
+  
 end

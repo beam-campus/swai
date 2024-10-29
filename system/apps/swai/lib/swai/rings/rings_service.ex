@@ -53,7 +53,7 @@ defmodule Rings.Service do
     offers =
       :rings_cache
       |> Cachex.stream!()
-      |> Stream.map(fn {:entry, _id, _internal_key, _nil, offer} -> offer end)
+      |> Stream.map(fn {:entry, ring_id, _internal_key, _nil, offer} -> %{ring_id: ring_id, offer: offer} end)
       |> Enum.to_list()
 
     {:reply, offers, state}

@@ -13,20 +13,21 @@ defmodule Swai.Defaults do
   def arena_maze_density, do: 100
   def hives_cap, do: 4
   def scapes_cap, do: 2
-  def particles_cap, do: 10
+  def particles_cap, do: 50
   def threats_cap, do: 10
   def collectibles_cap, do: 10
-  def particle_heartbeat, do: 3_000
-  def hive_cycle, do: 5_000
+  def hive_cycle, do: 1_000
   def initial_claim_delay, do: 30_000
   def normal_claim_delay, do: 10_000
   def start_swarm_delay, do: 10_000
-  def move_every, do: 5_000
+  def move_every, do: 500
 
-  ## 2 minutes
-  def particle_heartbeats_per_age, do: 20
-  ## 30 minutes
-  def particle_max_age, do: 2
+  
+  def particle_heartbeat, do: 1_000
+  ## 1 minute
+  def particle_heartbeats_per_age, do: 60
+  ## 15 minutes
+  def particle_max_age, do: 5
 
   def arena_dimensions, do: Vector.new(arena_width(), arena_height(), arena_depth())
 

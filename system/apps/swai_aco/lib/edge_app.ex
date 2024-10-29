@@ -8,7 +8,6 @@ defmodule SwaiAco.EdgeApp do
 
   require Logger
 
-  alias Macula.Ringcaster
   alias Edge.Init, as: EdgeInit
   alias Schema.AlgorithmId, as: AlgorithmId
   alias Swai.Defaults, as: Defaults
@@ -20,7 +19,6 @@ defmodule SwaiAco.EdgeApp do
   @algorithm_acronym "ACO"
   @algorithm_id AlgorithmId.aco_algorithm_id()
 
-  @scapes_cap Defaults.scapes_cap()
   @hives_cap Defaults.hives_cap()
   @particles_cap Defaults.particles_cap()
 
@@ -42,7 +40,6 @@ defmodule SwaiAco.EdgeApp do
           biotope_name: @biotope_name,
           algorithm_acronym: @algorithm_acronym,
           algorithm_id: @algorithm_id,
-          scapes_cap: @scapes_cap,
           hives_cap: @hives_cap,
           particles_cap: @particles_cap
       }
@@ -53,11 +50,12 @@ defmodule SwaiAco.EdgeApp do
     |        Ant Colony Optimization (ACO)         |
     +----------------------------------------------+
 
-    edge_id:\t\t#{edge_init.edge_id}
-    biotope_name:\t\t#{edge_init.biotope_name}
-    algorithm_acronym:\t\t#{edge_init.algorithm_acronym}
-    api_key:\t\t#{edge_init.api_key}
-    country:\t\t#{edge_init.country}
+    node:     #{edge_init.edge_id}
+    biotope:  #{edge_init.biotope_name}
+    key:      #{edge_init.api_key}
+    country:  #{edge_init.country}
+    city:     #{edge_init.city}
+    capacity: #{edge_init.scapes_cap}
 
 
     \n\n\n")

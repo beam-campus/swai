@@ -1,4 +1,6 @@
 defmodule ErlUtils do
+  @moduledoc false
+
   def count_messages do
     :erlang.processes()
     |> Enum.reduce(
@@ -29,4 +31,14 @@ defmodule ErlUtils do
     :erlang.processes()
     |> Enum.count()
   end
+
+  def print_process_stats do
+    IO.puts("Total processes: #{total_processes()}")
+    IO.puts("Total messages: #{total_messages()}")
+  end
+
+
+
+
+
 end

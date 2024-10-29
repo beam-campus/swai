@@ -47,7 +47,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
           :ok,
           socket
           |> assign(
-            page_title: "My Workspace",
+            page_title: "Workspace",
             edges: Edges.get_all(),
             now: DateTime.utc_now(),
             licenses: Licenses.get_all_for_user(current_user.id)
@@ -58,7 +58,7 @@ defmodule SwaiWeb.MyWorkspaceLive.Index do
         {:ok,
          socket
          |> assign(
-           page_title: "My Workspace",
+           page_title: "Workspace",
            edges: [],
            now: DateTime.utc_now(),
            licenses: []

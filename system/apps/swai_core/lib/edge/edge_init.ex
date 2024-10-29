@@ -9,6 +9,9 @@ defmodule Edge.Init do
   alias Edge.Status, as: EdgeStatus
   alias Phoenix.Socket, as: Socket
   alias Schema.EdgeStats, as: Stats
+  alias Apis.IpInfoCache, as: IpInfoCache
+  alias Apis.Countries, as: Countries
+  alias Swai.Defaults, as: Defaults
 
   import Ecto.Changeset
 
@@ -16,6 +19,7 @@ defmodule Edge.Init do
   require EnvVars
 
   @edge_status_unknown EdgeStatus.unknown()
+  @scapes_cap Defaults.scapes_cap()
 
   @json_fields [
     :edge_id,
@@ -287,6 +291,16 @@ defmodule Edge.Init do
     }
   end
 
+  defp do_get_cca2_and_flag_svg(country_info) do
+    case System.get_env(EnvVars.swai_edge_cca2()) do
+      nil ->
+        [country_info["cca2"], country_info["flags"]["svg"]]
+
+      cca2 ->
+        [cca2, "https://flagcdn.com/#{String.downcase(cca2)}.svg"]
+    end
+  end
+
   def from_environment(ip_info, country_info \\ %{}) when is_map(ip_info) do
     {:ok, chost} = :inet.gethostname()
     api_key = System.get_env(EnvVars.swai_edge_api_key()) || "no-api-key"
@@ -300,6 +314,11 @@ defmodule Edge.Init do
 
     country = System.get_env(EnvVars.swai_edge_country()) || ip_info["country"]
     country_code = System.get_env(EnvVars.swai_edge_country_code()) || ip_info["countryCode"]
+    city = System.get_env(EnvVars.swai_edge_city()) || ip_info["city"]
+    scapes_cap = EnvVars.get_env_var_as_integer(EnvVars.swai_edge_scapes_cap(), @scapes_cap)
+
+    [country_cca2, flag_svg] =
+      do_get_cca2_and_flag_svg(country_info)
 
     is_container =
       EnvVars.get_env_var_as_boolean(
@@ -311,6 +330,7 @@ defmodule Edge.Init do
 
     %EdgeInit{
       edge_id: edge_id,
+      scapes_cap: scapes_cap,
       edge_status: @edge_status_unknown,
       biotope_id: biotope_id,
       algorithm_acronym: algorithm_acronym,
@@ -322,12 +342,12 @@ defmodule Edge.Init do
       country: country,
       country_code: country_code,
       country_ccn3: country_info["ccn3"],
-      country_cca2: country_info["cca2"],
+      country_cca2: country_cca2,
       country_cca3: country_info["cca3"],
       country_cioc: country_info["cioc"],
       region: ip_info["region"],
       region_name: ip_info["regionName"],
-      city: ip_info["city"],
+      city: city,
       zip: ip_info["zip"],
       lat: latitude,
       lon: longitude,
@@ -346,17 +366,17 @@ defmodule Edge.Init do
       online_since: DateTime.utc_now(),
       image_url: "https://picsum.photos/400/300",
       flag: "\u127988",
-      flag_svg: ip_info["flag_svg"],
+      flag_svg: flag_svg,
       stats: Stats.empty()
     }
   end
 
   def enriched do
     {:ok, ip_info} =
-      Apis.IpInfoCache.refresh()
+      IpInfoCache.refresh()
 
     country_info =
-      case Apis.Countries.get_country_by_country_code(ip_info["countryCode"]) do
+      case Countries.get_country_by_country_code(ip_info["countryCode"]) do
         {:ok, country} -> country
         _ -> %{}
       end

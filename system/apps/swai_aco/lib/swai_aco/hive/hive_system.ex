@@ -150,6 +150,7 @@ defmodule Hive.System do
         count_particles(hive_id) < particles_cap ->
           Process.send_after(self(), :LIVE, @hive_cycle)
           do_spawn_particle(hive)
+          hive
 
         true ->
           Process.send_after(self(), :LIVE, @hive_cycle)

@@ -6,8 +6,6 @@ defmodule SwaiAco.Particle.PickActuator do
 
   alias Particle.Init, as: ParticleInit
   alias Swai.Registry, as: SwaiRegistry
-  alias SwaiAco.Particle.System, as: ParticleSystem
-  alias SwaiAco.Particle.AIWorker, as: ParticleBrain
 
   require Logger
   require Colors
@@ -34,7 +32,7 @@ defmodule SwaiAco.Particle.PickActuator do
     Process.flag(:trap_exit, true)
     Process.send_after(self(), :tick, 1_000)
 
-    Logger.debug("#{__MODULE__} is up: #{Colors.particle_theme(self())} id: #{particle_init.id}")
+    Logger.debug("#{__MODULE__} is up: #{Colors.particle_theme(self())} id: #{particle_init.particle_id}")
     {:ok, particle_init}
   end
 

@@ -3,7 +3,6 @@ defmodule SwaiWeb.UserMenu do
   alias Hex.API.User
   use SwaiWeb, :live_component
 
-  alias Swai.Accounts, as: Accounts
   alias Schema.User, as: User
   alias Phoenix.LiveView.JS
 
@@ -85,7 +84,7 @@ defmodule SwaiWeb.UserMenu do
           method="get"
           id="user-menu-item-about"
         >
-          Mesh Status
+          Macula
         </.link>
 
         <.link
