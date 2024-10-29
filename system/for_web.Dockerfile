@@ -15,7 +15,7 @@ ARG APIS_APP=apis
 ARG TRAIN_SWARM_APP=swai_train_swarm
 
 RUN apt-get update -y && \
-    apt-get install -y build-essential git npm esbuild  && \
+    apt-get install -y build-essential git npm esbuild rustc && \
     apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 
@@ -50,7 +50,7 @@ COPY mix.exs mix.lock ./
 RUN MIX_ENV="prod" mix do deps.get --only "prod", deps.compile
 
 # build assets
- COPY apps/${WEB_APP} ./apps/${WEB_APP}
+COPY apps/${WEB_APP} ./apps/${WEB_APP}
 # COPY apps/${WEB_APP}/assets/package.json apps/${WEB_APP}/assets/package-lock.json ./apps/${WEB_APP}/assets/
 # COPY apps/${WEB_APP}/priv apps/${WEB_APP}/priv/
 # COPY apps/${WEB_APP}/priv ./priv
@@ -90,7 +90,7 @@ ARG SVC_APP=swai
 ARG WEB_APP=swai_web
 
 RUN apt-get update -y && \
-    apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates  && \
+    apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates rustc  && \
     apt-get clean && rm -f /var/lib/apt/lists/*_* 
 
 # Set the locale
