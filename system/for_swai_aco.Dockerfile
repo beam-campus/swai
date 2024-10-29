@@ -67,7 +67,7 @@ ARG EDGE_APP=swai_aco
 ARG APIS_APP=apis
 
 RUN apt-get update -y && \
-    apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates curl systemd rustc && \
+    apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates curl systemd && \
     apt-get clean && rm -f /var/lib/apt/lists/*_* 
 
 # Set the locale
