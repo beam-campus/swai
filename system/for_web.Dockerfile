@@ -15,9 +15,19 @@ ARG APIS_APP=apis
 ARG TRAIN_SWARM_APP=swai_train_swarm
 
 RUN apt-get update -y && \
-    apt-get install -y build-essential git npm esbuild rustc && \
+    apt-get install -y curl build-essential git npm esbuild rustc && \
     apt-get clean && rm -f /var/lib/apt/lists/*_*
 
+# Install rustup and Rust 1.81.0
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && ~/.cargo/bin/rustup install 1.81.0 \
+    && ~/.cargo/bin/rustup default 1.81.0
+
+# Add Cargo to PATH
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Verify installation
+RUN rustc --version && cargo --version
 
 # prepare build dir
 WORKDIR /build_space
