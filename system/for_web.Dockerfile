@@ -100,7 +100,7 @@ ARG SVC_APP=swai
 ARG WEB_APP=swai_web
 
 RUN apt-get update -y && \
-    apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates libc6=2.33-0ubuntu5 openssl && \
+    apt-get install -y libstdc++6 openssl libncurses5 locales ca-certificates libc6 openssl && \
     apt-get clean && rm -f /var/lib/apt/lists/*_* 
 
 # Set the locale
