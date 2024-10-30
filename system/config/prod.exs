@@ -29,7 +29,29 @@ config :swai_edge, Macula.SignalClient,
   rings_url: "http://swarm-wars.ai/api/rings"
 
 config :swai_edge, Macula.Ringcaster,
-  ring_socket_uri: "ws://swarm-wars.ai/ring_socket/websocket"
+  uri: "ws://swarm-wars.ai/ring_socket/websocket",
+  reconnect_after_msec: [
+    202 * :rand.uniform(11),
+    505 * :rand.uniform(12),
+    1_010 * :rand.uniform(13),
+    2_020 * :rand.uniform(14)
+    # 6_060 * :rand.uniform(15),
+    # 10_101 * :rand.uniform(16),
+    # 20_202 * :rand.uniform(17),
+    # 30_303 * :rand.uniform(18),
+    # 60_606 * :rand.uniform(19),
+  ],
+  rejoin_after_msec: [
+    202 * :rand.uniform(11),
+    505 * :rand.uniform(12),
+    1_010 * :rand.uniform(13),
+    2_020 * :rand.uniform(14)
+    # 6_060 * :rand.uniform(15),
+    # 10_101 * :rand.uniform(16),
+    # 20_202 * :rand.uniform(17),
+    # 30_303 * :rand.uniform(18),
+    # 60_606 * :rand.uniform(19),
+  ]
 
 
 config :swai_train_swarm, TrainSwarmProc.CommandedApp,
