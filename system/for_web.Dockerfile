@@ -15,7 +15,7 @@ ARG APIS_APP=apis
 ARG TRAIN_SWARM_APP=swai_train_swarm
 
 RUN apt-get update -y && \
-    apt-get install -y curl build-essential git npm esbuild rustc && \
+    apt-get install -y pkg-config openssl curl build-essential git npm esbuild && \
     apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Install rustup and Rust 1.81.0

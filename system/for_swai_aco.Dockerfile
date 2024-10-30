@@ -14,7 +14,7 @@ ARG APIS_APP=apis
 ARG EDGE_APP=swai_aco
 
 RUN apt-get update -y && \
-    apt-get install -y curl build-essential git npm esbuild && \
+    apt-get install -y pkg-config openssl curl build-essential git npm esbuild && \
     apt-get clean && rm -f /var/lib/apt/lists/*_*
 
 # Install rustup and Rust 1.81.0
