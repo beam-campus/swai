@@ -71,7 +71,7 @@ const start_connection = async (ringSocket, scape_id) => {
     }
   };
 
-  const offer = await pc.createOffer();
+  let offer = await pc.createOffer();
   await pc.setLocalDescription(offer);
   console.log("Sent SDP offer:", offer);
   ringSocket.send(JSON.stringify({ type: "offer", data: offer }));
