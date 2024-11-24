@@ -30,7 +30,6 @@ defmodule SwaiCore.MixProject do
       extra_applications: [
         :logger,
         :eex,
-        :observer,
         :os_mon,
         :runtime_tools
       ]

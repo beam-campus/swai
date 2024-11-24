@@ -29,6 +29,11 @@ defmodule SwaiAco.EdgeApp do
     )
   end
 
+  def handle_info({:EXIT, _pid, reason}, state) do
+    Logger.error("Edge App is exiting. reason: #{inspect(reason, pretty: true)}")
+    {:stop, :normal, state}
+  end
+
   @impl Application
   def start(_type, _args) do
     %EdgeInit{} = edge_init = EdgeInit.enriched()

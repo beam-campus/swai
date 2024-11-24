@@ -10,10 +10,12 @@ defmodule Scape.System do
   require Task
 
   alias Arena.Init, as: ArenaInit
+
   alias Hive.Init, as: HiveInit
+
   alias Scape.Emitter, as: ScapeEmitter
   alias Scape.Init, as: ScapeInit
-  alias Macula.Ringcaster, as: Ringcaster
+  #  alias Macula.Ringcaster, as: Ringcaster
 
   ################# START HIVE #####################
   defp start_hives(%{hives_cap: hives_cap, scape_id: scape_id}) do
@@ -41,12 +43,12 @@ defmodule Scape.System do
         start_hives(scape_init)
       end)
 
-    {:ok, arena_init} = 
+    {:ok, arena_init} =
       ArenaInit.new(scape_init)
 
     case Supervisor.start_link(
            [
-             {Ringcaster, scape_init},
+        #             {Ringcaster, scape_init},
              {Arena.System, arena_init}
            ],
            strategy: :one_for_one,

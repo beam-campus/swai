@@ -34,7 +34,6 @@ defmodule Swai.Umbrella.MixProject do
         applications: [
           runtime_tools: :permanent,
           logger: :permanent,
-          observer: :permanent,
           os_mon: :permanent,
           swai_aco: :permanent
         ]

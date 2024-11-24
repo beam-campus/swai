@@ -1,10 +1,12 @@
 defmodule Aco.MixProject do
   use Mix.Project
 
+  @version "0.1.0"
+
   def project do
     [
       app: :swai_aco,
-      version: "0.1.0",
+      version: @version,
       build_path: "../../_build",
       config_path: "../../config/config.exs",
       deps_path: "../../deps",
@@ -30,8 +32,8 @@ defmodule Aco.MixProject do
       {:jason, "~> 1.2"},
       {:slipstream, "~> 1.1.0"},
       {:axon, ">= 0.5.0"},
-      {:ex_webrtc, "~> 0.5.0"},
-      {:ex_sctp, "~> 0.1.0"},
+      # {:ex_webrtc, "~> 0.6.3", override: true},
+      # {:ex_sctp, "~> 0.1.1", override: true},
       {:swai_core, in_umbrella: true},
       {:apis, in_umbrella: true}
     ]

@@ -27,7 +27,7 @@ defmodule Apis.MixProject do
   def application do
     [
       mod: {Apis.Application, []},
-      extra_applications: [:logger, :eex, :observer]
+      extra_applications: [:logger, :eex]
     ]
   end
 
