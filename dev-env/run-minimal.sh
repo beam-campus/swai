@@ -1,7 +1,5 @@
 #! /bin/bash
 
-
-
 ## CLEAR ALL DATA
 echo "Clearing all data"
 sudo rm -rf /volume
@@ -64,10 +62,8 @@ sudo mkdir -p /volume/kafka/data
 # COCKROACHDB
 sudo mkdir -p /volume/crdb/data
 
-
 sudo chown "$USER" -R /volume/
 # sudo chown 1001 -R /volume/mongodb  # https://hub.docker.com/_/mongo
-
 
 git submodule update --remote
 
@@ -85,27 +81,25 @@ git submodule update --remote
 #                -f redis.yml \
 #                -f rabbitmq.yml \
 #                -f networks.yml \
-#                up --build $1 
+#                up --build $1
 
 docker build -f ../system/for_swai_aco.Dockerfile -t local/macula-edge ../system/
 
 docker-compose -f esdb-21.yml \
-               -f postgres.yml \
-               -f macula-edge-bxl.yml \
-               -f networks.yml \
-               down
+  -f postgres.yml \
+  -f macula-edge-bxl.yml \
+  -f networks.yml \
+  down
 
 docker-compose -f esdb-21.yml \
-               -f postgres.yml \
-               -f macula-edge-bxl.yml \
-               -f networks.yml \
-               up $1
+  -f postgres.yml \
+  -f macula-edge-bxl.yml \
+  -f networks.yml \
+  up "$1"
 
+# sleep 2s
 
-sleep 2s
+# sudo cp /volume/eventstore/certs/ca/ca.crt /usr/local/share/ca-certificates/eventstore.crt
+# sudo openssl x509 -in /volume/eventstore/certs/ca/ca.crt -out /usr/local/share/ca-certificates/eventstore.pem
 
-sudo cp /volume/eventstore/certs/ca/ca.crt /usr/local/share/ca-certificates/eventstore.crt
-sudo openssl x509 -in /volume/eventstore/certs/ca/ca.crt -out /usr/local/share/ca-certificates/eventstore.pem
-
-sudo update-ca-certificates
-
+# sudo update-ca-certificates
