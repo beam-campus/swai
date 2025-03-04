@@ -1,32 +1,49 @@
-# Swarm Wars
+# Macula
 
 ![Swarm Wars Container Diagram](architecture/swai-container.png)
 
 ## TL;DR
 
-Swarm Wars is a Research and Development Platform for Decentralized, Adaptive AI.
+_Macula_ is Latin for "spot", referring to the nature of the kind of infrastructure this project is targeting: a decentralized and distributed mesh of tiny-node, low-cost, low-power clusters.
+
+Recent world events have shown once more that nothing is certain: decades-old alliances we took for granted seem to be prone to collapse at the drop of a hat and prove to be vulnerable to personal agendas of political and economic madmen.
+
+This project aims at building a democratic, open-source and crowdsourced platform, outside of the influence of Big Tech and Big Politics, that is still capable of running meaningful workloads.
+
+It is a radical departure from the current industry mindset of moving towards centralized, big cloud platforms, which in essence comes down to giving up control over data to institutions and corporations we don't control or even trust.
 
 ## OUTLINE
 
-- [Swarm Wars](#swarm-wars)
+- [Macula](#macula)
   - [TL;DR](#tldr)
   - [OUTLINE](#outline)
-  - [Introduction](#introduction)
+  - [CHALLENGES](#challenges)
+    - [Energy](#energy)
+    - [Networking](#networking)
+    - [Security](#security)
+    - [Governance](#governance)
+    - [Workloads](#workloads)
   - [Architecture](#architecture)
-    - [Macula Edge](#macula-edge)
-    - [Macula Hub](#macula-hub)
+    - [Edge Nodes](#edge-nodes)
+    - [Hub Nodes](#hub-nodes)
     - [Macula Ring](#macula-ring)
 
-## Introduction
+## CHALLENGES
 
-Swarm Wars is the combination of two interests: decentralization of the internet and a life-long fascination for nature.
+### Energy
+
+### Networking
+
+### Security
+
+### Governance
+
+### Workloads
 
 ## Architecture
 
-Swarm Wars has 3 major parts:
+### Edge Nodes
 
-### Macula Edge
-
-### Macula Hub
+### Hub Nodes
 
 ### Macula Ring

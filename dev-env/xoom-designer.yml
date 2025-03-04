@@ -1,14 +1,13 @@
-version: '3'
+version: "3"
 
 services:
-
   designer:
     image: vlingo/xoom-designer:1.11.0
     container_name: xoom-designer
     networks:
       - dev-net
     ports:
-      - 19090:19090
+      - 19090:8090
     env_file:
       - ./backend/xoom/designer/.env
 
@@ -34,3 +33,4 @@ services:
       - 5432:5432
     env_file:
       - ./backend/xoom/schemata-db/.env
+

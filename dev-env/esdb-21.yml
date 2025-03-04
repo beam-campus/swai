@@ -1,6 +1,4 @@
-
 services:
-
   esdb21:
     image: local/eventstore
     build:
@@ -22,11 +20,10 @@ services:
       - 1113:1113
       - 2113:2113
     volumes:
-     - eventstore-data:/var/lib/eventstore
-     - eventstore-log:/var/log/eventstore
+      - eventstore-data:/var/lib/eventstore
+      - eventstore-log:/var/log/eventstore
 
 volumes:
-  
   eventstore-data:
     driver: local
     driver_opts:
@@ -40,5 +37,3 @@ volumes:
       type: none
       device: /volume/eventstore/logs
       o: bind
-
-

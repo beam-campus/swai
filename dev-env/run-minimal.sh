@@ -12,6 +12,10 @@ sudo mkdir -p /volume/caches
 echo "Creating macula-edge system folder"
 sudo mkdir -p /volume/macula-edge-bxl
 
+## EXCALIDRAW
+echo "Creating excalidraw folder"
+sudo mkdir -p /volume/excalidraw/data
+
 # WIRESHARK
 echo "Creating wireshark folder"
 sudo mkdir -p /volume/wireshark/data
@@ -86,16 +90,20 @@ git submodule update --remote
 docker build -f ../system/for_swai_aco.Dockerfile -t local/macula-edge ../system/
 
 docker-compose -f esdb-21.yml \
+  -f livebook.yml \
   -f postgres.yml \
   -f macula-edge-bxl.yml \
+  -f excalidraw.yml \
   -f networks.yml \
   down
 
 docker-compose -f esdb-21.yml \
+  -f livebook.yml \
   -f postgres.yml \
   -f macula-edge-bxl.yml \
+  -f excalidraw.yml \
   -f networks.yml \
-  up "$1"
+  up $1
 
 # sleep 2s
 

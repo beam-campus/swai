@@ -56,11 +56,11 @@ defmodule EnvVars do
   end
 
   defp do_to_bool(nil, default), do: default
-  defp do_to_bool(1, _), do: true
-  defp do_to_bool(0, _), do: false
   defp do_to_bool("1", _), do: true
   defp do_to_bool("0", _), do: false
   defp do_to_bool("true", _), do: true
   defp do_to_bool("false", _), do: false
+  defp do_to_bool(1, _), do: true
+  defp do_to_bool(0, _), do: false
   defp do_to_bool(_, default), do: default
 end
