@@ -6,6 +6,9 @@
 .lexical/
 .elixir-tools/
 .obsidian/
+node_modules/
+managed_context/
+test_suite_analysis/
 
 
 ## Elixir
