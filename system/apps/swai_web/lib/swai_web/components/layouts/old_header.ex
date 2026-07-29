@@ -23,7 +23,7 @@ defmodule SwaiWeb.Layouts.OldHeader do
           <!--     DISCLAIMER: This site is WiP! Estimated launch date: 15.09.2024.<br /> -->
           <!--     If you want to support our work, please consider -->
           <!--     <a -->
-          <!--       href="https://www.buymeacoffee.com/beamologist" -->
+          <!--       href="https://www.buymeacoffee.com/rlefever" -->
           <!--       class="text-ltOrange-light hover:underline" -->
           <!--     > -->
           <!--       buying us a coffee -->

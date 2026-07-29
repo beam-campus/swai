@@ -85,7 +85,7 @@ defmodule SwaiWeb.OurMissionLive.Index do
     a democratization that is essential to ensure that expertise is widely distributed and decentralized,
     so that development is guided by a broad spectrum of perspectives and values.
     <br/>
-    <a class="text-blue-300 hover:underline" href="https://www.buymeacoffee.com/beamologist">Your support</a> will allow us to build
+    <a class="text-blue-300 hover:underline" href="https://www.buymeacoffee.com/rlefever">Your support</a> will allow us to build
     an independent and entertaining, though serious tool for research, education and problem-solving.
     </span>
     </div>
